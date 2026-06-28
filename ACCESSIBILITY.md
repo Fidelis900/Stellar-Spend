@@ -3,6 +3,51 @@
 ## Overview
 This document outlines the accessibility features implemented in Stellar-Spend to ensure WCAG 2.1 AA compliance and provide an inclusive user experience.
 
+## Automated Testing
+
+### CI Gate: Zero Serious Violations
+
+A11y checks are a first-class, enforced part of the test suite.
+
+| Layer | Tool | Gate |
+|-------|------|------|
+| Component tests | `axe-core` via `src/test/accessibility.test.tsx` | Zero `serious`/`critical` violations (fails vitest) |
+| E2E tests | `axe-core` injected via Playwright (`e2e/accessibility.spec.ts`) | Zero `serious`/`critical` violations (fails playwright) |
+| Storybook | `@storybook/addon-a11y` | Visual in Storybook UI (non-blocking) |
+
+CI fails on **any new serious or critical axe violation** introduced in a PR.  
+Minor/moderate violations are tracked in the debt list below and do not block merges.
+
+### Running Locally
+
+```bash
+# Component/unit a11y tests
+npm run test -- accessibility
+
+# E2E a11y tests
+npm run test:e2e -- e2e/accessibility.spec.ts
+
+# Storybook a11y panel
+npm run storybook
+```
+
+### What Is Covered by Automated Tests
+
+| Area | Component Tests | E2E Tests |
+|------|----------------|-----------|
+| Offramp form | ✅ | ✅ |
+| Form validation errors | ✅ | — |
+| Transaction preview modal | ✅ | ✅ |
+| Wallet selection modal | ✅ | ✅ |
+| Exchange rate chart | ✅ | — |
+| Transaction table | ✅ | ✅ |
+| Progress bar | ✅ | — |
+| Toast notifications | ✅ | — |
+| Keyboard tab order | ✅ | ✅ |
+| Escape key for modals | ✅ | — |
+| Color contrast | — | ✅ |
+| Skip-to-content link | — | ✅ |
+
 ## Implemented Features
 
 ### 1. Keyboard Navigation
@@ -64,6 +109,28 @@ This document outlines the accessibility features implemented in Stellar-Spend t
 - Muted text: #666666 (5.7:1 ratio)
 - Accent: #b8922e (8.1:1 ratio on light bg)
 
+## A11y Debt — Non-Blocking Items
+
+These items are known issues that do not currently trigger the zero-serious-violations gate (they are minor or moderate severity) but must be resolved before the next major release.
+
+| ID | Violation | Severity | Location | Owner | Target |
+|----|-----------|----------|----------|-------|--------|
+| A11Y-001 | Skip-to-main-content link not yet implemented | Moderate | Layout | — | Q3 2026 |
+| A11Y-002 | `prefers-reduced-motion` not respected on transaction progress animation | Moderate | `TransactionProgressModal` | — | Q3 2026 |
+| A11Y-003 | Focus not trapped inside wallet connect modal (third-party component) | Moderate | Wallet connect dialog | — | Q3 2026 |
+| A11Y-004 | QR code image lacks contextual description beyond generic alt text | Minor | `SharePreview` | — | Q4 2026 |
+| A11Y-005 | Exchange rate chart canvas element lacks a text-equivalent data table | Minor | Dashboard chart | — | Q4 2026 |
+| A11Y-006 | Font scaling above 200% breaks the offramp form layout | Minor | Offramp form | — | Q4 2026 |
+
+### Adding to the Debt List
+When axe reports a violation that is intentionally deferred (non-blocking), add it here with:
+- A unique `A11Y-NNN` ID
+- Severity (minor / moderate)
+- Affected component/page
+- An owner and target quarter
+
+Do **not** suppress axe rules in code (e.g., `/* axe-disable */`) without first adding the item to this table.
+
 ## Testing Recommendations
 
 ### Manual Testing
@@ -74,9 +141,9 @@ This document outlines the accessibility features implemented in Stellar-Spend t
 5. **High Contrast**: Test with Windows High Contrast mode
 
 ### Automated Testing
-1. **axe DevTools**: Run axe accessibility checker in browser
-2. **Lighthouse**: Run Lighthouse accessibility audit
-3. **WAVE**: Use WAVE browser extension for accessibility evaluation
+1. **Component tests**: `npm run test -- accessibility` (axe-core via vitest)
+2. **E2E tests**: `npm run test:e2e -- e2e/accessibility.spec.ts` (axe-core via Playwright)
+3. **Storybook**: `npm run storybook` → A11y panel
 
 ### Browser Testing
 - Chrome/Edge (latest)
@@ -84,24 +151,10 @@ This document outlines the accessibility features implemented in Stellar-Spend t
 - Safari (latest)
 - Mobile browsers (iOS Safari, Chrome Android)
 
-## Known Limitations
-
-1. **WCAG Compliance**: While we've implemented many accessibility features, full WCAG compliance requires manual testing with assistive technologies
-2. **Third-Party Components**: Some third-party integrations (wallet connectors) may have their own accessibility limitations
-3. **Dynamic Content**: Complex transaction flows may require additional ARIA live region announcements
-
-## Future Improvements
-
-1. **Skip Links**: Add "Skip to main content" link for keyboard users
-2. **Reduced Motion**: Respect `prefers-reduced-motion` media query
-3. **Font Scaling**: Ensure layout works with browser font size adjustments
-4. **Focus Trap**: Implement focus trap in modals for better keyboard navigation
-5. **ARIA Descriptions**: Add more detailed ARIA descriptions for complex interactions
-6. **Landmark Regions**: Add ARIA landmark roles for better screen reader navigation
-
 ## Resources
 
 - [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
 - [MDN Accessibility](https://developer.mozilla.org/en-US/docs/Web/Accessibility)
+- [axe-core rules](https://dequeuniversity.com/rules/axe/4.10)
 - [WebAIM](https://webaim.org/)
 - [A11y Project](https://www.a11yproject.com/)
