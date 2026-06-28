@@ -499,6 +499,8 @@ vi.mock('@/lib/env', () => ({
 
 ## Glossary of Stellar / Blockchain Terms
 
+> A full, alphabetized glossary with all domain terms is available in **[docs/glossary.md](./glossary.md)**.
+
 | Term | Definition |
 |---|---|
 | **Stellar** | A public blockchain network optimised for fast, low-cost payments and asset issuance |
