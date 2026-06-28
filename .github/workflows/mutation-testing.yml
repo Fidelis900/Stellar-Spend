@@ -1,0 +1,141 @@
+name: Mutation Testing
+
+on:
+  schedule:
+    # Run every Sunday at 03:00 UTC (off-peak, not on every PR)
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: 'Mutation scope'
+        required: false
+        default: 'full'
+        type: choice
+        options: [full, money-path, security]
+
+jobs:
+  mutation:
+    name: Stryker Mutation Testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --frozen-lockfile
+
+      - name: Run mutation tests
+        run: npm run test:mutation
+        env:
+          CI: true
+          # Increase Node heap for large mutation runs
+          NODE_OPTIONS: '--max-old-space-size=4096'
+
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-report-${{ github.run_number }}
+          path: mutation-report/
+          retention-days: 90
+
+      - name: Parse and report mutation score
+        if: always()
+        run: |
+          node -e "
+            const fs = require('fs');
+            const reportPath = 'mutation-report/mutation-report.json';
+            if (!fs.existsSync(reportPath)) {
+              console.log('No mutation report found — Stryker may have failed before producing output.');
+              process.exit(0);
+            }
+            const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+            const { killed = 0, survived = 0, timeout = 0, noCoverage = 0, totalMutants = 0 } = report.systemUnderTestMetrics?.mutation || {};
+            const score = totalMutants > 0 ? ((killed / totalMutants) * 100).toFixed(1) : 'N/A';
+            const THRESHOLD_BREAK = 55;
+            console.log('=== Mutation Score Report ===');
+            console.log('Score:       ' + score + '%');
+            console.log('Killed:      ' + killed);
+            console.log('Survived:    ' + survived);
+            console.log('Timeout:     ' + timeout);
+            console.log('No-coverage: ' + noCoverage);
+            console.log('Total:       ' + totalMutants);
+            if (typeof score === 'string' && score !== 'N/A' && parseFloat(score) < THRESHOLD_BREAK) {
+              console.error('FAIL: mutation score ' + score + '% is below hard break threshold of ' + THRESHOLD_BREAK + '%');
+              process.exit(1);
+            }
+          "
+
+      - name: Post summary to job output
+        if: always()
+        run: |
+          echo "## Mutation Testing Summary" >> \$GITHUB_STEP_SUMMARY
+          echo "" >> \$GITHUB_STEP_SUMMARY
+          node -e "
+            const fs = require('fs');
+            const reportPath = 'mutation-report/mutation-report.json';
+            if (!fs.existsSync(reportPath)) {
+              console.log('Report not available.');
+              process.exit(0);
+            }
+            const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+            const m = report.systemUnderTestMetrics?.mutation || {};
+            const total = m.totalMutants || 0;
+            const score = total > 0 ? ((m.killed / total) * 100).toFixed(1) : 'N/A';
+            const emoji = parseFloat(score) >= 80 ? '✅' : parseFloat(score) >= 60 ? '⚠️' : '❌';
+            console.log('| Metric | Value |');
+            console.log('|--------|-------|');
+            console.log('| ' + emoji + ' Score | **' + score + '%** |');
+            console.log('| Killed | ' + (m.killed || 0) + ' |');
+            console.log('| Survived | ' + (m.survived || 0) + ' |');
+            console.log('| No coverage | ' + (m.noCoverage || 0) + ' |');
+            console.log('| Total | ' + total + ' |');
+          " >> \$GITHUB_STEP_SUMMARY
+
+  # ── Trend tracking (stores score history in a simple JSON artifact) ──────────
+  track-trend:
+    name: Track Score Trend
+    needs: mutation
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: mutation-report-${{ github.run_number }}
+          path: mutation-report/
+
+      - name: Append score to trend history
+        run: |
+          node -e "
+            const fs = require('fs');
+            const histPath = 'mutation-score-history.json';
+            let history = [];
+            if (fs.existsSync(histPath)) {
+              try { history = JSON.parse(fs.readFileSync(histPath, 'utf8')); } catch {}
+            }
+            const reportPath = 'mutation-report/mutation-report.json';
+            if (fs.existsSync(reportPath)) {
+              const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+              const m = report.systemUnderTestMetrics?.mutation || {};
+              const total = m.totalMutants || 0;
+              const score = total > 0 ? parseFloat(((m.killed / total) * 100).toFixed(1)) : null;
+              history.push({ date: new Date().toISOString(), score, killed: m.killed, survived: m.survived, total });
+              // Keep last 52 weeks
+              if (history.length > 52) history = history.slice(-52);
+              fs.writeFileSync(histPath, JSON.stringify(history, null, 2));
+              console.log('Appended score', score, 'to trend history (' + history.length + ' entries)');
+            }
+          "
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mutation-score-history
+          path: mutation-score-history.json
+          retention-days: 365
