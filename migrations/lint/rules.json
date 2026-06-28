@@ -1,0 +1,43 @@
+{
+  "rules": {
+    "no_blocking_locks": {
+      "enabled": true,
+      "description": "No blocking locks on large tables",
+      "patterns": [
+        "LOCK TABLE",
+        "ALTER TABLE.*ADD COLUMN.*DEFAULT",
+        "CREATE INDEX.*ON.*CONCURRENTLY"
+      ]
+    },
+    "expand_contract": {
+      "enabled": true,
+      "description": "Follow expand/contract pattern",
+      "up_phases": ["expand", "contract"],
+      "down_phases": ["contract", "expand"]
+    },
+    "backward_compatible": {
+      "enabled": true,
+      "description": "Changes must be backward compatible",
+      "disallowed": [
+        "ALTER TABLE.*DROP COLUMN",
+        "ALTER TABLE.*RENAME COLUMN",
+        "ALTER TABLE.*ALTER COLUMN.*TYPE"
+      ]
+    },
+    "dry_run_check": {
+      "enabled": true,
+      "description": "Verify dry run before applying"
+    },
+    "rollback_verification": {
+      "enabled": true,
+      "description": "Verify rollback works"
+    }
+  },
+  "critical_tables": [
+    "users",
+    "transactions",
+    "balances",
+    "campaigns",
+    "donations"
+  ]
+}
