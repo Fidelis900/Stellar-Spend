@@ -1,330 +1,265 @@
-# ── CloudWatch performance alarms ─────────────────────────────────────────────
-# Monitors ECS task CPU/memory, ALB response times, and RDS performance.
+# CloudWatch Alarms for SLO Monitoring
 
-variable "alarm_sns_arn" {
-  description = "SNS topic ARN to notify when alarms fire (optional)"
-  type        = string
-  default     = ""
-}
+# ============================================
+# API Availability SLO Alarms
+# ============================================
 
-locals {
-  # If the user provided an SNS ARN use that, otherwise create a local SNS topic below
-  alarm_arn     = var.alarm_sns_arn != "" ? var.alarm_sns_arn : aws_sns_topic.alerts[0].arn
-  alarm_actions = var.alarm_sns_arn != "" ? [var.alarm_sns_arn] : [local.alarm_arn]
-}
-
-# Create a default SNS topic for alerts when no `alarm_sns_arn` is provided.
-resource "aws_sns_topic" "alerts" {
-  count = var.alarm_sns_arn == "" ? 1 : 0
-  name  = "${local.name_prefix}-alerts"
-}
-
-# Optional subscription to Slack (incoming webhook URL)
-resource "aws_sns_topic_subscription" "slack" {
-  count     = var.slack_webhook_url != "" ? 1 : 0
-  topic_arn = aws_sns_topic.alerts[0].arn
-  protocol  = "https"
-  endpoint  = var.slack_webhook_url
-}
-
-# Optional subscription to PagerDuty (Events v2 integration URL)
-resource "aws_sns_topic_subscription" "pagerduty" {
-  count     = var.pagerduty_integration_url != "" ? 1 : 0
-  topic_arn = aws_sns_topic.alerts[0].arn
-  protocol  = "https"
-  endpoint  = var.pagerduty_integration_url
-}
-
-# Create a CloudWatch Log Metric Filter to count application errors (drives ErrorCount metric)
-resource "aws_cloudwatch_log_metric_filter" "app_error_count" {
-  name           = "${local.name_prefix}-ErrorCount"
-  pattern        = "{ $.level = \"error\" }"
-  log_group_name = var.log_group_name
-
-  metric_transformation {
-    name      = "ErrorCount"
-    namespace = "Custom/StellarSpend"
-    value     = "1"
-    default_value = 0
-  }
-}
-
-# Alarm on application error rate (derived from ErrorCount metric)
-resource "aws_cloudwatch_metric_alarm" "app_error_rate" {
-  alarm_name          = "${local.name_prefix}-app-error-rate"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 2
-  metric_name         = "ErrorCount"
-  namespace           = "Custom/StellarSpend"
-  period              = 60
-  statistic           = "Sum"
-  threshold           = 5
-  alarm_description   = "Application errors > 5/min for 2 consecutive minutes"
-  alarm_actions       = local.alarm_actions
-  ok_actions          = local.alarm_actions
-  treat_missing_data  = "notBreaching"
-}
-
-# Alarm for ALB unhealthy hosts (availability monitoring)
-resource "aws_cloudwatch_metric_alarm" "alb_unhealthy_hosts" {
-  alarm_name          = "${local.name_prefix}-alb-unhealthy-hosts"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 2
-  metric_name         = "UnhealthyHostCount"
-  namespace           = "AWS/ApplicationELB"
-  period              = 60
-  statistic           = "Average"
-  threshold           = 0
-  alarm_description   = "Any ALB targets reported as unhealthy"
-  alarm_actions       = local.alarm_actions
-  ok_actions          = local.alarm_actions
-  treat_missing_data  = "notBreaching"
-
-  dimensions = {
-    TargetGroup = aws_lb_target_group.app.arn_suffix
-  }
-}
-
-# ── ECS CPU utilisation ───────────────────────────────────────────────────────
-
-resource "aws_cloudwatch_metric_alarm" "ecs_cpu_high" {
-  alarm_name          = "${local.name_prefix}-ecs-cpu-high"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 2
-  metric_name         = "CPUUtilization"
-  namespace           = "AWS/ECS"
-  period              = 60
-  statistic           = "Average"
-  threshold           = 80
-  alarm_description   = "ECS average CPU > 80% for 2 consecutive minutes"
-  alarm_actions       = local.alarm_actions
-  ok_actions          = local.alarm_actions
-  treat_missing_data  = "notBreaching"
-
-  dimensions = {
-    ClusterName = aws_ecs_cluster.main.name
-    ServiceName = aws_ecs_service.app.name
-  }
-}
-
-# ── ECS memory utilisation ────────────────────────────────────────────────────
-
-resource "aws_cloudwatch_metric_alarm" "ecs_memory_high" {
-  alarm_name          = "${local.name_prefix}-ecs-memory-high"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 2
-  metric_name         = "MemoryUtilization"
-  namespace           = "AWS/ECS"
-  period              = 60
-  statistic           = "Average"
-  threshold           = 85
-  alarm_description   = "ECS average memory > 85% for 2 consecutive minutes"
-  alarm_actions       = local.alarm_actions
-  ok_actions          = local.alarm_actions
-  treat_missing_data  = "notBreaching"
-
-  dimensions = {
-    ClusterName = aws_ecs_cluster.main.name
-    ServiceName = aws_ecs_service.app.name
-  }
-}
-
-# ── ALB p95 response time ─────────────────────────────────────────────────────
-
-resource "aws_cloudwatch_metric_alarm" "alb_p95_latency" {
-  alarm_name          = "${local.name_prefix}-alb-p95-latency"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 3
-  metric_name         = "TargetResponseTime"
-  namespace           = "AWS/ApplicationELB"
-  period              = 60
-  extended_statistic  = "p95"
-  threshold           = 2 # seconds
-  alarm_description   = "ALB p95 response time > 2s for 3 consecutive minutes"
-  alarm_actions       = local.alarm_actions
-  ok_actions          = local.alarm_actions
-  treat_missing_data  = "notBreaching"
-
-  dimensions = {
-    LoadBalancer = aws_lb.main.arn_suffix
-    TargetGroup  = aws_lb_target_group.app.arn_suffix
-  }
-}
-
-# ── ALB 5xx error rate ────────────────────────────────────────────────────────
-
-resource "aws_cloudwatch_metric_alarm" "alb_5xx_rate" {
-  alarm_name          = "${local.name_prefix}-alb-5xx-rate"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 2
-  threshold           = 5 # errors per minute
-  alarm_description   = "ALB 5xx errors > 5/min for 2 consecutive minutes"
-  alarm_actions       = local.alarm_actions
-  ok_actions          = local.alarm_actions
-  treat_missing_data  = "notBreaching"
-
-  metric_query {
-    id          = "e1"
-    return_data = true
-    label       = "5xx Error Rate"
-
-    metric {
-      metric_name = "HTTPCode_Target_5XX_Count"
-      namespace   = "AWS/ApplicationELB"
-      period      = 60
-      stat        = "Sum"
-      dimensions = {
-        LoadBalancer = aws_lb.main.arn_suffix
-      }
-    }
-  }
-}
-
-# ── RDS CPU ───────────────────────────────────────────────────────────────────
-
-resource "aws_cloudwatch_metric_alarm" "rds_cpu_high" {
-  alarm_name          = "${local.name_prefix}-rds-cpu-high"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 3
-  metric_name         = "CPUUtilization"
-  namespace           = "AWS/RDS"
-  period              = 60
-  statistic           = "Average"
-  threshold           = 80
-  alarm_description   = "RDS CPU > 80% for 3 consecutive minutes"
-  alarm_actions       = local.alarm_actions
-  ok_actions          = local.alarm_actions
-  treat_missing_data  = "notBreaching"
-
-  dimensions = {
-    DBInstanceIdentifier = aws_db_instance.main.identifier
-  }
-}
-
-# ── RDS read latency ──────────────────────────────────────────────────────────
-
-resource "aws_cloudwatch_metric_alarm" "rds_read_latency" {
-  alarm_name          = "${local.name_prefix}-rds-read-latency"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 3
-  metric_name         = "ReadLatency"
-  namespace           = "AWS/RDS"
-  period              = 60
-  statistic           = "Average"
-  threshold           = 0.02 # 20ms
-  alarm_description   = "RDS average read latency > 20ms for 3 consecutive minutes"
-  alarm_actions       = local.alarm_actions
-  ok_actions          = local.alarm_actions
-  treat_missing_data  = "notBreaching"
-
-  dimensions = {
-    DBInstanceIdentifier = aws_db_instance.main.identifier
-  }
-}
-
-# ── RDS write latency ─────────────────────────────────────────────────────────
-
-resource "aws_cloudwatch_metric_alarm" "rds_write_latency" {
-  alarm_name          = "${local.name_prefix}-rds-write-latency"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 3
-  metric_name         = "WriteLatency"
-  namespace           = "AWS/RDS"
-  period              = 60
-  statistic           = "Average"
-  threshold           = 0.05 # 50ms
-  alarm_description   = "RDS average write latency > 50ms for 3 consecutive minutes"
-  alarm_actions       = local.alarm_actions
-  ok_actions          = local.alarm_actions
-  treat_missing_data  = "notBreaching"
-
-  dimensions = {
-    DBInstanceIdentifier = aws_db_instance.main.identifier
-  }
-}
-
-# ── RDS free storage ──────────────────────────────────────────────────────────
-
-resource "aws_cloudwatch_metric_alarm" "rds_low_storage" {
-  alarm_name          = "${local.name_prefix}-rds-low-storage"
+resource "aws_cloudwatch_metric_alarm" "api_availability_slo_warning" {
+  alarm_name          = "api-availability-slo-warning"
   comparison_operator = "LessThanThreshold"
-  evaluation_periods  = 1
-  metric_name         = "FreeStorageSpace"
-  namespace           = "AWS/RDS"
+  evaluation_periods  = 6
+  metric_name         = "http_requests_success_rate"
+  namespace           = "StellarSpend"
   period              = 300
   statistic           = "Average"
-  threshold           = 2147483648 # 2 GiB in bytes
-  alarm_description   = "RDS free storage < 2 GiB"
-  alarm_actions       = local.alarm_actions
-  ok_actions          = local.alarm_actions
-  treat_missing_data  = "breaching"
+  threshold           = 0.999 # 99.9% availability
+  alarm_description   = "API availability approaching SLO error budget"
+  alarm_actions       = [aws_sns_topic.alerts.arn]
 
   dimensions = {
-    DBInstanceIdentifier = aws_db_instance.main.identifier
+    Service = "api"
+    Environment = var.environment
+  }
+
+  tags = {
+    Name = "api-availability-slo-warning"
+    SLO = "api-availability"
+    Severity = "warning"
   }
 }
 
-# ── CloudWatch dashboard ──────────────────────────────────────────────────────
+resource "aws_cloudwatch_metric_alarm" "api_availability_slo_critical" {
+  alarm_name          = "api-availability-slo-critical"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 3
+  metric_name         = "http_requests_success_rate"
+  namespace           = "StellarSpend"
+  period              = 300
+  statistic           = "Average"
+  threshold           = 0.995 # 99.5% availability (error budget exhausted)
+  alarm_description   = "API availability SLO error budget exhausted"
+  alarm_actions       = [aws_sns_topic.alerts.arn, aws_sns_topic.oncall.arn]
 
-resource "aws_cloudwatch_dashboard" "main" {
-  dashboard_name = local.name_prefix
+  dimensions = {
+    Service = "api"
+    Environment = var.environment
+  }
 
-  dashboard_body = jsonencode({
-    widgets = [
-      {
-        type   = "metric"
-        x = 0; y = 0; width = 12; height = 6
-        properties = {
-          title  = "ALB p95 Response Time"
-          view   = "timeSeries"
-          period = 60
-          metrics = [[
-            "AWS/ApplicationELB", "TargetResponseTime",
-            "LoadBalancer", aws_lb.main.arn_suffix,
-            "TargetGroup", aws_lb_target_group.app.arn_suffix,
-            { stat = "p95", label = "p95" }
-          ]]
-        }
-      },
-      {
-        type   = "metric"
-        x = 12; y = 0; width = 12; height = 6
-        properties = {
-          title  = "ALB Request Count & 5xx Errors"
-          view   = "timeSeries"
-          period = 60
-          metrics = [
-            ["AWS/ApplicationELB", "RequestCount", "LoadBalancer", aws_lb.main.arn_suffix, { stat = "Sum", label = "Requests" }],
-            ["AWS/ApplicationELB", "HTTPCode_Target_5XX_Count", "LoadBalancer", aws_lb.main.arn_suffix, { stat = "Sum", label = "5xx Errors" }],
-          ]
-        }
-      },
-      {
-        type   = "metric"
-        x = 0; y = 6; width = 12; height = 6
-        properties = {
-          title  = "ECS CPU & Memory"
-          view   = "timeSeries"
-          period = 60
-          metrics = [
-            ["AWS/ECS", "CPUUtilization", "ClusterName", aws_ecs_cluster.main.name, "ServiceName", aws_ecs_service.app.name, { stat = "Average", label = "CPU %" }],
-            ["AWS/ECS", "MemoryUtilization", "ClusterName", aws_ecs_cluster.main.name, "ServiceName", aws_ecs_service.app.name, { stat = "Average", label = "Memory %" }],
-          ]
-        }
-      },
-      {
-        type   = "metric"
-        x = 12; y = 6; width = 12; height = 6
-        properties = {
-          title  = "RDS Latency"
-          view   = "timeSeries"
-          period = 60
-          metrics = [
-            ["AWS/RDS", "ReadLatency", "DBInstanceIdentifier", aws_db_instance.main.identifier, { stat = "Average", label = "Read" }],
-            ["AWS/RDS", "WriteLatency", "DBInstanceIdentifier", aws_db_instance.main.identifier, { stat = "Average", label = "Write" }],
-          ]
-        }
-      },
-    ]
-  })
+  tags = {
+    Name = "api-availability-slo-critical"
+    SLO = "api-availability"
+    Severity = "critical"
+  }
+}
+
+# ============================================
+# Payout Success Rate SLO Alarms
+# ============================================
+
+resource "aws_cloudwatch_metric_alarm" "payout_success_slo_warning" {
+  alarm_name          = "payout-success-slo-warning"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 6
+  metric_name         = "payout_success_rate"
+  namespace           = "StellarSpend"
+  period              = 300
+  statistic           = "Average"
+  threshold           = 0.995 # 99.5% success rate
+  alarm_description   = "Payout success rate approaching SLO error budget"
+  alarm_actions       = [aws_sns_topic.alerts.arn]
+
+  dimensions = {
+    Service = "payout"
+    Environment = var.environment
+  }
+
+  tags = {
+    Name = "payout-success-slo-warning"
+    SLO = "payout-success-rate"
+    Severity = "warning"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "payout_success_slo_critical" {
+  alarm_name          = "payout-success-slo-critical"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 3
+  metric_name         = "payout_success_rate"
+  namespace           = "StellarSpend"
+  period              = 300
+  statistic           = "Average"
+  threshold           = 0.985
+  alarm_description   = "Payout success rate SLO error budget exhausted"
+  alarm_actions       = [aws_sns_topic.alerts.arn, aws_sns_topic.oncall.arn]
+
+  dimensions = {
+    Service = "payout"
+    Environment = var.environment
+  }
+
+  tags = {
+    Name = "payout-success-slo-critical"
+    SLO = "payout-success-rate"
+    Severity = "critical"
+  }
+}
+
+# ============================================
+# API Latency SLO Alarms
+# ============================================
+
+resource "aws_cloudwatch_metric_alarm" "api_latency_slo_warning" {
+  alarm_name          = "api-latency-slo-warning"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 6
+  metric_name         = "api_p95_latency"
+  namespace           = "StellarSpend"
+  period              = 300
+  statistic           = "Average"
+  threshold           = 1.8 # 1.8 seconds (approaching 2s limit)
+  alarm_description   = "API latency approaching SLO threshold"
+  alarm_actions       = [aws_sns_topic.alerts.arn]
+
+  dimensions = {
+    Service = "api"
+    Environment = var.environment
+  }
+
+  tags = {
+    Name = "api-latency-slo-warning"
+    SLO = "api-latency"
+    Severity = "warning"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "api_latency_slo_critical" {
+  alarm_name          = "api-latency-slo-critical"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 3
+  metric_name         = "api_p95_latency"
+  namespace           = "StellarSpend"
+  period              = 300
+  statistic           = "Average"
+  threshold           = 2.0 # 2 seconds (SLO violation)
+  alarm_description   = "API latency SLO violation"
+  alarm_actions       = [aws_sns_topic.alerts.arn, aws_sns_topic.oncall.arn]
+
+  dimensions = {
+    Service = "api"
+    Environment = var.environment
+  }
+
+  tags = {
+    Name = "api-latency-slo-critical"
+    SLO = "api-latency"
+    Severity = "critical"
+  }
+}
+
+# ============================================
+# Indexer Lag SLO Alarms
+# ============================================
+
+resource "aws_cloudwatch_metric_alarm" "indexer_lag_slo_warning" {
+  alarm_name          = "indexer-lag-slo-warning"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 6
+  metric_name         = "indexer_lag_seconds"
+  namespace           = "StellarSpend"
+  period              = 300
+  statistic           = "Average"
+  threshold           = 45 # 45 seconds (approaching 60s limit)
+  alarm_description   = "Indexer lag approaching SLO threshold"
+  alarm_actions       = [aws_sns_topic.alerts.arn]
+
+  dimensions = {
+    Service = "indexer"
+    Environment = var.environment
+  }
+
+  tags = {
+    Name = "indexer-lag-slo-warning"
+    SLO = "indexer-lag"
+    Severity = "warning"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "indexer_lag_slo_critical" {
+  alarm_name          = "indexer-lag-slo-critical"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 3
+  metric_name         = "indexer_lag_seconds"
+  namespace           = "StellarSpend"
+  period              = 300
+  statistic           = "Average"
+  threshold           = 60 # 60 seconds (SLO violation)
+  alarm_description   = "Indexer lag SLO violation"
+  alarm_actions       = [aws_sns_topic.alerts.arn, aws_sns_topic.oncall.arn]
+
+  dimensions = {
+    Service = "indexer"
+    Environment = var.environment
+  }
+
+  tags = {
+    Name = "indexer-lag-slo-critical"
+    SLO = "indexer-lag"
+    Severity = "critical"
+  }
+}
+
+# ============================================
+# SNS Topics for Alert Routing
+# ============================================
+
+resource "aws_sns_topic" "alerts" {
+  name = "stellar-spend-alerts"
+  
+  tags = {
+    Name = "stellar-spend-alerts"
+    Environment = var.environment
+  }
+}
+
+resource "aws_sns_topic" "oncall" {
+  name = "stellar-spend-oncall"
+  
+  tags = {
+    Name = "stellar-spend-oncall"
+    Environment = var.environment
+  }
+}
+
+# ============================================
+# Alert Deduplication Rule
+# ============================================
+
+resource "aws_cloudwatch_metric_alarm" "alert_deduplication" {
+  alarm_name = "alert-deduplication"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods = 1
+  metric_name = "alerts_triggered"
+  namespace = "StellarSpend"
+  period = 300
+  statistic = "Sum"
+  threshold = 100
+  alarm_description = "Too many alerts triggered - deduplication needed"
+  alarm_actions = [aws_sns_topic.oncall.arn]
+}
+
+# ============================================
+# Silence Rules (Maintenance Windows)
+# ============================================
+
+resource "aws_cloudwatch_metric_alarm" "silence_maintenance" {
+  alarm_name = "silence-maintenance"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods = 1
+  metric_name = "alerts_triggered"
+  namespace = "StellarSpend"
+  period = 300
+  statistic = "Sum"
+  threshold = 1000
+  alarm_description = "Maintenance mode - silencing alerts"
+  actions_enabled = false
 }

@@ -1,205 +1,164 @@
 /**
- * Performance monitoring utilities for tracking and optimizing application performance.
- * Measures Core Web Vitals, component render times, and bundle size.
+ * Performance Monitoring - SLO Tracking and Alerting
  */
 
-interface PerformanceMetric {
-  name: string;
-  value: number;
-  unit: string;
+import { sloConfig, SLO } from './slo-config';
+
+interface MetricPoint {
   timestamp: number;
+  value: number;
 }
 
-const metrics: PerformanceMetric[] = [];
+interface SLOStatus {
+  name: string;
+  objective: number;
+  current_value: number;
+  error_budget_remaining: number;
+  burn_rate: number;
+  status: 'healthy' | 'warning' | 'critical';
+}
 
-/**
- * Record a performance metric.
- */
-export function recordMetric(
-  name: string,
-  value: number,
-  unit: string = "ms",
-): void {
-  metrics.push({
-    name,
-    value,
-    unit,
-    timestamp: Date.now(),
-  });
+class PerformanceMonitor {
+  private metrics: Map<string, MetricPoint[]> = new Map();
+  private alertHistory: Map<string, number> = new Map();
 
-  // Keep only last 1000 metrics
-  if (metrics.length > 1000) {
-    metrics.shift();
+  /**
+   * Record a metric value for SLO tracking
+   */
+  recordMetric(sloName: string, value: number): void {
+    const points = this.metrics.get(sloName) || [];
+    points.push({ timestamp: Date.now(), value });
+    // Keep last 1000 points
+    if (points.length > 1000) {
+      points.shift();
+    }
+    this.metrics.set(sloName, points);
   }
-}
 
-/**
- * Get all recorded metrics.
- */
-export function getMetrics(): PerformanceMetric[] {
-  return [...metrics];
-}
+  /**
+   * Get current SLO status
+   */
+  getSLOStatus(sloName: string): SLOStatus | null {
+    const slo = sloConfig.find(s => s.name === sloName);
+    if (!slo) return null;
 
-/**
- * Clear all metrics.
- */
-export function clearMetrics(): void {
-  metrics.length = 0;
-}
-
-/**
- * Measure component render time.
- */
-export function measureRenderTime(
-  componentName: string,
-  renderFn: () => void,
-): void {
-  const start = performance.now();
-  renderFn();
-  const duration = performance.now() - start;
-  recordMetric(`render:${componentName}`, duration);
-}
-
-/**
- * Measure async operation time.
- */
-export async function measureAsync<T>(
-  operationName: string,
-  asyncFn: () => Promise<T>,
-): Promise<T> {
-  const start = performance.now();
-  try {
-    return await asyncFn();
-  } finally {
-    const duration = performance.now() - start;
-    recordMetric(`async:${operationName}`, duration);
-  }
-}
-
-/**
- * Get Core Web Vitals (LCP, FID, CLS).
- */
-export function observeWebVitals(
-  callback: (metric: { name: string; value: number; rating: string }) => void,
-): void {
-  if (typeof window === "undefined") return;
-
-  // Largest Contentful Paint (LCP)
-  if ("PerformanceObserver" in window) {
-    try {
-      const lcpObserver = new PerformanceObserver((list) => {
-        const entries = list.getEntries();
-        const lastEntry = entries[entries.length - 1];
-        callback({
-          name: "LCP",
-          value: lastEntry.renderTime || lastEntry.loadTime,
-          rating: lastEntry.renderTime || lastEntry.loadTime > 2500 ? "poor" : "good",
-        });
-      });
-      lcpObserver.observe({ entryTypes: ["largest-contentful-paint"] });
-    } catch {
-      // LCP not supported
+    const points = this.metrics.get(sloName) || [];
+    if (points.length === 0) {
+      return {
+        name: sloName,
+        objective: slo.objective,
+        current_value: 1.0,
+        error_budget_remaining: 1.0,
+        burn_rate: 0,
+        status: 'healthy',
+      };
     }
 
-    // Cumulative Layout Shift (CLS)
-    try {
-      let clsValue = 0;
-      const clsObserver = new PerformanceObserver((list) => {
-        for (const entry of list.getEntries()) {
-          if (!(entry as PerformanceEntry & { hadRecentInput?: boolean }).hadRecentInput) {
-            clsValue += (entry as PerformanceEntry & { value?: number }).value || 0;
-          }
-        }
-        callback({
-          name: "CLS",
-          value: clsValue,
-          rating: clsValue > 0.1 ? "poor" : "good",
-        });
-      });
-      clsObserver.observe({ entryTypes: ["layout-shift"] });
-    } catch {
-      // CLS not supported
+    const recentPoints = points.slice(-100);
+    const goodEvents = recentPoints.filter(p => p.value >= slo.objective).length;
+    const totalEvents = recentPoints.length;
+    const currentValue = totalEvents > 0 ? goodEvents / totalEvents : 1.0;
+
+    // Calculate burn rate
+    const errorBudget = 1 - slo.objective;
+    const errors = recentPoints.filter(p => p.value < slo.objective).length;
+    const errorRate = totalEvents > 0 ? errors / totalEvents : 0;
+    const burnRate = errorBudget > 0 ? errorRate / errorBudget : 0;
+
+    let status: 'healthy' | 'warning' | 'critical' = 'healthy';
+    if (burnRate >= slo.burn_rate_thresholds.critical) {
+      status = 'critical';
+    } else if (burnRate >= slo.burn_rate_thresholds.warning) {
+      status = 'warning';
     }
+
+    return {
+      name: sloName,
+      objective: slo.objective,
+      current_value: currentValue,
+      error_budget_remaining: Math.max(0, 1 - errorRate / errorBudget),
+      burn_rate: burnRate,
+      status,
+    };
   }
 
-  // First Input Delay (FID) - deprecated, use INP instead
-  if ("PerformanceObserver" in window) {
-    try {
-      const fidObserver = new PerformanceObserver((list) => {
-        const entries = list.getEntries();
-        entries.forEach((entry) => {
-          callback({
-            name: "FID",
-            value: (entry as PerformanceEntry & { processingDuration?: number }).processingDuration || 0,
-            rating: ((entry as PerformanceEntry & { processingDuration?: number }).processingDuration || 0) > 100 ? "poor" : "good",
-          });
-        });
-      });
-      fidObserver.observe({ entryTypes: ["first-input"] });
-    } catch {
-      // FID not supported
-    }
-  }
-}
+  /**
+   * Check all SLOs and trigger alerts if needed
+   */
+  checkAllSLOs(): void {
+    for (const slo of sloConfig) {
+      const status = this.getSLOStatus(slo.name);
+      if (!status) continue;
 
-/**
- * Get bundle size information.
- */
-export function getBundleSize(): {
-  total: number;
-  main: number;
-  chunks: Record<string, number>;
-} {
-  if (typeof window === "undefined") {
-    return { total: 0, main: 0, chunks: {} };
-  }
+      const alertKey = `${slo.name}:${status.status}`;
+      const lastAlert = this.alertHistory.get(alertKey) || 0;
 
-  const perfData = performance.getEntriesByType("resource");
-  const bundleSize = {
-    total: 0,
-    main: 0,
-    chunks: {} as Record<string, number>,
-  };
-
-  perfData.forEach((entry) => {
-    const name = entry.name;
-    const size = (entry as PerformanceResourceTiming).transferSize || 0;
-
-    if (name.includes("_next/static")) {
-      bundleSize.total += size;
-      if (name.includes("main")) {
-        bundleSize.main = size;
-      } else if (name.includes("chunks")) {
-        const chunkName = name.split("/").pop() || "unknown";
-        bundleSize.chunks[chunkName] = size;
+      if (status.status !== 'healthy' && Date.now() - lastAlert > 300000) {
+        // Alert every 5 minutes
+        this.triggerAlert(slo, status);
+        this.alertHistory.set(alertKey, Date.now());
       }
     }
-  });
+  }
 
-  return bundleSize;
-}
+  /**
+   * Trigger an alert for an SLO
+   */
+  private triggerAlert(slo: SLO, status: SLOStatus): void {
+    const severity = status.status === 'critical' ? 'CRITICAL' : 'WARNING';
+    const message = `
+[${severity}] SLO Alert: ${slo.name}
+  Description: ${slo.description}
+  Objective: ${(slo.objective * 100).toFixed(1)}%
+  Current Value: ${(status.current_value * 100).toFixed(1)}%
+  Error Budget Remaining: ${(status.error_budget_remaining * 100).toFixed(1)}%
+  Burn Rate: ${status.burn_rate.toFixed(2)}
+  Runbook: ${slo.alerting.runbook_url}
+`;
 
-/**
- * Report performance metrics to analytics.
- */
-export function reportMetrics(
-  endpoint: string,
-  metrics: PerformanceMetric[],
-): void {
-  if (typeof window === "undefined") return;
+    console.error(message);
 
-  // Use sendBeacon for reliability
-  if (navigator.sendBeacon) {
-    navigator.sendBeacon(endpoint, JSON.stringify(metrics));
-  } else {
-    // Fallback to fetch
-    fetch(endpoint, {
-      method: "POST",
-      body: JSON.stringify(metrics),
-      headers: { "Content-Type": "application/json" },
-      keepalive: true,
-    }).catch(() => {
-      // Silently fail
-    });
+    // Send to alerting system
+    if (typeof window !== 'undefined' && window.fetch) {
+      // Send to backend alerting endpoint
+      fetch('/api/alerts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          severity: status.status,
+          slo: slo.name,
+          message,
+          timestamp: new Date().toISOString(),
+        }),
+      }).catch(console.error);
+    }
+  }
+
+  /**
+   * Get SLO dashboard data
+   */
+  getDashboardData(): {
+    slos: SLOStatus[];
+    summary: {
+      healthy: number;
+      warning: number;
+      critical: number;
+      total: number;
+    };
+  } {
+    const slos = sloConfig.map(slo => this.getSLOStatus(slo.name)).filter(Boolean) as SLOStatus[];
+    const summary = {
+      healthy: slos.filter(s => s.status === 'healthy').length,
+      warning: slos.filter(s => s.status === 'warning').length,
+      critical: slos.filter(s => s.status === 'critical').length,
+      total: slos.length,
+    };
+    return { slos, summary };
   }
 }
+
+// Export singleton instance
+export const performanceMonitor = new PerformanceMonitor();
+
+// Export SLO config for use in other modules
+export { sloConfig };
