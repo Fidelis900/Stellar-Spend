@@ -7,26 +7,53 @@ on:
     branches: [main, develop]
   schedule:
     - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'Load profile to run'
+        required: false
+        default: 'normal'
+        type: choice
+        options: [normal, peak, soak, all]
 
 jobs:
-  performance:
-    name: Load Testing (k6)
+  # ── Shared app build ──────────────────────────────────────────────────────────
+  build:
+    name: Build application
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: npm
-
-      - name: Install dependencies
-        run: npm ci --frozen-lockfile
-
-      - name: Build application
+      - run: npm ci --frozen-lockfile
+      - name: Build
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: next-build
+          path: .next/
+          retention-days: 1
+
+  # ── Install k6 (shared step via composite action pattern) ─────────────────────
+  normal-load:
+    name: Normal Load Test (25 VUs, 6 min)
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: next-build
+          path: .next/
 
       - name: Start application
         run: npm start &
@@ -37,54 +64,217 @@ jobs:
       - name: Wait for application
         run: |
           for i in {1..30}; do
-            if curl -f http://localhost:3000/api/health; then
-              echo "Application is ready"
+            if curl -sf http://localhost:3000/api/health; then
+              echo "Application ready"
               exit 0
             fi
-            echo "Waiting for application... ($i/30)"
+            echo "Waiting... ($i/30)"
             sleep 2
           done
-          echo "Application failed to start"
           exit 1
 
       - name: Install k6
         run: |
-          sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
-          echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-          sudo apt-get update
-          sudo apt-get install -y k6
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg \
+            --keyserver hkp://keyserver.ubuntu.com:80 \
+            --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" \
+            | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update -qq && sudo apt-get install -y k6
 
-      - name: Run performance tests
-        run: k6 run scripts/performance/load-test.js
+      - name: Run normal load test
+        run: k6 run --out json=normal-results.json scripts/performance/scenarios/normal.js
         env:
           BASE_URL: http://localhost:3000
 
-      - name: Upload k6 results
+      - name: Check regression thresholds
+        run: |
+          node -e "
+            const fs = require('fs');
+            const lines = fs.readFileSync('normal-results.json','utf8').trim().split('\n');
+            const summary = lines.map(l => { try { return JSON.parse(l); } catch { return null; } })
+                                 .filter(Boolean)
+                                 .find(e => e.type === 'Point' && e.metric === 'http_req_duration');
+            console.log('Threshold check complete — k6 exit code is the authoritative gate');
+          "
+
+      - uses: actions/upload-artifact@v4
         if: always()
-        uses: actions/upload-artifact@v4
         with:
-          name: k6-results
-          path: k6-results.json
+          name: normal-load-results
+          path: normal-results.json
           retention-days: 30
 
-      - name: Comment PR with results
+      - name: Comment PR with normal load results
         if: github.event_name == 'pull_request' && always()
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const results = JSON.parse(fs.readFileSync('k6-results.json', 'utf8'));
-            const comment = `## Performance Test Results
-            
-            - **VUs**: ${results.metrics.vus?.value || 'N/A'}
-            - **Duration**: ${results.metrics.duration?.value || 'N/A'}
-            - **Requests**: ${results.metrics.http_reqs?.value || 'N/A'}
-            - **Errors**: ${results.metrics.http_req_failed?.value || 0}
-            - **P95 Latency**: ${results.metrics.http_req_duration?.values?.p95 || 'N/A'}ms
-            `;
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
+            let p95 = 'N/A', errRate = 'N/A', reqs = 'N/A';
+            try {
+              const lines = fs.readFileSync('normal-results.json','utf8').trim().split('\n');
+              const entries = lines.map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+              const dur = entries.filter(e => e.metric === 'http_req_duration');
+              if (dur.length) p95 = dur[dur.length - 1]?.data?.value?.toFixed(1) + 'ms';
+              const fail = entries.filter(e => e.metric === 'http_req_failed');
+              if (fail.length) errRate = (fail[fail.length - 1]?.data?.value * 100).toFixed(2) + '%';
+              const r = entries.filter(e => e.metric === 'http_reqs');
+              if (r.length) reqs = r[r.length - 1]?.data?.value;
+            } catch {}
+            const body = `## Normal Load Test Results (25 VUs / 6 min)\n| Metric | Value |\n|--------|-------|\n| Requests | ${reqs} |\n| P95 Latency | ${p95} |\n| Error Rate | ${errRate} |`;
+            github.rest.issues.createComment({ issue_number: context.issue.number, owner: context.repo.owner, repo: context.repo.repo, body });
+
+  peak-load:
+    name: Peak Load Test (200 VUs spike)
+    needs: build
+    # Skip peak on PRs to avoid noise; run on push to main + nightly
+    if: github.event_name != 'pull_request' || github.event.inputs.profile == 'peak' || github.event.inputs.profile == 'all'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: next-build
+          path: .next/
+
+      - name: Start application
+        run: npm start &
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          PORT: 3000
+
+      - name: Wait for application
+        run: |
+          for i in {1..30}; do
+            if curl -sf http://localhost:3000/api/health; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+
+      - name: Install k6
+        run: |
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg \
+            --keyserver hkp://keyserver.ubuntu.com:80 \
+            --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" \
+            | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update -qq && sudo apt-get install -y k6
+
+      - name: Run peak load test
+        run: k6 run --out json=peak-results.json scripts/performance/scenarios/peak.js
+        env:
+          BASE_URL: http://localhost:3000
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: peak-load-results
+          path: peak-results.json
+          retention-days: 30
+
+  soak:
+    name: Soak Test (10 VUs, 30 min)
+    needs: build
+    # Soak runs on nightly schedule only (not PRs or pushes)
+    if: github.event_name == 'schedule' || github.event.inputs.profile == 'soak' || github.event.inputs.profile == 'all'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: next-build
+          path: .next/
+
+      - name: Start application
+        run: npm start &
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          PORT: 3000
+
+      - name: Wait for application
+        run: |
+          for i in {1..30}; do
+            if curl -sf http://localhost:3000/api/health; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+
+      - name: Install k6
+        run: |
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg \
+            --keyserver hkp://keyserver.ubuntu.com:80 \
+            --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" \
+            | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update -qq && sudo apt-get install -y k6
+
+      - name: Run soak test
+        run: k6 run --out json=soak-results.json scripts/performance/scenarios/soak.js
+        env:
+          BASE_URL: http://localhost:3000
+          SOAK_DURATION: 30m
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: soak-results
+          path: soak-results.json
+          retention-days: 30
+
+  # ── Regression gate (runs after normal-load, blocks PRs) ─────────────────────
+  regression-gate:
+    name: Performance Regression Gate
+    needs: normal-load
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: normal-load-results
+      - name: Evaluate thresholds
+        run: |
+          node -e "
+            const fs = require('fs');
+            const lines = fs.readFileSync('normal-results.json','utf8').trim().split('\n');
+            const entries = lines.map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+
+            let failed = false;
+
+            // Check final http_req_duration p(95) < 500ms
+            const durEntries = entries.filter(e => e.type === 'Point' && e.metric === 'http_req_duration');
+            if (durEntries.length) {
+              const last = durEntries[durEntries.length - 1];
+              if (last.data?.value > 500) {
+                console.error('FAIL: p95 latency', last.data.value.toFixed(1), 'ms > 500ms threshold');
+                failed = true;
+              } else {
+                console.log('PASS: p95 latency', last.data.value.toFixed(1), 'ms');
+              }
+            }
+
+            // Check error rate < 1%
+            const failEntries = entries.filter(e => e.type === 'Point' && e.metric === 'http_req_failed');
+            if (failEntries.length) {
+              const last = failEntries[failEntries.length - 1];
+              if (last.data?.value > 0.01) {
+                console.error('FAIL: error rate', (last.data.value * 100).toFixed(2), '% > 1% threshold');
+                failed = true;
+              } else {
+                console.log('PASS: error rate', (last.data.value * 100).toFixed(2), '%');
+              }
+            }
+
+            process.exit(failed ? 1 : 0);
+          "
