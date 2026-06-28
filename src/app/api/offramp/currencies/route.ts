@@ -58,10 +58,13 @@ class PaycrestAdapter {
   }
 }
 
-// In-memory cache for currencies
+// In-memory cache for currencies (server-process level)
 let cachedCurrencies: Currency[] | null = null;
 let cacheTimestamp: number = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in-process cache
+
+// Edge / CDN cache: 1 hour fresh + 24 hours stale-while-revalidate
+const CACHE_CONTROL_HEADER = 'public, max-age=3600, stale-while-revalidate=86400';
 
 /**
  * Merges Paycrest currencies with local config to enrich with flags and limits.
@@ -136,7 +139,7 @@ export async function GET(request: Request) {
     if (cachedCurrencies && now - cacheTimestamp < CACHE_DURATION) {
       return NextResponse.json(
         { data: cachedCurrencies },
-        { headers: { 'Cache-Control': 'public, max-age=300' } }
+        { headers: { 'Cache-Control': CACHE_CONTROL_HEADER } }
       );
     }
 
@@ -162,7 +165,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(
       { data: currencies },
-      { headers: { 'Cache-Control': 'public, max-age=300' } }
+      { headers: { 'Cache-Control': CACHE_CONTROL_HEADER } }
     );
   } catch (error) {
     logger.error('Error fetching currencies:', {}, error);

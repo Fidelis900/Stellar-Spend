@@ -5,6 +5,9 @@ import { getCorridorInstitutions, getCorridorConfig } from '@/lib/corridor-confi
 
 export const maxDuration = 10;
 
+// Edge / CDN cache: 1 hour fresh + 24 hours stale-while-revalidate
+const CACHE_CONTROL_HEADER = 'public, max-age=3600, stale-while-revalidate=86400';
+
 interface PaycrestHttpError extends Error {
   status: number;
 }
@@ -49,7 +52,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ currenc
     const paycrest = new PaycrestAdapter(env.server.PAYCREST_API_KEY);
     const institutions = await paycrest.getInstitutions(currency);
 
-    return NextResponse.json(institutions);
+    return NextResponse.json(institutions, {
+      headers: { 'Cache-Control': CACHE_CONTROL_HEADER },
+    });
   } catch (err: unknown) {
     logger.error('Error fetching institutions from Paycrest:', {}, err);
 
@@ -62,7 +67,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ currenc
         code: inst.code,
         type: inst.type,
       }));
-      return NextResponse.json(fallback);
+      return NextResponse.json(fallback, {
+        headers: { 'Cache-Control': CACHE_CONTROL_HEADER },
+      });
     }
 
     if (err instanceof Error && 'status' in err) {

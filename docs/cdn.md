@@ -12,7 +12,8 @@ Browser → CloudFront (edge) → ALB → ECS Fargate (Next.js)
 
 - **Static assets** (`/_next/static/*`, `/static/*`, `/icons/*`) are cached at the edge for 1 year (immutable).
 - **Pages** are cached for up to 1 hour with short TTLs.
-- **API routes** (`/api/*`) bypass the cache entirely — all requests are forwarded to the origin.
+- **Reference-data API routes** (`/api/offramp/currencies`, `/api/offramp/institutions/*`) use `max-age=3600, stale-while-revalidate=86400` — fresh for 1 hour, then served stale while the origin revalidates in the background.
+- **Other API routes** (`/api/*`) bypass the cache entirely — all requests are forwarded to the origin.
 - A **CloudFront Function** injects security headers (`HSTS`, `X-Frame-Options`, etc.) on every response.
 
 ---
@@ -120,6 +121,27 @@ To trigger via Terraform, bump the variable:
 ```bash
 terraform apply -var="cf_invalidation_trigger=$(date +%s)" -var-file=envs/staging.tfvars
 ```
+
+---
+
+## Reference-data edge caching
+
+Rarely-changing reference data (currencies, institution lists) is served with long-lived edge caching to reduce origin load and improve cold-load latency.
+
+| Endpoint | Cache-Control | Rationale |
+|---|---|---|
+| `GET /api/offramp/currencies` | `public, max-age=3600, stale-while-revalidate=86400` | Currency list changes only on corridor updates |
+| `GET /api/offramp/institutions/[currency]` | `public, max-age=3600, stale-while-revalidate=86400` | Institution list is stable between corridor deploys |
+
+**Invalidation:** When a corridor or config change is deployed, trigger a CloudFront invalidation for the affected paths:
+
+```bash
+aws cloudfront create-invalidation \
+  --distribution-id $(terraform output -raw cloudfront_distribution_id) \
+  --paths "/api/offramp/currencies" "/api/offramp/institutions/*"
+```
+
+This can be wired into the CI/CD pipeline alongside corridor config changes.
 
 ---
 
