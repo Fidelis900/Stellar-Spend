@@ -1,5 +1,13 @@
-import { pool } from '../../lib/db/client';
+import { pool } from '../../db/client';
+import { queryOptimizer } from '../../db/query-optimizer';
 import type { TransactionRepository, Transaction } from './transaction';
+
+async function timedQuery(sql: string, values: unknown[]) {
+  const start = Date.now();
+  const result = await pool.query(sql, values);
+  queryOptimizer.recordQuery(sql, Date.now() - start, result.rowCount ?? 0);
+  return result;
+}
 
 export class DatabaseTransactionRepository implements TransactionRepository {
   async save(transaction: Transaction): Promise<void> {
@@ -48,7 +56,7 @@ export class DatabaseTransactionRepository implements TransactionRepository {
       transaction.error ?? null,
     ];
 
-    await pool.query(sql, values);
+    await timedQuery(sql, values);
   }
 
   async update(id: string, updates: Partial<Transaction>): Promise<void> {
@@ -82,35 +90,48 @@ export class DatabaseTransactionRepository implements TransactionRepository {
     values.push(id);
     const sql = `UPDATE transactions SET ${setClauses.join(', ')} WHERE id = $${paramIndex}`;
 
-    await pool.query(sql, values);
+    await timedQuery(sql, values);
   }
 
   async getById(id: string): Promise<Transaction | null> {
-    const result = await pool.query('SELECT * FROM transactions WHERE id = $1', [id]);
+    const result = await timedQuery('SELECT * FROM transactions WHERE id = $1', [id]);
     return result.rows.length > 0 ? this.rowToTransaction(result.rows[0]) : null;
   }
 
   async delete(id: string): Promise<void> {
-    await pool.query('DELETE FROM transactions WHERE id = $1', [id]);
+    await timedQuery('DELETE FROM transactions WHERE id = $1', [id]);
   }
 
   async getAll(): Promise<Transaction[]> {
-    const result = await pool.query('SELECT * FROM transactions');
+    const result = await timedQuery('SELECT * FROM transactions', []);
     return result.rows.map((row) => this.rowToTransaction(row));
   }
 
   async getByUser(userAddress: string): Promise<Transaction[]> {
-    const result = await pool.query('SELECT * FROM transactions WHERE user_address = $1', [
-      userAddress,
-    ]);
+    const result = await timedQuery(
+      'SELECT * FROM transactions WHERE LOWER(user_address) = LOWER($1) ORDER BY created_at DESC',
+      [userAddress],
+    );
     return result.rows.map((row) => this.rowToTransaction(row));
   }
 
   async getByPayoutOrderId(orderId: string): Promise<Transaction | null> {
-    const result = await pool.query('SELECT * FROM transactions WHERE payout_order_id = $1', [
-      orderId,
-    ]);
+    const result = await timedQuery(
+      'SELECT * FROM transactions WHERE payout_order_id = $1',
+      [orderId],
+    );
     return result.rows.length > 0 ? this.rowToTransaction(result.rows[0]) : null;
+  }
+
+  /** Batch fetch — avoids N+1 when loading multiple transactions by id */
+  async getByIds(ids: string[]): Promise<Transaction[]> {
+    if (ids.length === 0) return [];
+    const placeholders = ids.map((_, i) => `$${i + 1}`).join(', ');
+    const result = await timedQuery(
+      `SELECT * FROM transactions WHERE id IN (${placeholders})`,
+      ids,
+    );
+    return result.rows.map((row) => this.rowToTransaction(row));
   }
 
   private rowToTransaction(row: Record<string, unknown>): Transaction {
