@@ -19,6 +19,7 @@
 - [Environment Variables](#environment-variables)
 - [API Reference](#api-reference)
 - [Architecture Decision Records](#architecture-decision-records)
+- [Diagrams](#diagrams)
 - [Glossary](#glossary)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
@@ -35,7 +36,7 @@ Stellar-Spend is a production-grade off-ramp application that lets users convert
 
 ![Stellar-Spend Architecture](./public/architecture.svg)
 
-> Full-resolution SVG: [`public/architecture.svg`](./public/architecture.svg)
+> Full-resolution SVG: [`public/architecture.svg`](./public/architecture.svg) · Diagram source (Mermaid): [`docs/diagrams/architecture.md`](./docs/diagrams/architecture.md)
 
 The diagram shows the complete data flow:
 
@@ -226,6 +227,9 @@ All variables are documented in [`.env.example`](./.env.example). The table belo
 
 ## API Reference
 
+> **Interactive docs (Swagger UI):** [http://localhost:3001/api/docs](http://localhost:3001/api/docs) when running locally.
+> The full OpenAPI 3.0 spec is in [`openapi.yaml`](./openapi.yaml).
+
 ### Offramp
 
 | Method | Path | Description |
@@ -334,6 +338,23 @@ Key architectural decisions are documented as ADRs in [`docs/adr/`](./docs/adr/)
 | [ADR-009](./docs/adr/ADR-009-provider-abstraction-routing.md) | Provider Abstraction and Routing | 2026-06-27 | Accepted |
 | [ADR-010](./docs/adr/ADR-010-realtime-transport-sse-vs-websocket.md) | Real-Time Transport — SSE vs WebSocket | 2026-06-27 | Accepted |
 | [ADR-011](./docs/adr/ADR-011-feature-flag-approach.md) | Feature Flag Approach | 2026-06-27 | Accepted |
+
+---
+
+## Diagrams
+
+All architecture and flow diagrams are maintained as **Mermaid source** in [`docs/diagrams/`](./docs/diagrams/) and checked in CI.
+
+| Diagram | File |
+|---------|------|
+| System overview + all data flows | [`docs/diagrams/architecture.md`](./docs/diagrams/architecture.md) |
+| Complete off-ramp sequence | [`docs/diagrams/offramp-flow.md`](./docs/diagrams/offramp-flow.md) |
+| Bridge transaction (build → sign → submit) | [`docs/diagrams/bridge-transaction.md`](./docs/diagrams/bridge-transaction.md) |
+| Paycrest order lifecycle | [`docs/diagrams/paycrest-order.md`](./docs/diagrams/paycrest-order.md) |
+| Webhook event handling | [`docs/diagrams/webhook-handling.md`](./docs/diagrams/webhook-handling.md) |
+| API key auth flow | [`docs/diagrams/api-key-auth.md`](./docs/diagrams/api-key-auth.md) |
+
+> **Keeping diagrams current:** If you change the architecture, update the relevant `.md` file and run `bash scripts/check-diagrams.sh` before opening a PR.
 
 ---
 

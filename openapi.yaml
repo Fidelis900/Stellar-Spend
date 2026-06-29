@@ -16,6 +16,30 @@ info:
     | `/api/auth/2fa/*` | Public — user-supplied credentials in body |
     | `/api/webhooks/paycrest` | HMAC-SHA256 via `X-Paycrest-Signature` |
 
+    ## API Key Scopes
+
+    | Scope | Endpoints |
+    |---|---|
+    | `offramp:read` | GET currencies, institutions, rate, bridge status |
+    | `offramp:write` | POST quote, build-tx, submit-soroban, paycrest order |
+    | `webhook:read` | Receive webhook events |
+
+    ## Rate Limits
+
+    `/api/v1/*` endpoints are rate-limited per API key.
+
+    Default: **120 requests / 60 seconds**. The following headers are returned on
+    every response:
+
+    | Header | Description |
+    |---|---|
+    | `X-RateLimit-Limit` | Maximum requests in the current window |
+    | `X-RateLimit-Remaining` | Requests remaining in the current window |
+    | `X-RateLimit-Reset` | Unix timestamp when the window resets |
+    | `Retry-After` | Seconds to wait (only on `429` responses) |
+
+    When the limit is exceeded the server returns `429 Too Many Requests`.
+
     ## Versioning
 
     All routes are available under `/api/v1/`. Legacy `/api/` routes are deprecated
@@ -30,7 +54,25 @@ info:
     Mutating endpoints support the `Idempotency-Key` header. Replay responses
     include `Idempotency-Status: replayed`; conflicts return `409`.
 
-  version: "1.0.0"
+    Key lifetime: 24 hours (configurable via `IDEMPOTENCY_TTL_MS`).
+
+    ## API Changelog
+
+    ### v1.1.0 — 2026-06-29
+    - Added `X-RateLimit-*` headers to all `/api/v1/*` responses
+    - Added `Idempotency-Status` response header documentation
+    - Added API key scope documentation
+    - Added interactive Swagger UI at `/api/docs`
+    - Added `docs/integrator-guide.md` for third-party SDK integrators
+
+    ### v1.0.0 — 2026-01-01
+    - Initial public API release
+    - Versioned routes under `/api/v1/` with API key authentication
+    - Legacy `/api/offramp/*` routes deprecated (sunset 2026-01-01)
+    - Idempotency support on all mutating endpoints
+    - Webhook HMAC-SHA256 signature verification
+
+  version: "1.1.0"
   contact:
     name: Stellar-Spend
     url: https://github.com/Lex-Studios/Stellar-Spend
@@ -86,6 +128,34 @@ components:
       in: header
       name: X-Paycrest-Signature
       description: HMAC-SHA256 hex digest of the raw request body (webhook only)
+
+  # ───────── Reusable response headers ─────────
+  headers:
+    X-RateLimit-Limit:
+      description: Maximum number of requests allowed in the current window
+      schema:
+        type: integer
+        example: 120
+    X-RateLimit-Remaining:
+      description: Number of requests remaining in the current window
+      schema:
+        type: integer
+        example: 115
+    X-RateLimit-Reset:
+      description: Unix timestamp (seconds) when the current rate-limit window resets
+      schema:
+        type: integer
+        example: 1751234567
+    Retry-After:
+      description: Seconds to wait before retrying (only present on 429 responses)
+      schema:
+        type: integer
+        example: 12
+    X-Request-Id:
+      description: Unique identifier for this request, useful for correlating logs
+      schema:
+        type: string
+        example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
 
   # ───────── Reusable schemas ─────────
   schemas:
@@ -976,6 +1046,15 @@ paths:
       responses:
         "200":
           description: Unsigned XDR transaction
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+            X-RateLimit-Limit:
+              $ref: "#/components/headers/X-RateLimit-Limit"
+            X-RateLimit-Remaining:
+              $ref: "#/components/headers/X-RateLimit-Remaining"
+            X-RateLimit-Reset:
+              $ref: "#/components/headers/X-RateLimit-Reset"
           content:
             application/json:
               schema:
@@ -990,9 +1069,11 @@ paths:
           description: Rate limit exceeded
           headers:
             Retry-After:
-              schema:
-                type: integer
-              description: Seconds to wait before retrying
+              $ref: "#/components/headers/Retry-After"
+            X-RateLimit-Limit:
+              $ref: "#/components/headers/X-RateLimit-Limit"
+            X-RateLimit-Reset:
+              $ref: "#/components/headers/X-RateLimit-Reset"
           content:
             application/json:
               schema:
@@ -1178,6 +1259,10 @@ paths:
       operationId: createPaycrestOrder
       description: |
         Rate-limited per IP. Supports `Idempotency-Key` header for safe retries.
+
+        On the first call with a given key, `Idempotency-Status: created` is returned.
+        Subsequent calls with the same key replay the saved response (`replayed`).
+        A key conflict (same key, different body) returns `409`.
       parameters:
         - name: Idempotency-Key
           in: header
@@ -1194,18 +1279,28 @@ paths:
       responses:
         "200":
           description: Order created successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CreateOrderResponse"
           headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+            X-RateLimit-Limit:
+              $ref: "#/components/headers/X-RateLimit-Limit"
+            X-RateLimit-Remaining:
+              $ref: "#/components/headers/X-RateLimit-Remaining"
+            X-RateLimit-Reset:
+              $ref: "#/components/headers/X-RateLimit-Reset"
             Idempotency-Key:
               schema:
                 type: string
+              description: Echo of the request Idempotency-Key
             Idempotency-Status:
               schema:
                 type: string
                 enum: [created, replayed, conflict]
+              description: Whether this is a new response or a replay
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateOrderResponse"
         "400":
           description: Validation error
           content:
@@ -1213,7 +1308,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ValidationError"
         "409":
-          description: Idempotency key conflict
+          description: Idempotency key conflict — same key used with a different request body
           content:
             application/json:
               schema:
@@ -1222,8 +1317,11 @@ paths:
           description: Rate limit exceeded
           headers:
             Retry-After:
-              schema:
-                type: integer
+              $ref: "#/components/headers/Retry-After"
+            X-RateLimit-Limit:
+              $ref: "#/components/headers/X-RateLimit-Limit"
+            X-RateLimit-Reset:
+              $ref: "#/components/headers/X-RateLimit-Reset"
           content:
             application/json:
               schema:

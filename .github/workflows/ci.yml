@@ -45,6 +45,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate OpenAPI spec
+        run: npx --yes @apidevtools/swagger-cli@4 validate openapi.yaml
+
+      - name: Check architecture diagrams
+        run: bash scripts/check-diagrams.sh
+
       - name: Run linting
         run: npm run lint
 
