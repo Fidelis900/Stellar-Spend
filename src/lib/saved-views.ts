@@ -58,8 +58,10 @@ function writeAll(views: SavedView[]): void {
 
 export class SavedViewsStorage {
   // Persisted locally for now; cross-device sync is tracked separately (#1).
+  // save() always appends, so reversing gives most-recently-created first
+  // without relying on Date.now() ties (saves in the same millisecond).
   static list(): SavedView[] {
-    return readAll().sort((a, b) => b.createdAt - a.createdAt);
+    return [...readAll()].reverse();
   }
 
   static save(name: string, filters: SearchFilters): SavedView {
