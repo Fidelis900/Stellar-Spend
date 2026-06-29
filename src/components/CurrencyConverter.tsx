@@ -1,8 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { cn } from "@/lib/cn";
 import { useCurrencyConverter } from "@/hooks/useCurrencyConverter";
+import { isSupportedStablecoin } from "@/lib/stablecoins";
+import { stellarSwapService, type StellarSwapQuote } from "@/lib/services/stellar-swap.service";
+import SwapPreview from "@/components/SwapPreview";
 
 export default function CurrencyConverter({ className }: { className?: string }) {
   const {
@@ -13,6 +16,43 @@ export default function CurrencyConverter({ className }: { className?: string })
     setFromCurrency, setToCurrency,
     swapCurrencies, copyResult,
   } = useCurrencyConverter();
+
+  const [swapQuote, setSwapQuote] = useState<StellarSwapQuote | null>(null);
+  const [swapLoading, setSwapLoading] = useState(false);
+  const [swapError, setSwapError] = useState<string | null>(null);
+  const [swapConfirmed, setSwapConfirmed] = useState(false);
+
+  const canSwapOnDex = useMemo(
+    () =>
+      isSupportedStablecoin(fromCurrency) &&
+      isSupportedStablecoin(toCurrency) &&
+      fromCurrency !== toCurrency &&
+      !!fromAmount && parseFloat(fromAmount) > 0,
+    [fromCurrency, toCurrency, fromAmount],
+  );
+
+  const handleGetSwapQuote = useCallback(async () => {
+    if (!canSwapOnDex) return;
+    setSwapLoading(true);
+    setSwapError(null);
+    try {
+      const quote = await stellarSwapService.getQuote(fromCurrency, toCurrency, fromAmount);
+      setSwapQuote(quote);
+    } catch (err) {
+      setSwapError(err instanceof Error ? err.message : "Failed to get swap quote");
+    } finally {
+      setSwapLoading(false);
+    }
+  }, [canSwapOnDex, fromCurrency, toCurrency, fromAmount]);
+
+  const handleConfirmSwap = useCallback(() => {
+    if (!swapQuote) return;
+    // After swap the output token becomes the input for off-ramp
+    handleFromAmountChange(swapQuote.toAmount);
+    setFromCurrency(swapQuote.toSymbol);
+    setSwapConfirmed(true);
+    setSwapQuote(null);
+  }, [swapQuote, handleFromAmountChange, setFromCurrency]);
 
   const currencyOptions = useMemo(
     () => currencies.map((curr) => <option key={curr} value={curr}>{curr}</option>),
@@ -27,6 +67,12 @@ export default function CurrencyConverter({ className }: { className?: string })
       )}
     >
       <h2 className="mb-4 text-lg font-semibold">Currency Converter</h2>
+
+      {swapConfirmed && (
+        <div role="status" className="mb-4 rounded bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
+          ✓ Swap confirmed. Continue to off-ramp with your {fromCurrency}.
+        </div>
+      )}
 
       {/* From Amount */}
       <div className="mb-4">
@@ -81,6 +127,34 @@ export default function CurrencyConverter({ className }: { className?: string })
           </select>
         </div>
       </div>
+
+      {/* DEX Swap option (shown when swapping between supported stablecoins) */}
+      {canSwapOnDex && !swapQuote && (
+        <div className="mb-4">
+          <button
+            onClick={handleGetSwapQuote}
+            disabled={swapLoading}
+            className="w-full rounded border border-blue-400 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-900/20"
+          >
+            {swapLoading ? "Fetching quote…" : `Swap ${fromCurrency} → ${toCurrency} on Stellar DEX`}
+          </button>
+          {swapError && (
+            <p role="alert" className="mt-2 text-xs text-red-500">{swapError}</p>
+          )}
+        </div>
+      )}
+
+      {/* Swap Preview */}
+      {swapQuote && (
+        <div className="mb-4">
+          <SwapPreview
+            quote={swapQuote}
+            onConfirm={handleConfirmSwap}
+            onClose={() => setSwapQuote(null)}
+            loading={swapLoading}
+          />
+        </div>
+      )}
 
       {/* Rate Info with countdown */}
       {rate && (
@@ -139,7 +213,7 @@ export default function CurrencyConverter({ className }: { className?: string })
       </button>
 
       {loading && (
-        <p className="mt-2 text-center text-sm text-gray-500">Updating rates...</p>
+        <p className="mt-2 text-center text-sm text-gray-500">Updating rates…</p>
       )}
     </div>
   );
