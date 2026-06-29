@@ -13,6 +13,7 @@ This guide describes how to integrate with Stellar-Spend webhooks: which events 
 - [Testing Webhooks Locally](#testing-webhooks-locally)
 - [Security Best Practices](#security-best-practices)
 - [Example Handlers](#example-handlers)
+- [Schema Versioning](#schema-versioning)
 - [Troubleshooting](#troubleshooting)
 
 ## Overview
@@ -375,7 +376,7 @@ Response includes the `signingSecret` — store it securely. You will need it to
 
 - `GET /api/webhooks/subscriptions` — List all subscriptions
 - `GET /api/webhooks/subscriptions/:id` — Get a single subscription
-- `PUT /api/webhooks/subscriptions/:id` — Update endpoint URL, events, status, or rate limit
+- `PUT /api/webhooks/subscriptions/:id` — Update endpoint URL, events, status, rate limit, or pinned schema version (see [Schema Versioning](#schema-versioning))
 - `DELETE /api/webhooks/subscriptions/:id` — Delete a subscription
 
 ### Delivery Log
@@ -418,6 +419,34 @@ Each subscription has a per-minute rate limit (default 60 deliveries/minute). Wh
 ### Verifying Outbound Signatures
 
 Every outbound webhook includes `X-Webhook-Timestamp` and `X-Webhook-Signature` headers. Verify using the `signingSecret` returned when creating the subscription. See [Signature Verification](#signature-verification) above for the verification algorithm.
+
+## Schema Versioning
+
+Outbound webhook payloads are versioned so integrators can opt into a stable schema as it evolves.
+
+| Version | Status | Shape |
+|---|---|---|
+| `2` | **Default** | `{ event, id, createdAt, data, meta: { schemaVersion: "2" } }` |
+| `1` | Deprecated | `{ event, data, timestamp }` (legacy flat envelope, no `meta`) |
+
+- New subscriptions default to the latest schema version (`2`).
+- Pin a subscription to a specific version by setting `schemaVersion` when creating or updating it:
+
+```bash
+curl -X PUT https://api.stellarspend.com/api/webhooks/subscriptions/:id \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"schemaVersion": "1"}'
+```
+
+- Every v2 payload carries its own version in `meta.schemaVersion`, so handlers can branch on shape without an extra lookup.
+- Deliveries are transformed server-side from the canonical (latest) payload down to whichever version a subscriber is pinned to — the `data` and `event` fields are never altered, only the envelope.
+
+### Deprecation policy
+
+- A schema version is marked deprecated (see the table above) for at least one release cycle before removal.
+- Deprecated versions continue to be served, but new subscriptions should not pin to them.
+- When a version's removal is scheduled, subscribers still pinned to it are notified via the subscription's `description`/admin dashboard ahead of the cutoff; after removal, deliveries fall back to the default version.
 
 ## Troubleshooting
 
