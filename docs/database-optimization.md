@@ -186,3 +186,36 @@ console.log("Slow queries:", metrics.slowQueries);
 - [PostgreSQL Query Performance](https://www.postgresql.org/docs/current/performance.html)
 - [pg Library Documentation](https://node-postgres.com/)
 - [Database Indexing Best Practices](https://use-the-index-luke.com/)
+
+## #701 Optimizations (2026-06-29)
+
+### New Indexes — `021_db_optimization_701.sql`
+
+| Index | Table | Columns | Type | Rationale |
+|---|---|---|---|---|
+| `idx_transactions_lower_user_address` | `transactions` | `LOWER(user_address)` | Expression | Supports case-insensitive `LOWER(user_address) = LOWER($1)` lookups without seq-scan |
+| `idx_transactions_user_address_created_at` | `transactions` | `(user_address, created_at DESC)` | Composite | Covers `getByUser` sorted history queries |
+| `idx_transactions_payout_order_id` | `transactions` | `payout_order_id` | Single | Speeds up `getByPayoutOrderId` webhook lookups |
+| `idx_transaction_batches_user_status_created` | `transaction_batches` | `(user_id, status, created_at DESC)` | Composite | Batch list queries filtered by user + status |
+| `idx_batch_transactions_batch_status` | `batch_transactions` | `(batch_id, status)` | Composite | Batch member lookups filtered by status |
+| `idx_transaction_batches_active` | `transaction_batches` | `(user_id, created_at DESC) WHERE status IN ('pending','processing')` | Partial | Reduces index size; covers active-batch-only queries |
+| `idx_merchant_accounts_user_id` | `merchant_accounts` | `user_id` | Single | Added conditionally (table may not exist in all deployments) |
+
+### N+1 Elimination — `DatabaseTransactionRepository`
+
+Added `getByIds(ids: string[])` batch method that fetches multiple transactions in a single `WHERE id IN (...)` query. Callers that previously looped over IDs calling `getById()` can now use one round-trip.
+
+`getByUser` updated to use `LOWER(user_address)` comparison, aligning with the new expression index for case-insensitive lookups.
+
+### Query Timing Metrics — `dal.ts` and `database-transaction.ts`
+
+All `pool.query` calls are now routed through a `timedQuery()` wrapper that records wall-clock duration and row count via `queryOptimizer.recordQuery()`. This feeds the existing `QueryOptimizer` slow-query detection and the `/api/health` metrics endpoint.
+
+```typescript
+async function timedQuery(sql: string, values: unknown[]) {
+  const start = Date.now();
+  const result = await pool.query(sql, values);
+  queryOptimizer.recordQuery(sql, Date.now() - start, result.rowCount ?? 0);
+  return result;
+}
+```

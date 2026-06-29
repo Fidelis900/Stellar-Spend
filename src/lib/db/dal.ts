@@ -1,5 +1,13 @@
 import { pool } from "./client";
 import type { Transaction } from "../transaction-storage";
+import { queryOptimizer } from "./query-optimizer";
+
+async function timedQuery(sql: string, values: unknown[]) {
+    const start = Date.now();
+    const result = await timedQuery(sql, values);
+    queryOptimizer.recordQuery(sql, Date.now() - start, result.rowCount ?? 0);
+    return result;
+}
 
 export class DatabaseError extends Error {
     constructor(
@@ -95,7 +103,7 @@ export const dal: DAL = {
             transaction.error ?? null,
         ];
         try {
-            await pool.query(sql, values);
+            await timedQuery(sql, values);
         } catch (err) {
             throw new DatabaseError(
                 `Failed to save transaction: ${(err as Error).message}`,
@@ -174,7 +182,7 @@ export const dal: DAL = {
         const sql = `UPDATE transactions SET ${setClauses.join(", ")} WHERE id = $${paramIndex}`;
 
         try {
-            await pool.query(sql, values);
+            await timedQuery(sql, values);
         } catch (err) {
             throw new DatabaseError(
                 `Failed to update transaction ${id}: ${(err as Error).message}`,
@@ -190,7 +198,7 @@ export const dal: DAL = {
       ORDER BY timestamp DESC
     `;
         try {
-            const result = await pool.query(sql, [userAddress]);
+            const result = await timedQuery(sql, [userAddress]);
             return result.rows.map(rowToTransaction);
         } catch (err) {
             throw new DatabaseError(
@@ -203,7 +211,7 @@ export const dal: DAL = {
     async getById(id: string): Promise<Transaction | null> {
         const sql = `SELECT * FROM transactions WHERE id = $1`;
         try {
-            const result = await pool.query(sql, [id]);
+            const result = await timedQuery(sql, [id]);
             if (result.rows.length === 0) return null;
             return rowToTransaction(result.rows[0]);
         } catch (err) {
@@ -217,7 +225,7 @@ export const dal: DAL = {
     async getByPayoutOrderId(orderId: string): Promise<Transaction | null> {
         const sql = `SELECT * FROM transactions WHERE payout_order_id = $1`;
         try {
-            const result = await pool.query(sql, [orderId]);
+            const result = await timedQuery(sql, [orderId]);
             if (result.rows.length === 0) return null;
             return rowToTransaction(result.rows[0]);
         } catch (err) {

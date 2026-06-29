@@ -63,24 +63,83 @@ export const generateSrcSet = (
 
 /**
  * Get image loader for CDN optimization.
- * Supports dynamic image resizing and format conversion.
+ * Prefers AVIF, falls back to WebP.
  */
 export const imageLoader = (
   src: string,
   width: number,
   quality: number = 75,
+  format: "avif" | "webp" = "avif",
 ): string => {
-  // If using a CDN, construct the optimized URL
   const cdnUrl = process.env.NEXT_PUBLIC_CDN_URL;
   if (cdnUrl && !src.startsWith("http")) {
     const params = new URLSearchParams({
       w: width.toString(),
       q: quality.toString(),
-      f: "webp", // Request WebP format
+      f: format,
     });
     return `${cdnUrl}${src}?${params.toString()}`;
   }
   return src;
+};
+
+/**
+ * Generate AVIF srcSet for responsive images (preferred format).
+ */
+export const generateAvifSrcSet = (
+  basePath: string,
+  widths: number[] = [320, 640, 960, 1280, 1920],
+  quality: number = 80,
+): string => {
+  return widths
+    .map((width) => `${basePath}?w=${width}&q=${quality}&f=avif ${width}w`)
+    .join(", ");
+};
+
+/**
+ * Returns <link rel="preload"> descriptor objects for critical fonts/assets.
+ * Render these in <Head> for above-the-fold performance.
+ */
+export interface PreloadDescriptor {
+  href: string;
+  as: string;
+  type?: string;
+  crossOrigin?: "anonymous" | "use-credentials";
+}
+
+export const getCriticalAssetPreloads = (): PreloadDescriptor[] => [
+  {
+    href: "/fonts/inter-var.woff2",
+    as: "font",
+    type: "font/woff2",
+    crossOrigin: "anonymous",
+  },
+];
+
+/**
+ * Asset size budgets (bytes). Fail CI if exceeded.
+ */
+export const assetSizeBudgets: Record<string, number> = {
+  "hero-image": 100_000,   // 100 KB
+  "card-image": 50_000,    // 50 KB
+  "thumbnail": 20_000,     // 20 KB
+  "icon": 5_000,           // 5 KB
+  "font-woff2": 150_000,   // 150 KB
+};
+
+/**
+ * Returns true if the asset is within budget; throws with a descriptive message if not.
+ */
+export const checkAssetSizeBudget = (assetPath: string, sizeBytes: number): boolean => {
+  const key = Object.keys(assetSizeBudgets).find((k) => assetPath.includes(k));
+  if (!key) return true;
+  const limit = assetSizeBudgets[key];
+  if (sizeBytes > limit) {
+    throw new Error(
+      `Asset "${assetPath}" is ${sizeBytes} bytes, exceeds budget of ${limit} bytes for category "${key}".`,
+    );
+  }
+  return true;
 };
 
 /**
