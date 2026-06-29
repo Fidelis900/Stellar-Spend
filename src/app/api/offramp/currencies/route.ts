@@ -1,5 +1,6 @@
 import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
+<<<<<<< HEAD
 import { env } from '@/lib/env';
 import { ErrorHandler } from '@/lib/error-handler';
 import { withPaycrestTimeout } from '@/lib/offramp/utils/timeout';
@@ -170,5 +171,42 @@ export async function GET(request: Request) {
   } catch (error) {
     logger.error('Error fetching currencies:', {}, error);
     return ErrorHandler.handle(error);
+=======
+import { getCached, cache } from '@/lib/cache';
+import { CACHE_KEYS, generateCacheKey } from '@/lib/cache/keys';
+
+/**
+ * GET /api/offramp/currencies
+ * 
+ * Get supported fiat currencies with caching
+ * Cached for 1 hour (rarely changes)
+ */
+export async function GET() {
+  try {
+    const cacheKey = generateCacheKey(CACHE_KEYS.CURRENCIES);
+
+    const currencies = await getCached(cacheKey, CACHE_KEYS.CURRENCIES, async () => {
+      // TODO: Fetch from Paycrest API
+      // For now, return mock data
+      return [
+        { code: 'NGN', name: 'Nigerian Naira', symbol: '₦' },
+        { code: 'USD', name: 'US Dollar', symbol: '$' },
+        { code: 'EUR', name: 'Euro', symbol: '€' },
+        { code: 'GBP', name: 'British Pound', symbol: '£' },
+        { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh' },
+        { code: 'GHS', name: 'Ghanaian Cedi', symbol: 'GH₵' },
+      ];
+    });
+
+    return NextResponse.json(currencies);
+  } catch (error) {
+    console.error('[Currencies API] Error:', error);
+    
+    // Graceful degradation: return fallback currencies
+    return NextResponse.json([
+      { code: 'NGN', name: 'Nigerian Naira', symbol: '₦' },
+      { code: 'USD', name: 'US Dollar', symbol: '$' },
+    ]);
+>>>>>>> de69014 (security+perf: pentest checklist, performance budgets, RSC streaming, cache tuning (#697 #698 #699 #700))
   }
 }
