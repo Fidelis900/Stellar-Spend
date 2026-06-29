@@ -79,6 +79,12 @@ export function isSupportedCurrency(code: string): boolean {
   return !!config?.active;
 }
 
+/** Returns the active currency whose primary country matches the given ISO 3166-1 alpha-2 code. */
+export function getDefaultCurrencyForCountry(countryCode: string): CurrencyConfig | undefined {
+  const code = countryCode.toUpperCase();
+  return getActiveCurrencies().find((c) => c.country === code);
+}
+
 /**
  * Validates that an amount is within the allowed range for a currency.
  * Returns an error message or null if valid.

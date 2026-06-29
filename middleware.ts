@@ -3,6 +3,8 @@ import { registry } from "./src/lib/api-versioning/registry";
 import { recordApiTiming } from "./src/lib/performance";
 import { logger } from "./src/lib/logger";
 import { addSecurityHeaders } from "./src/lib/security/headers";
+import { resolveGeo } from "./src/lib/geo/geoip";
+import { isRestrictedJurisdiction } from "./src/lib/kyc-limits";
 
 // Matches /api/v{n}/... and captures the version segment
 const VERSIONED_PATH_RE = /^\/api\/(v\d+)(\/.*)?$/;
@@ -15,6 +17,11 @@ const ACCEPT_HEADER_RE = /application\/vnd\.stellarspend\.(v\d+)\+json/;
 
 // Migration guide URL referenced in deprecation headers
 const MIGRATION_GUIDE_URL = "/docs/api-migration-v1";
+
+// Money-movement endpoints that compliance gating applies to. Webhooks, auth,
+// health, and read-only endpoints are intentionally excluded — gating those
+// by the caller's IP would break inbound provider webhooks and monitoring.
+const GATED_PATH_RE = /^\/api\/(v\d+\/)?(transactions|onramp|offramp)(\/|$)/;
 
 function resolveVersionFromHeaders(request: NextRequest): string | null {
     // X-API-Version header takes precedence over Accept header
@@ -68,7 +75,23 @@ export function middleware(request: NextRequest): NextResponse {
         const level = response.status >= 500 ? 'error' : response.status >= 400 ? 'warn' : 'info';
         log[level]('http.request', { method: request.method, path: pathname, status: response.status, durationMs });
         response.headers.set('X-Request-Id', requestId);
+        if (geo.country) {
+            response.headers.set('X-Geo-Country', geo.country);
+        }
         return addSecurityHeaders(response);
+    }
+
+    // 0. Resolve geo (cached, override-able) and gate restricted jurisdictions
+    // on money-movement endpoints.
+    const geo = resolveGeo(request);
+    if (geo.country && !geo.overridden && isRestrictedJurisdiction(geo.country) && GATED_PATH_RE.test(pathname)) {
+        return respond(NextResponse.json(
+            {
+                error: "Service unavailable in your region",
+                country: geo.country,
+            },
+            { status: 451 }
+        ));
     }
 
     // 1. Check for versioned URL path: /api/v{n}/*
