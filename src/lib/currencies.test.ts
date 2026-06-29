@@ -6,6 +6,7 @@ import {
   validateCurrencyAmount,
   SUPPORTED_CURRENCIES,
   getCurrencies,
+  getDefaultCurrencyForCountry,
 } from './currencies';
 
 describe('SUPPORTED_CURRENCIES', () => {
@@ -237,5 +238,21 @@ describe('precision and rounding edge cases', () => {
     for (const c of getActiveCurrencies()) {
       expect(validateCurrencyAmount(c.code, -1)).toMatch(/minimum/i);
     }
+  });
+});
+
+describe('getDefaultCurrencyForCountry', () => {
+  it('returns the active currency for a known country', () => {
+    expect(getDefaultCurrencyForCountry('NG')?.code).toBe('NGN');
+    expect(getDefaultCurrencyForCountry('ke')?.code).toBe('KES');
+  });
+
+  it('returns undefined for a country with no active currency mapping', () => {
+    expect(getDefaultCurrencyForCountry('ZZ')).toBeUndefined();
+  });
+
+  it('does not match an inactive currency\'s country', () => {
+    // MW (Malawi) maps to MWK, which is inactive.
+    expect(getDefaultCurrencyForCountry('MW')).toBeUndefined();
   });
 });

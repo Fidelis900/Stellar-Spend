@@ -93,6 +93,31 @@ const TIER_LIMITS: Record<LimitTier, TransactionLimit> = {
   tier3: { dailyLimit: 50000, monthlyLimit: 500000, transactionLimit: 25000 },
 };
 
+/**
+ * ISO 3166-1 alpha-2 codes for jurisdictions Stellar-Spend cannot serve
+ * (OFAC/sanctions-comprehensive countries). Fully blocked — no override.
+ */
+export const RESTRICTED_JURISDICTIONS: string[] = ['KP', 'IR', 'SY', 'CU'];
+
+/**
+ * Jurisdictions that are served but require a compliance warning
+ * (e.g. heightened sanctions risk / limited corridor support).
+ */
+export const WARNING_JURISDICTIONS: string[] = ['RU', 'BY', 'VE'];
+
+export type JurisdictionStatus = 'allowed' | 'warning' | 'restricted';
+
+export function getJurisdictionStatus(countryCode: string): JurisdictionStatus {
+  const code = countryCode.toUpperCase();
+  if (RESTRICTED_JURISDICTIONS.includes(code)) return 'restricted';
+  if (WARNING_JURISDICTIONS.includes(code)) return 'warning';
+  return 'allowed';
+}
+
+export function isRestrictedJurisdiction(countryCode: string): boolean {
+  return getJurisdictionStatus(countryCode) === 'restricted';
+}
+
 let _corridorOverridesCache: Record<string, Record<string, { dailyLimit: number; monthlyLimit: number; transactionLimit: number }>> | undefined;
 
 function loadCorridorOverrides(): void {
