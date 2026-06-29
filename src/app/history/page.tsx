@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { Transaction } from "@/lib/transaction-storage";
 import { TransactionStorage } from "@/lib/transaction-storage";
 import { useStellarWallet } from "@/hooks/useStellarWallet";
@@ -13,6 +14,8 @@ import { TransactionTableSkeleton } from "@/components/skeletons";
 import ExportControls from "@/components/ExportControls";
 import { StatusBadge } from "@/components/StatusBadge";
 import { InsuranceClaimForm } from "@/components/InsuranceClaimForm";
+import { TransactionSearchService, type SearchFilters } from "@/lib/transaction-search";
+import { FILTER_PRESETS, SavedViewsStorage, type SavedView } from "@/lib/saved-views";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -84,6 +87,7 @@ interface Filters {
   dateTo: string;
   amountMin: string;
   amountMax: string;
+  tags: string; // comma-separated tag names
   sortField: SortField;
   sortDir: SortDir;
 }
@@ -96,11 +100,61 @@ const DEFAULT_FILTERS: Filters = {
   dateTo: "",
   amountMin: "",
   amountMax: "",
+  tags: "",
   sortField: "timestamp",
   sortDir: "desc",
 };
 
 const FILTERS_STORAGE_KEY = "stellar_spend_history_filters";
+
+// Fields reflected in the URL so a filtered/sorted view can be shared via link.
+const URL_FILTER_KEYS = [
+  "search", "status", "currency", "dateFrom", "dateTo",
+  "amountMin", "amountMax", "tags", "sortField", "sortDir",
+] as const satisfies ReadonlyArray<keyof Filters>;
+
+function filtersToSearchParams(filters: Filters): URLSearchParams {
+  const params = new URLSearchParams();
+  for (const key of URL_FILTER_KEYS) {
+    const value = filters[key];
+    if (value && value !== DEFAULT_FILTERS[key]) {
+      params.set(key, value);
+    }
+  }
+  return params;
+}
+
+function filtersFromSearchParams(params: URLSearchParams): Partial<Filters> {
+  const result: Partial<Filters> = {};
+  for (const key of URL_FILTER_KEYS) {
+    const value = params.get(key);
+    if (value !== null) {
+      (result as Record<string, string>)[key] = value;
+    }
+  }
+  return result;
+}
+
+/** Maps the page's string-based filter state onto transaction-search.ts's SearchFilters. */
+function toServiceFilters(filters: Filters): SearchFilters {
+  const tags = filters.tags
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+
+  return {
+    query: filters.search.trim() || undefined,
+    status: filters.status,
+    currency: filters.currency || undefined,
+    dateFrom: filters.dateFrom ? new Date(filters.dateFrom).getTime() : undefined,
+    dateTo: filters.dateTo ? new Date(filters.dateTo).getTime() + 86_400_000 - 1 : undefined,
+    amountMin: filters.amountMin !== "" && !isNaN(parseFloat(filters.amountMin))
+      ? parseFloat(filters.amountMin) : undefined,
+    amountMax: filters.amountMax !== "" && !isNaN(parseFloat(filters.amountMax))
+      ? parseFloat(filters.amountMax) : undefined,
+    tags: tags.length > 0 ? tags : undefined,
+  };
+}
 
 function loadStoredFilters(): Filters {
   if (typeof window === "undefined") return DEFAULT_FILTERS;
@@ -124,6 +178,7 @@ function activeFilterCount(filters: Filters): number {
   if (filters.dateTo) count++;
   if (filters.amountMin) count++;
   if (filters.amountMax) count++;
+  if (filters.tags.trim()) count++;
   return count;
 }
 
@@ -132,8 +187,19 @@ function activeFilterCount(filters: Filters): number {
 // ---------------------------------------------------------------------------
 
 export default function HistoryPage() {
+  return (
+    <Suspense fallback={<TransactionTableSkeleton rows={5} />}>
+      <HistoryPageContent />
+    </Suspense>
+  );
+}
+
+function HistoryPageContent() {
   const { wallet, isConnected, isConnecting, connect, disconnect } =
     useStellarWallet();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [filtersLoaded, setFiltersLoaded] = useState(false);
@@ -143,14 +209,21 @@ export default function HistoryPage() {
   const [noteInput, setNoteInput] = useState("");
   const [noteError, setNoteError] = useState<string | null>(null);
   const [claimingTransaction, setClaimingTransaction] = useState<Transaction | null>(null);
+  const [savedViews, setSavedViews] = useState<SavedView[]>([]);
 
-  // Hydrate filters from localStorage on mount (client-only).
+  // Hydrate filters on mount: URL params take precedence over localStorage
+  // so a shared link reproduces the same view.
   useEffect(() => {
-    setFilters(loadStoredFilters());
+    const fromUrl = filtersFromSearchParams(searchParams);
+    setFilters({ ...loadStoredFilters(), ...fromUrl } as Filters);
     setFiltersLoaded(true);
+    setSavedViews(SavedViewsStorage.list());
+    // Only run on mount; the URL is derived from filters afterwards, not the other way round.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Persist filters whenever they change (after initial hydration).
+  // Persist filters whenever they change (after initial hydration), and
+  // reflect them in the URL so the current view is shareable.
   useEffect(() => {
     if (!filtersLoaded) return;
     try {
@@ -158,7 +231,48 @@ export default function HistoryPage() {
     } catch {
       // localStorage may be unavailable (e.g. quota, private mode); fail silently.
     }
-  }, [filters, filtersLoaded]);
+    const qs = filtersToSearchParams(filters).toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [filters, filtersLoaded, pathname, router]);
+
+  // Apply a SearchFilters object (preset/saved view) onto the page's
+  // string-based filter state, leaving sort and any omitted field untouched.
+  const applyServiceFilters = (next: SearchFilters) => {
+    setFilters((prev) => ({
+      ...DEFAULT_FILTERS,
+      sortField: prev.sortField,
+      sortDir: prev.sortDir,
+      status: next.status ?? "all",
+      currency: next.currency ?? "",
+      dateFrom: next.dateFrom ? new Date(next.dateFrom).toISOString().slice(0, 10) : "",
+      dateTo: next.dateTo ? new Date(next.dateTo).toISOString().slice(0, 10) : "",
+      amountMin: next.amountMin !== undefined ? String(next.amountMin) : "",
+      amountMax: next.amountMax !== undefined ? String(next.amountMax) : "",
+      tags: next.tags?.join(", ") ?? "",
+    }));
+  };
+
+  const applyPreset = (presetId: string) => {
+    const preset = FILTER_PRESETS.find((p) => p.id === presetId);
+    if (preset) applyServiceFilters(preset.filters);
+  };
+
+  const applySavedView = (viewId: string) => {
+    const view = savedViews.find((v) => v.id === viewId);
+    if (view) applyServiceFilters(view.filters);
+  };
+
+  const saveCurrentView = () => {
+    const name = window.prompt("Name this view:");
+    if (!name?.trim()) return;
+    SavedViewsStorage.save(name.trim(), toServiceFilters(filters));
+    setSavedViews(SavedViewsStorage.list());
+  };
+
+  const deleteSavedView = (viewId: string) => {
+    SavedViewsStorage.remove(viewId);
+    setSavedViews(SavedViewsStorage.list());
+  };
 
   useEffect(() => {
     if (!wallet?.publicKey) {
@@ -261,50 +375,7 @@ export default function HistoryPage() {
   }, [transactions]);
 
   const filtered = useMemo(() => {
-    let result = [...transactions];
-
-    // Search by ID, tx hash, or note
-    if (filters.search.trim()) {
-      const q = filters.search.trim().toLowerCase();
-      result = result.filter(
-        (tx) =>
-          tx.id.toLowerCase().includes(q) ||
-          (tx.stellarTxHash?.toLowerCase().includes(q) ?? false) ||
-          (tx.note?.toLowerCase().includes(q) ?? false),
-      );
-    }
-
-    // Status filter
-    if (filters.status !== "all") {
-      result = result.filter((tx) => tx.status === filters.status);
-    }
-
-    // Currency filter
-    if (filters.currency) {
-      result = result.filter((tx) => tx.currency === filters.currency);
-    }
-
-    // Date range
-    if (filters.dateFrom) {
-      const from = new Date(filters.dateFrom).getTime();
-      result = result.filter((tx) => tx.timestamp >= from);
-    }
-    if (filters.dateTo) {
-      const to = new Date(filters.dateTo).getTime() + 86_400_000 - 1;
-      result = result.filter((tx) => tx.timestamp <= to);
-    }
-
-    // Amount range
-    if (filters.amountMin !== "") {
-      const min = parseFloat(filters.amountMin);
-      if (!isNaN(min))
-        result = result.filter((tx) => parseFloat(tx.amount) >= min);
-    }
-    if (filters.amountMax !== "") {
-      const max = parseFloat(filters.amountMax);
-      if (!isNaN(max))
-        result = result.filter((tx) => parseFloat(tx.amount) <= max);
-    }
+    const result = TransactionSearchService.search(transactions, toServiceFilters(filters));
 
     // Sort
     result.sort((a, b) => {
@@ -465,6 +536,54 @@ export default function HistoryPage() {
                   </span>
                 )}
               </div>
+
+              {/* Presets & saved views */}
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <span className="text-[10px] text-[#777777] uppercase tracking-widest">
+                  Presets
+                </span>
+                {FILTER_PRESETS.map((preset) => (
+                  <button
+                    key={preset.id}
+                    onClick={() => applyPreset(preset.id)}
+                    className="text-[10px] tracking-widest uppercase px-2 py-1 border border-[#333333] text-[#999999] hover:border-[#c9a962] hover:text-[#c9a962] transition-colors duration-150"
+                  >
+                    {preset.name}
+                  </button>
+                ))}
+
+                <span className="ml-2 text-[10px] text-[#777777] uppercase tracking-widest">
+                  Saved views
+                </span>
+                {savedViews.length === 0 ? (
+                  <span className="text-[10px] text-[#555555]">None yet</span>
+                ) : (
+                  savedViews.map((view) => (
+                    <span key={view.id} className="inline-flex items-center gap-1">
+                      <button
+                        onClick={() => applySavedView(view.id)}
+                        className="text-[10px] tracking-widest uppercase px-2 py-1 border border-[#333333] text-[#999999] hover:border-[#c9a962] hover:text-[#c9a962] transition-colors duration-150"
+                      >
+                        {view.name}
+                      </button>
+                      <button
+                        onClick={() => deleteSavedView(view.id)}
+                        aria-label={`Delete saved view ${view.name}`}
+                        className="text-[#555555] hover:text-red-400 text-[10px] px-1"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))
+                )}
+                <button
+                  onClick={saveCurrentView}
+                  className="text-[10px] tracking-widest uppercase px-2 py-1 border border-[#c9a962] text-[#c9a962] hover:bg-[#c9a962] hover:text-[#0a0a0a] transition-colors duration-150"
+                >
+                  + Save current view
+                </button>
+              </div>
+
               <div className="flex flex-wrap gap-3 items-end">
                 {/* Search */}
                 <div className="flex flex-col gap-1">
@@ -535,6 +654,25 @@ export default function HistoryPage() {
                       </option>
                     ))}
                   </select>
+                </div>
+
+                {/* Tags */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] text-[#777777] uppercase tracking-widest">
+                    Tags
+                  </label>
+                  <input
+                    type="text"
+                    value={filters.tags}
+                    onChange={(e) => set("tags", e.target.value)}
+                    placeholder="comma, separated"
+                    aria-label="Filter by tags"
+                    className={cn(
+                      "w-40 bg-[#0a0a0a] border border-[#333333] px-3 py-2",
+                      "text-xs text-white placeholder-[#555555]",
+                      "focus:outline-none focus:border-[#c9a962]",
+                    )}
+                  />
                 </div>
 
                 {/* Date from */}
