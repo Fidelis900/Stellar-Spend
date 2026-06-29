@@ -2,6 +2,8 @@
 
 Thank you for your interest in contributing! This document covers everything you need to know: environment setup, branch and commit conventions, the pull request process, the definition of done, and review SLAs.
 
+> **New here?** Start with the [Developer Onboarding Guide](./docs/onboarding.md) — it takes you from clone to a running local environment and explains the architecture in detail.
+
 ---
 
 ## Table of Contents
@@ -217,6 +219,7 @@ A contribution is **done** when **all** of the following are true:
 
 ### Documentation
 - [ ] `docs/` updated if architecture, API behavior, or configuration changed
+- [ ] If the architecture changed (new service, new external dependency, data-flow change): update `docs/diagrams/` source files and run the diagram check (`bash scripts/check-diagrams.sh`)
 - [ ] New environment variables are added to `.env.example` with descriptions
 - [ ] New ADRs created for significant architectural decisions (see `docs/adr/`)
 - [ ] In-code comments are accurate and not stale

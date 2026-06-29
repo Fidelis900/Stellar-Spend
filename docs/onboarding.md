@@ -9,13 +9,15 @@ and explains everything you need to contribute effectively.
 
 1. [First 30 Minutes — Quick Start](#first-30-minutes--quick-start)
 2. [Project Overview](#project-overview)
-3. [Key Files and Their Purposes](#key-files-and-their-purposes)
-4. [Common Development Workflows](#common-development-workflows)
-5. [Testing Strategy and Running Tests](#testing-strategy-and-running-tests)
-6. [Testing with Stellar Testnet](#testing-with-stellar-testnet)
-7. [Debugging Techniques](#debugging-techniques)
-8. [Troubleshooting Common Setup Issues](#troubleshooting-common-setup-issues)
-9. [Glossary of Stellar / Blockchain Terms](#glossary-of-stellarblockchain-terms)
+3. [Architecture Overview](#architecture-overview)
+4. [Key Files and Their Purposes](#key-files-and-their-purposes)
+5. [Common Development Workflows](#common-development-workflows)
+6. [Testing Strategy and Running Tests](#testing-strategy-and-running-tests)
+7. [Testing with Stellar Testnet](#testing-with-stellar-testnet)
+8. [Debugging Techniques](#debugging-techniques)
+9. [Troubleshooting Common Setup Issues](#troubleshooting-common-setup-issues)
+10. [First Good Issue Walkthrough](#first-good-issue-walkthrough)
+11. [Glossary of Stellar / Blockchain Terms](#glossary-of-stellarblockchain-terms)
 
 ---
 
@@ -139,6 +141,96 @@ Beneficiary's bank account
 | Testing | Vitest, React Testing Library, Playwright |
 | Error tracking | Sentry |
 | Deployment | Vercel / Docker / Kubernetes |
+
+---
+
+## Architecture Overview
+
+### System diagram
+
+```mermaid
+graph LR
+    A([User / Browser]) -->|Signs XDR| B[Stellar Network]
+    B -->|Bridge deposit| C[Allbridge Protocol]
+    C -->|USDC on Base| D[Base Chain]
+    D -->|Server sends USDC| E[Paycrest API]
+    E -->|Fiat settlement| F([Beneficiary Bank])
+
+    subgraph "Stellar-Spend Server (Next.js 15)"
+        G[App Router Pages]
+        H[API Routes]
+        I[Middleware Layer]
+        G --> H
+        I --> H
+    end
+
+    A -->|Quote / Build TX| H
+    B -->|TX hash| H
+    H --> D
+    H --> E
+```
+
+### Layer responsibilities
+
+| Layer | Path | Responsibility |
+|-------|------|---------------|
+| **Pages** | `src/app/*.tsx` | React Server / Client Components, UI rendering |
+| **API routes** | `src/app/api/` | HTTP handlers — validate input, call services, return responses |
+| **Middleware** | `middleware.ts` | Edge: CORS, versioning, rate limiting, deprecation headers |
+| **Services** | `src/lib/services/` | Business logic orchestrating multiple adapters |
+| **Adapters** | `src/lib/offramp/adapters/`, `src/lib/clients/` | External service wrappers (Allbridge SDK, Paycrest REST, viem) |
+| **Repository** | `src/lib/repositories/`, `src/lib/db/` | Database access layer (PostgreSQL via `pg`) |
+| **Contracts** | `contracts/` | Soroban smart contracts (Rust) — escrow, treasury, fee manager |
+
+### Service/repository/middleware architecture
+
+```
+HTTP Request
+    │
+    ▼
+middleware.ts (Edge)
+  ├── CORS check
+  ├── API versioning header injection
+  └── Rate limit check (sliding window)
+    │
+    ▼
+src/app/api/<route>/route.ts
+  ├── Input validation (Zod schemas in src/lib/validators/)
+  ├── Idempotency check (src/lib/idempotency.ts)
+  ├── API key auth (src/lib/api-keys/auth.ts)  ← v1 routes only
+  └── Business logic via service/adapter
+    │
+    ▼
+src/lib/services/<service>.ts
+  └── Coordinates adapters and repositories
+    │
+    ├── src/lib/clients/allbridge.ts  → Allbridge SDK
+    ├── src/lib/clients/paycrest.ts   → Paycrest REST API
+    ├── src/lib/clients/base.ts       → Base chain via viem
+    └── src/lib/db/dal.ts             → PostgreSQL
+```
+
+### Soroban contract interactions
+
+The bridge flow invokes a Soroban contract on Stellar:
+
+1. `build-tx` route calls `buildSwapAndBridgeTx()` in `src/lib/offramp/adapters/soroban-tx-builder.ts` — produces an unsigned XDR.
+2. The user's wallet (Freighter / Lobstr) signs the XDR client-side.
+3. `submit-soroban` submits the signed XDR to the Soroban RPC.
+4. Allbridge detects the deposit and releases USDC on Base.
+
+Smart contracts in `contracts/` are deployed separately — see `docs/stellar-soroban-handbook.md` for details.
+
+### Data flow: quote → bridge → payout → refund
+
+| Phase | Key files | Description |
+|-------|-----------|-------------|
+| **Quote** | `src/app/api/offramp/quote/route.ts`, `src/lib/offramp/utils/quote-fetcher.ts` | Fetch FX rate from Paycrest; calculate bridge fee |
+| **Bridge** | `src/app/api/offramp/bridge/build-tx/route.ts`, `src/lib/offramp/adapters/soroban-tx-builder.ts` | Build Soroban XDR; user signs; submit to network |
+| **Payout** | `src/app/api/offramp/paycrest/order/route.ts`, `src/lib/offramp/adapters/paycrest-adapter.ts` | Create Paycrest order; server sends USDC on Base |
+| **Status** | `src/app/api/offramp/bridge/status/[txHash]/route.ts`, `src/app/api/offramp/status/[orderId]/route.ts` | Poll Allbridge and Paycrest status |
+| **Webhook** | `src/app/api/webhooks/paycrest/route.ts`, `src/lib/services/webhook.service.ts` | Receive settled/refunded events; update transaction record |
+| **Refund** | `src/app/api/offramp/refund/route.ts`, `src/lib/refund/refund-service.ts` | Process eligible refunds back to the user's wallet |
 
 ---
 
@@ -494,6 +586,72 @@ vi.mock('@/lib/env', () => ({
   },
 }));
 ```
+
+---
+
+---
+
+## First Good Issue Walkthrough
+
+This section walks through a concrete example: **adding a new supported fiat currency corridor** (e.g., GHS — Ghanaian Cedi). It touches all the key parts of the codebase.
+
+### 1. Understand the change
+
+Read the existing corridor config:
+
+```bash
+# See how corridors are configured
+cat src/lib/corridor-config.ts | head -60
+cat src/lib/currencies.ts | head -40
+```
+
+### 2. Add the corridor
+
+In `src/lib/corridor-config.ts`, add an entry for the new currency following the existing pattern. In `src/lib/currencies.ts`, ensure the currency code is listed.
+
+### 3. Write a unit test
+
+```bash
+# Add a test case alongside existing currency tests
+vi src/lib/currencies.test.ts
+```
+
+Add a test asserting `isSupportedCurrency('GHS')` returns `true` and that `getCurrencyConfig('GHS')` returns the expected shape.
+
+### 4. Run the tests
+
+```bash
+npm test -- --reporter=verbose
+```
+
+All existing tests must still pass.
+
+### 5. Update the OpenAPI spec
+
+In `openapi.yaml`, locate the `currency` enum examples under `QuoteRequest` and add `GHS`.
+
+### 6. Validate the spec
+
+```bash
+npx @apidevtools/swagger-cli validate openapi.yaml
+```
+
+### 7. Run lint and type-check
+
+```bash
+npm run lint
+npx tsc --noEmit
+```
+
+### 8. Open a PR
+
+Follow the PR template in `.github/PULL_REQUEST_TEMPLATE.md`. Reference the issue number:
+
+```
+Closes #<issue-number>
+```
+
+The CI pipeline will automatically run lint, type-check, OpenAPI validation, unit tests, and build.
 
 ---
 
