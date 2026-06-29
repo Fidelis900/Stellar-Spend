@@ -2,6 +2,20 @@
 
 Base URL: `http://localhost:3001` (development)
 
+> **Interactive API explorer:** Visit **[/api/docs](/api/docs)** for the Swagger UI — try any endpoint directly from the browser.
+> The underlying OpenAPI 3.0 spec is in [`openapi.yaml`](../openapi.yaml) at the repo root.
+
+---
+
+## API Changelog
+
+| Version | Date | Summary |
+|---------|------|---------|
+| **1.1.0** | 2026-06-29 | Added `X-RateLimit-*` response headers; expanded auth/scope/idempotency docs; interactive Swagger UI at `/api/docs`; integrator SDK guide |
+| **1.0.0** | 2026-01-01 | Initial public release; versioned `/api/v1/` routes; API key auth; idempotency; webhook HMAC verification |
+
+---
+
 ## Authentication
 
 All `/api/offramp/*` endpoints are **server-side only** and use environment-configured secrets. Clients call these routes directly — no client-side API key is required or exposed.
@@ -12,6 +26,72 @@ Versioned programmatic endpoints under `/api/v1/*` require an API key via either
 
 - `X-API-Key: <key>`
 - `Authorization: Bearer <key>`
+
+---
+
+## API Key Scopes
+
+API keys are issued with one or more scopes that restrict which endpoints they can access:
+
+| Scope | Endpoints |
+|-------|-----------|
+| `offramp:read` | GET currencies, institutions, rate, bridge status, quote |
+| `offramp:write` | POST quote, build-tx, submit-soroban, paycrest order |
+| `webhook:read` | Receive and replay webhook events |
+
+Scopes are assigned at key creation and shown via `GET /api/api-keys/{id}/scopes`.
+
+---
+
+## Rate Limits
+
+All `/api/v1/*` endpoints enforce per-key rate limits. The following headers are included on every authenticated response:
+
+| Header | Description |
+|--------|-------------|
+| `X-RateLimit-Limit` | Maximum requests allowed in the current window |
+| `X-RateLimit-Remaining` | Requests remaining in the current window |
+| `X-RateLimit-Reset` | Unix timestamp when the window resets |
+| `Retry-After` | Seconds to wait (only on `429` responses) |
+
+Default limit: **120 requests per 60 seconds** per key (configurable at key creation).
+
+When the limit is exceeded:
+
+```http
+HTTP/1.1 429 Too Many Requests
+Retry-After: 12
+X-RateLimit-Limit: 120
+X-RateLimit-Reset: 1751234567
+
+{ "error": "Rate limit exceeded" }
+```
+
+---
+
+## Idempotency
+
+Mutating endpoints support the `Idempotency-Key` request header to allow safe retries without creating duplicate resources.
+
+**How it works:**
+
+1. Send any string as `Idempotency-Key` (a UUID per request is recommended).
+2. The server caches the response keyed by `hash(method + path + body + key)`.
+3. On retry with the same key and same body: the cached response is returned with `Idempotency-Status: replayed`.
+4. Same key but different body: `409 Conflict` with `Idempotency-Status: conflict`.
+5. Keys expire after 24 hours (`IDEMPOTENCY_TTL_MS`).
+
+```http
+POST /api/v1/offramp/paycrest/order
+Idempotency-Key: order-abc123-attempt-1
+```
+
+Response headers:
+
+```
+Idempotency-Key: order-abc123-attempt-1
+Idempotency-Status: created    # or: replayed | conflict
+```
 
 ---
 

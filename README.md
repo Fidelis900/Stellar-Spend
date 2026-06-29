@@ -226,6 +226,9 @@ All variables are documented in [`.env.example`](./.env.example). The table belo
 
 ## API Reference
 
+> **Interactive docs (Swagger UI):** [http://localhost:3001/api/docs](http://localhost:3001/api/docs) when running locally.
+> The full OpenAPI 3.0 spec is in [`openapi.yaml`](./openapi.yaml).
+
 ### Offramp
 
 | Method | Path | Description |
