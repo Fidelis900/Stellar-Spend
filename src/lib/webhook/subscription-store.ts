@@ -1,6 +1,7 @@
 import { randomUUID, createHash } from 'crypto';
 import { pool } from '../db/client';
 import type { WebhookSubscription, WebhookEvent, SubscriptionStatus } from './subscription-types';
+import { DEFAULT_SCHEMA_VERSION, isSupportedSchemaVersion, type SchemaVersion } from './schema-versions';
 
 export class SubscriptionStoreError extends Error {
   constructor(message: string, public readonly cause?: unknown) {
@@ -18,6 +19,7 @@ export function rowToSubscription(row: Record<string, unknown>): WebhookSubscrip
     status: row.status as SubscriptionStatus,
     rateLimitMaxPerMinute: Number(row.rate_limit_max_per_minute),
     description: (row.description as string | null) ?? undefined,
+    schemaVersion: (row.schema_version as SchemaVersion | null) ?? DEFAULT_SCHEMA_VERSION,
     createdAt: Number(row.created_at),
     updatedAt: Number(row.updated_at),
   };
@@ -33,6 +35,7 @@ export async function createTable(): Promise<void> {
       status TEXT NOT NULL DEFAULT 'active',
       rate_limit_max_per_minute INTEGER NOT NULL DEFAULT 60,
       description TEXT,
+      schema_version TEXT NOT NULL DEFAULT '${DEFAULT_SCHEMA_VERSION}',
       created_at BIGINT NOT NULL,
       updated_at BIGINT NOT NULL
     )
@@ -50,23 +53,27 @@ export async function createSubscription(input: {
   signingSecret?: string;
   rateLimitMaxPerMinute?: number;
   description?: string;
+  schemaVersion?: SchemaVersion;
 }): Promise<WebhookSubscription> {
   const now = Date.now();
   const id = randomUUID();
   const signingSecret = input.signingSecret ?? randomUUID().replace(/-/g, '') + randomUUID().replace(/-/g, '');
   const rateLimitMaxPerMinute = input.rateLimitMaxPerMinute ?? 60;
+  const schemaVersion = input.schemaVersion && isSupportedSchemaVersion(input.schemaVersion)
+    ? input.schemaVersion
+    : DEFAULT_SCHEMA_VERSION;
 
   const sql = `
     INSERT INTO webhook_subscriptions
-      (id, endpoint_url, signing_secret, events, status, rate_limit_max_per_minute, description, created_at, updated_at)
-    VALUES ($1, $2, $3, $4::jsonb, 'active', $5, $6, $7, $7)
+      (id, endpoint_url, signing_secret, events, status, rate_limit_max_per_minute, description, schema_version, created_at, updated_at)
+    VALUES ($1, $2, $3, $4::jsonb, 'active', $5, $6, $7, $8, $8)
     RETURNING *
   `;
   try {
     const result = await pool.query(sql, [
       id, input.endpointUrl, signingSecret,
       JSON.stringify(input.events), rateLimitMaxPerMinute,
-      input.description ?? null, now,
+      input.description ?? null, schemaVersion, now,
     ]);
     return rowToSubscription(result.rows[0]);
   } catch (err) {
@@ -96,7 +103,7 @@ export async function getSubscription(id: string): Promise<WebhookSubscription |
 
 export async function updateSubscription(
   id: string,
-  updates: Partial<Pick<WebhookSubscription, 'endpointUrl' | 'events' | 'status' | 'rateLimitMaxPerMinute' | 'description'>>
+  updates: Partial<Pick<WebhookSubscription, 'endpointUrl' | 'events' | 'status' | 'rateLimitMaxPerMinute' | 'description' | 'schemaVersion'>>
 ): Promise<WebhookSubscription | null> {
   const setClauses: string[] = ['updated_at = $2'];
   const values: unknown[] = [];
@@ -121,6 +128,10 @@ export async function updateSubscription(
   if (updates.description !== undefined) {
     setClauses.push(`description = $${paramIndex++}`);
     values.push(updates.description);
+  }
+  if (updates.schemaVersion !== undefined) {
+    setClauses.push(`schema_version = $${paramIndex++}`);
+    values.push(updates.schemaVersion);
   }
 
   values.unshift(Date.now(), id);
