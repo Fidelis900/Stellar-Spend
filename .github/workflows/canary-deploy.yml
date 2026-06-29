@@ -1,0 +1,49 @@
+name: Canary Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Image tag to deploy'
+        required: false
+        default: 'latest'
+      canary_bake_seconds:
+        description: 'Seconds to bake the canary before auto-promote/rollback'
+        required: false
+        default: '300'
+
+jobs:
+  canary-deploy:
+    runs-on: ubuntu-latest
+    name: Canary Deploy (${{ github.event.inputs.image_tag || 'latest' }})
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run canary deploy
+        env:
+          CANARY_BAKE_SECONDS: ${{ github.event.inputs.canary_bake_seconds || '300' }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          chmod +x scripts/canary-deploy.sh scripts/canary-metrics-check.sh scripts/blue-green-deploy.sh
+          scripts/canary-deploy.sh "${{ github.event.inputs.image_tag || 'latest' }}"
+
+      - name: Upload deploy history
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: canary-deploy-history-${{ github.run_id }}
+          path: .deploy-history
+          retention-days: 90
+
+      - name: Alert on canary rollback
+        if: failure()
+        uses: slackapi/slack-github-action@v2
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": ":red_circle: *Canary deploy FAILED/rolled back* — image=${{ github.event.inputs.image_tag || 'latest' }} run=${{ github.run_id }}\nSee logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        continue-on-error: true

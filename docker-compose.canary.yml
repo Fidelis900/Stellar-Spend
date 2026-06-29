@@ -1,0 +1,15 @@
+# Canary override for docker-compose.yml.
+# Runs a second `app` container on CANARY_PORT against the same
+# Postgres/Redis as the primary stack, so only the app code differs.
+#
+# Usage:
+#   IMAGE_TAG=<tag> CANARY_PORT=3002 docker compose -f docker-compose.yml -f docker-compose.canary.yml up -d app
+
+services:
+  app:
+    image: "stellar-spend:${IMAGE_TAG:-latest}"
+    container_name: stellar-spend-canary
+    ports:
+      - "${CANARY_PORT:-3002}:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
