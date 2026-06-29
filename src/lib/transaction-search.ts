@@ -9,6 +9,8 @@ export interface SearchFilters {
   amountMax?: number;
   currency?: string;
   isFavorite?: boolean;
+  /** Match transactions that have at least one of these tag names */
+  tags?: string[];
 }
 
 export class TransactionSearchService {
@@ -56,6 +58,14 @@ export class TransactionSearchService {
     // Favorite filter
     if (filters.isFavorite !== undefined) {
       results = results.filter(tx => tx.isFavorite === filters.isFavorite);
+    }
+
+    // Tags filter (match any of the requested tag names)
+    if (filters.tags && filters.tags.length > 0) {
+      const wanted = filters.tags.map(t => t.toLowerCase());
+      results = results.filter(tx =>
+        tx.tags?.some(tag => wanted.includes(tag.name.toLowerCase())) ?? false
+      );
     }
 
     return results;
