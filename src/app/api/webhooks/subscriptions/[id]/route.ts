@@ -6,6 +6,7 @@ import {
   deleteSubscription,
 } from '@/lib/webhook/subscription-store';
 import { requireApiKeyAdmin } from '@/app/api/api-keys/_utils';
+import { isSupportedSchemaVersion, SUPPORTED_SCHEMA_VERSIONS } from '@/lib/webhook/schema-versions';
 
 export async function GET(
   request: NextRequest,
@@ -55,6 +56,15 @@ export async function PUT(
     if (body.status !== undefined) updates.status = body.status;
     if (body.rateLimitMaxPerMinute !== undefined) updates.rateLimitMaxPerMinute = body.rateLimitMaxPerMinute;
     if (body.description !== undefined) updates.description = body.description;
+    if (body.schemaVersion !== undefined) {
+      const requested = String(body.schemaVersion);
+      if (!isSupportedSchemaVersion(requested)) {
+        return ErrorHandler.validation(
+          `Invalid schemaVersion: "${requested}". Supported: ${SUPPORTED_SCHEMA_VERSIONS.join(', ')}`
+        );
+      }
+      updates.schemaVersion = requested;
+    }
 
     const updated = await updateSubscription(id, updates as any);
     if (!updated) return ErrorHandler.notFound('Subscription');

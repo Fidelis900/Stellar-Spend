@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { eventBus } from '@/lib/events/bus';
 import { getSubscriptionsByEvent } from './subscription-store';
 import { enqueue, attempt, markDelivered, markFailed } from './dispatcher';
@@ -6,6 +7,7 @@ import { subscriptionRateLimiter } from './subscription-rate-limiter';
 import { scheduleNext, hasRemainingAttempts } from './retry-scheduler';
 import { updateRecord } from './delivery-store';
 import type { WebhookEvent } from './subscription-types';
+import { buildPayloadForVersion, DEFAULT_SCHEMA_VERSION } from './schema-versions';
 import { logger } from '@/lib/logger';
 
 export function subscribeEventBus() {
@@ -26,7 +28,7 @@ export function subscribeEventBus() {
         const subscriptions = await getSubscriptionsByEvent(event);
         if (subscriptions.length === 0) return;
 
-        const payloadBody = JSON.stringify({ event, data: eventData.data, timestamp: eventData.timestamp });
+        const eventId = randomUUID();
 
         for (const sub of subscriptions) {
           const rateCheck = await subscriptionRateLimiter.check(sub.id, sub.rateLimitMaxPerMinute);
@@ -38,6 +40,12 @@ export function subscribeEventBus() {
             });
             continue;
           }
+
+          const payload = buildPayloadForVersion(
+            { event, id: eventId, timestamp: eventData.timestamp, data: eventData.data },
+            sub.schemaVersion ?? DEFAULT_SCHEMA_VERSION
+          );
+          const payloadBody = JSON.stringify(payload);
 
           const record = await enqueue(
             { headers: {}, body: payloadBody, source: 'event-bus' },

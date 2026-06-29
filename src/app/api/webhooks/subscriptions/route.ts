@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ErrorHandler } from '@/lib/error-handler';
 import { createSubscription, listSubscriptions } from '@/lib/webhook/subscription-store';
 import { WebhookEvent } from '@/lib/webhook/subscription-types';
+import { isSupportedSchemaVersion, SUPPORTED_SCHEMA_VERSIONS, type SchemaVersion } from '@/lib/webhook/schema-versions';
 import { requireApiKeyAdmin } from '@/app/api/api-keys/_utils';
 
 const VALID_EVENTS: WebhookEvent[] = [
@@ -51,6 +52,17 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  let schemaVersion: SchemaVersion | undefined;
+  if (body.schemaVersion !== undefined) {
+    const requested = String(body.schemaVersion);
+    if (!isSupportedSchemaVersion(requested)) {
+      return ErrorHandler.validation(
+        `Invalid schemaVersion: "${requested}". Supported: ${SUPPORTED_SCHEMA_VERSIONS.join(', ')}`
+      );
+    }
+    schemaVersion = requested;
+  }
+
   try {
     const subscription = await createSubscription({
       endpointUrl: body.endpointUrl,
@@ -58,6 +70,7 @@ export async function POST(request: NextRequest) {
       signingSecret: typeof body.signingSecret === 'string' ? body.signingSecret : undefined,
       rateLimitMaxPerMinute: typeof body.rateLimitMaxPerMinute === 'number' ? body.rateLimitMaxPerMinute : undefined,
       description: typeof body.description === 'string' ? body.description : undefined,
+      schemaVersion,
     });
 
     const { signingSecret, ...safe } = subscription;

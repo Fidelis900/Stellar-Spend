@@ -1,4 +1,5 @@
 import type { DeliveryStatus } from './types';
+import type { SchemaVersion } from './schema-versions';
 
 export type WebhookEvent =
   | 'transaction.created'
@@ -20,6 +21,8 @@ export interface WebhookSubscription {
   status: SubscriptionStatus;
   rateLimitMaxPerMinute: number;
   description?: string;
+  /** Schema version this subscriber receives payloads in; defaults to DEFAULT_SCHEMA_VERSION. */
+  schemaVersion: SchemaVersion;
   createdAt: number;
   updatedAt: number;
 }
