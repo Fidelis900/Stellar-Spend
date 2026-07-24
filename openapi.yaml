@@ -49,6 +49,15 @@ info:
     - `X-API-Version: 1`
     - `Accept: application/vnd.stellarspend.v1+json`
 
+    The full lifecycle policy — what forces a new major version, when v2 is cut,
+    how long a deprecated version keeps working, and the deprecation header
+    contract — is documented in
+    [`docs/api-versioning.md`](https://github.com/Lex-Studios/Stellar-Spend/blob/main/docs/api-versioning.md).
+    Supported versions can be discovered at runtime via `GET /api/versions`.
+
+    This document remains the source of truth for the API contract itself; the
+    policy document is authoritative only for version lifecycle decisions.
+
     ## Idempotency
 
     Mutating endpoints support the `Idempotency-Key` header. Replay responses
