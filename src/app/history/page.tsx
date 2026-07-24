@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { Transaction } from "@/lib/transaction-storage";
@@ -194,6 +194,18 @@ export default function HistoryPage() {
   );
 }
 
+// ---------------------------------------------------------------------------
+// SortIndicator — stable module-level component so it is never recreated.
+// Defined here (not inside HistoryPageContent) to prevent React from
+// unmounting and remounting the element on every render.
+// ---------------------------------------------------------------------------
+function SortIndicator({ active, dir }: { active: boolean; dir: "asc" | "desc" }) {
+  if (!active) return <span className="ml-1 opacity-30" aria-hidden="true">↕</span>;
+  return (
+    <span className="ml-1" aria-hidden="true">{dir === "asc" ? "↑" : "↓"}</span>
+  );
+}
+
 function HistoryPageContent() {
   const { wallet, isConnected, isConnecting, connect, disconnect } =
     useStellarWallet();
@@ -326,7 +338,7 @@ function HistoryPageContent() {
 
   // Optimistic note save: update UI + local storage immediately, persist to
   // the server, and rollback both layers if the request fails.
-  const saveNote = async (id: string) => {
+  const saveNote = useCallback(async (id: string) => {
     const trimmed = noteInput.slice(0, 500);
     const previous = transactions.find((tx) => tx.id === id)?.note;
 
@@ -357,15 +369,15 @@ function HistoryPageContent() {
       rollbackLocal();
       setNoteError(err instanceof Error ? err.message : "Failed to save note");
     }
-  };
+  }, [noteInput, transactions]);
 
-  const toggleSort = (field: SortField) =>
+  const toggleSort = useCallback((field: SortField) =>
     setFilters((prev) => ({
       ...prev,
       sortField: field,
       sortDir:
         prev.sortField === field && prev.sortDir === "desc" ? "asc" : "desc",
-    }));
+    })), []);
 
   // Distinct currencies present in the user's transactions, for the filter dropdown.
   const availableCurrencies = useMemo(() => {
@@ -396,15 +408,20 @@ function HistoryPageContent() {
     [transactions],
   );
 
-  const activeCoverage = insuredTransactions.reduce(
-    (sum, tx) =>
-      tx.insurance && ["pending", "active", "claimed", "claim_approved"].includes(tx.insurance.status)
-        ? sum + tx.insurance.coverage
-        : sum,
-    0,
+  const activeCoverage = useMemo(
+    () =>
+      insuredTransactions.reduce(
+        (sum, tx) =>
+          tx.insurance &&
+          ["pending", "active", "claimed", "claim_approved"].includes(tx.insurance.status)
+            ? sum + tx.insurance.coverage
+            : sum,
+        0,
+      ),
+    [insuredTransactions],
   );
 
-  const handleClaimSuccess = (claimId: string) => {
+  const handleClaimSuccess = useCallback((claimId: string) => {
     if (!claimingTransaction?.insurance) return;
     const updatedInsurance = {
       ...claimingTransaction.insurance,
@@ -418,18 +435,10 @@ function HistoryPageContent() {
     );
     TransactionStorage.update(claimingTransaction.id, { insurance: updatedInsurance });
     setClaimingTransaction(null);
-  };
+  }, [claimingTransaction]);
 
-  const filterCount = activeFilterCount(filters);
+  const filterCount = useMemo(() => activeFilterCount(filters), [filters]);
   const hasActiveFilters = filterCount > 0;
-
-  const SortIcon = ({ field }: { field: SortField }) => {
-    if (filters.sortField !== field)
-      return <span className="ml-1 opacity-30">↕</span>;
-    return (
-      <span className="ml-1">{filters.sortDir === "asc" ? "↑" : "↓"}</span>
-    );
-  };
 
   return (
     <main className="min-h-screen p-4 bg-[#0a0a0a]">
@@ -798,7 +807,7 @@ function HistoryPageContent() {
                             : "none"
                         }
                       >
-                        DATE <SortIcon field="timestamp" />
+                        DATE <SortIndicator active={filters.sortField === "timestamp"} dir={filters.sortDir} />
                       </th>
                       <th className="px-5 py-2.5 text-left text-[10px] tracking-[0.18em] font-semibold text-[#0a0a0a] uppercase whitespace-nowrap">
                         TX HASH
@@ -814,7 +823,7 @@ function HistoryPageContent() {
                             : "none"
                         }
                       >
-                        AMOUNT <SortIcon field="amount" />
+                        AMOUNT <SortIndicator active={filters.sortField === "amount"} dir={filters.sortDir} />
                       </th>
                       <th className="px-5 py-2.5 text-left text-[10px] tracking-[0.18em] font-semibold text-[#0a0a0a] uppercase whitespace-nowrap">
                         CURRENCY
@@ -833,7 +842,7 @@ function HistoryPageContent() {
                             : "none"
                         }
                       >
-                        STATUS <SortIcon field="status" />
+                        STATUS <SortIndicator active={filters.sortField === "status"} dir={filters.sortDir} />
                       </th>
                       <th className="px-5 py-2.5 text-left text-[10px] tracking-[0.18em] font-semibold text-[#0a0a0a] uppercase whitespace-nowrap">
                         NOTE

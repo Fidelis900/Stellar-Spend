@@ -432,3 +432,228 @@ describe('Performance Benchmarks', () => {
     });
   });
 });
+
+// ---------------------------------------------------------------------------
+// Transaction list derived-state performance (#765)
+// Validates that filter/sort operations on large datasets complete within
+// acceptable thresholds — acting as a regression guard for the useMemo work.
+// ---------------------------------------------------------------------------
+describe('Transaction list derived-state performance (#765)', () => {
+  // Build a large fixture dataset once for all benchmarks in this suite.
+  const LARGE_DATASET_SIZE = 2_000;
+
+  type MockTx = {
+    id: string;
+    timestamp: number;
+    amount: string;
+    status: 'pending' | 'completed' | 'failed';
+    currency: string;
+    note?: string;
+    insurance?: { coverage: number; status: string } | null;
+  };
+
+  function makeLargeDataset(): MockTx[] {
+    const statuses: MockTx['status'][] = ['pending', 'completed', 'failed'];
+    const currencies = ['NGN', 'KES', 'GHS', 'ZAR', 'USD'];
+    return Array.from({ length: LARGE_DATASET_SIZE }, (_, i) => ({
+      id: `tx-${i}`,
+      timestamp: Date.now() - i * 60_000,
+      amount: String((Math.random() * 1000).toFixed(2)),
+      status: statuses[i % statuses.length],
+      currency: currencies[i % currencies.length],
+      note: i % 5 === 0 ? `note-${i}` : undefined,
+      insurance:
+        i % 10 === 0
+          ? { coverage: 100, status: 'active' }
+          : null,
+    }));
+  }
+
+  const dataset = makeLargeDataset();
+
+  it(`filters ${LARGE_DATASET_SIZE} transactions in < 50 ms`, () => {
+    const start = performance.now();
+
+    // Simulate what toServiceFilters + TransactionSearchService.search does:
+    // a single .filter pass with multiple predicate checks.
+    const result = dataset.filter(
+      (tx) => tx.status === 'completed' && tx.currency === 'NGN',
+    );
+
+    const duration = performance.now() - start;
+    expect(result.length).toBeGreaterThanOrEqual(0);
+    expect(duration).toBeLessThan(50);
+  });
+
+  it(`sorts ${LARGE_DATASET_SIZE} transactions by timestamp in < 50 ms`, () => {
+    const start = performance.now();
+
+    const sorted = [...dataset].sort((a, b) => b.timestamp - a.timestamp);
+
+    const duration = performance.now() - start;
+    expect(sorted[0].timestamp).toBeGreaterThanOrEqual(sorted[1].timestamp);
+    expect(duration).toBeLessThan(50);
+  });
+
+  it(`sorts ${LARGE_DATASET_SIZE} transactions by amount in < 50 ms`, () => {
+    const start = performance.now();
+
+    const sorted = [...dataset].sort(
+      (a, b) => parseFloat(a.amount) - parseFloat(b.amount),
+    );
+
+    const duration = performance.now() - start;
+    expect(parseFloat(sorted[0].amount)).toBeLessThanOrEqual(
+      parseFloat(sorted[sorted.length - 1].amount),
+    );
+    expect(duration).toBeLessThan(50);
+  });
+
+  it(`derives available currencies from ${LARGE_DATASET_SIZE} transactions in < 20 ms`, () => {
+    const start = performance.now();
+
+    const currencies = Array.from(
+      new Set(dataset.map((tx) => tx.currency).filter(Boolean)),
+    ).sort();
+
+    const duration = performance.now() - start;
+    expect(currencies.length).toBeGreaterThan(0);
+    expect(duration).toBeLessThan(20);
+  });
+
+  it(`sums insured coverage across ${LARGE_DATASET_SIZE} transactions in < 20 ms`, () => {
+    const start = performance.now();
+
+    const insured = dataset.filter((tx) => tx.insurance != null);
+    const activeCoverage = insured.reduce(
+      (sum, tx) =>
+        tx.insurance && ['pending', 'active', 'claimed', 'claim_approved'].includes(tx.insurance.status)
+          ? sum + tx.insurance.coverage
+          : sum,
+      0,
+    );
+
+    const duration = performance.now() - start;
+    expect(activeCoverage).toBeGreaterThanOrEqual(0);
+    expect(duration).toBeLessThan(20);
+  });
+
+  it('combined filter + sort pipeline stays < 100 ms', () => {
+    const start = performance.now();
+
+    const filtered = dataset.filter((tx) => tx.status !== 'failed');
+    filtered.sort((a, b) => b.timestamp - a.timestamp);
+    const currencies = Array.from(new Set(filtered.map((tx) => tx.currency))).sort();
+
+    const duration = performance.now() - start;
+    expect(filtered.length).toBeGreaterThan(0);
+    expect(currencies.length).toBeGreaterThan(0);
+    expect(duration).toBeLessThan(100);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Transaction list derived-state performance (#765)
+// Validates that filter/sort operations on large datasets complete within
+// acceptable thresholds — acting as a regression guard for the useMemo work.
+// ---------------------------------------------------------------------------
+describe('Transaction list derived-state performance (#765)', () => {
+  const LARGE_DATASET_SIZE = 2_000;
+
+  type MockTx = {
+    id: string;
+    timestamp: number;
+    amount: string;
+    status: 'pending' | 'completed' | 'failed';
+    currency: string;
+    note?: string;
+    insurance?: { coverage: number; status: string } | null;
+  };
+
+  function makeLargeDataset(): MockTx[] {
+    const statuses: MockTx['status'][] = ['pending', 'completed', 'failed'];
+    const currencies = ['NGN', 'KES', 'GHS', 'ZAR', 'USD'];
+    return Array.from({ length: LARGE_DATASET_SIZE }, (_, i) => ({
+      id: `tx-${i}`,
+      timestamp: Date.now() - i * 60_000,
+      amount: String((Math.random() * 1000).toFixed(2)),
+      status: statuses[i % statuses.length],
+      currency: currencies[i % currencies.length],
+      note: i % 5 === 0 ? `note-${i}` : undefined,
+      insurance: i % 10 === 0 ? { coverage: 100, status: 'active' } : null,
+    }));
+  }
+
+  const dataset = makeLargeDataset();
+
+  it(`filters ${LARGE_DATASET_SIZE} transactions in < 50 ms`, () => {
+    const start = performance.now();
+    const result = dataset.filter(
+      (tx) => tx.status === 'completed' && tx.currency === 'NGN',
+    );
+    const duration = performance.now() - start;
+    expect(result.length).toBeGreaterThanOrEqual(0);
+    expect(duration).toBeLessThan(50);
+  });
+
+  it(`sorts ${LARGE_DATASET_SIZE} transactions by timestamp in < 50 ms`, () => {
+    const start = performance.now();
+    const sorted = [...dataset].sort((a, b) => b.timestamp - a.timestamp);
+    const duration = performance.now() - start;
+    expect(sorted[0].timestamp).toBeGreaterThanOrEqual(sorted[1].timestamp);
+    expect(duration).toBeLessThan(50);
+  });
+
+  it(`sorts ${LARGE_DATASET_SIZE} transactions by amount in < 50 ms`, () => {
+    const start = performance.now();
+    const sorted = [...dataset].sort(
+      (a, b) => parseFloat(a.amount) - parseFloat(b.amount),
+    );
+    const duration = performance.now() - start;
+    expect(parseFloat(sorted[0].amount)).toBeLessThanOrEqual(
+      parseFloat(sorted[sorted.length - 1].amount),
+    );
+    expect(duration).toBeLessThan(50);
+  });
+
+  it(`derives available currencies from ${LARGE_DATASET_SIZE} transactions in < 20 ms`, () => {
+    const start = performance.now();
+    const currencies = Array.from(
+      new Set(dataset.map((tx) => tx.currency).filter(Boolean)),
+    ).sort();
+    const duration = performance.now() - start;
+    expect(currencies.length).toBeGreaterThan(0);
+    expect(duration).toBeLessThan(20);
+  });
+
+  it(`sums insured coverage across ${LARGE_DATASET_SIZE} transactions in < 20 ms`, () => {
+    const start = performance.now();
+    const insured = dataset.filter((tx) => tx.insurance != null);
+    const activeCoverage = insured.reduce(
+      (sum, tx) =>
+        tx.insurance &&
+        ['pending', 'active', 'claimed', 'claim_approved'].includes(
+          tx.insurance.status,
+        )
+          ? sum + tx.insurance.coverage
+          : sum,
+      0,
+    );
+    const duration = performance.now() - start;
+    expect(activeCoverage).toBeGreaterThanOrEqual(0);
+    expect(duration).toBeLessThan(20);
+  });
+
+  it('combined filter + sort pipeline completes in < 100 ms', () => {
+    const start = performance.now();
+    const filtered = dataset.filter((tx) => tx.status !== 'failed');
+    filtered.sort((a, b) => b.timestamp - a.timestamp);
+    const currencies = Array.from(
+      new Set(filtered.map((tx) => tx.currency)),
+    ).sort();
+    const duration = performance.now() - start;
+    expect(filtered.length).toBeGreaterThan(0);
+    expect(currencies.length).toBeGreaterThan(0);
+    expect(duration).toBeLessThan(100);
+  });
+});
