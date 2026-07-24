@@ -1,11 +1,29 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useI18n } from "@/lib/i18n";
 import { useTheme } from "@/hooks/useTheme";
 import { useSyncSettings } from "@/hooks/useSyncSettings";
-import { KYCLimitManager } from "@/components/KYCLimitManager";
 import { cn } from "@/lib/cn";
+
+// KYCLimitManager is only rendered when the "security" tab is active.
+// Lazy-loading it removes it from the initial settings-page chunk, which
+// saves the cost of the component's own imports (kyc-limits, bank-validation,
+// corridor-config, etc.) on every page load regardless of active tab.
+const KYCLimitManager = dynamic(
+  () => import("@/components/KYCLimitManager").then((m) => ({ default: m.KYCLimitManager })),
+  {
+    loading: () => (
+      <div className="border border-[#333] bg-[#111] p-8 animate-pulse">
+        <div className="h-4 bg-[#222] rounded w-48 mb-4" />
+        <div className="h-4 bg-[#222] rounded w-64 mb-2" />
+        <div className="h-4 bg-[#222] rounded w-40" />
+      </div>
+    ),
+    ssr: false,
+  },
+);
 
 type SettingsSection = "profile" | "security" | "appearance" | "preferences" | "privacy";
 

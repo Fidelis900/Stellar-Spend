@@ -13,9 +13,25 @@ import { getCurrencyFlag } from "@/lib/currency-flags";
 import { TransactionTableSkeleton } from "@/components/skeletons";
 import ExportControls from "@/components/ExportControls";
 import { StatusBadge } from "@/components/StatusBadge";
-import { InsuranceClaimForm } from "@/components/InsuranceClaimForm";
+import dynamic from "next/dynamic";
 import { TransactionSearchService, type SearchFilters } from "@/lib/transaction-search";
 import { FILTER_PRESETS, SavedViewsStorage, type SavedView } from "@/lib/saved-views";
+
+// InsuranceClaimForm is heavy and only rendered when a user actively clicks
+// "File Claim" on a transaction.  Lazy loading keeps it out of the initial
+// history-page chunk.
+const InsuranceClaimForm = dynamic(
+  () => import("@/components/InsuranceClaimForm").then((m) => ({ default: m.InsuranceClaimForm })),
+  {
+    loading: () => (
+      <div className="border border-[#333] bg-[#111] p-8 animate-pulse">
+        <div className="h-4 bg-[#222] rounded w-64 mb-4" />
+        <div className="h-4 bg-[#222] rounded w-48" />
+      </div>
+    ),
+    ssr: false,
+  },
+);
 
 // ---------------------------------------------------------------------------
 // Helpers
