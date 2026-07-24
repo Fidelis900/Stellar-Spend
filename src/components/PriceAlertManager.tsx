@@ -3,8 +3,7 @@ import { logger } from '@/lib/logger';
 
 import { useState, useEffect, useCallback } from "react";
 import { PriceAlert, AlertStatus } from "@/lib/price-alerts";
-import { Button } from "@/components/design-system/Button";
-import { Card } from "@/components/design-system/Card";
+import { Button, Card } from "@/components/design-system";
 import { useStellarWallet } from "@/hooks/useStellarWallet";
 import { useToast } from "@/contexts/ToastContext";
 

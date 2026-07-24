@@ -2,10 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import * as XLSX from 'xlsx';
-import { Button } from '@/components/design-system/Button';
-import { Card } from '@/components/design-system/Card';
-import { Badge } from '@/components/design-system/Badge';
-import { Alert } from '@/components/design-system/Alert';
+import { Button, Card, Badge, Alert } from '@/components/design-system';
 import { DataTable, type DataTableColumn } from '@/components/DataTable';
 
 interface BatchBeneficiary {

@@ -1,9 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardHeader, CardContent } from '@/components/design-system/Card';
-import { Badge } from '@/components/design-system/Badge';
-import { Button } from '@/components/design-system/Button';
+import { Card, CardHeader, CardContent, Badge, Button } from '@/components/design-system';
 import type { MerchantStats, MerchantPayout } from '@/lib/services/merchant.service';
 
 interface MerchantDashboardProps {
