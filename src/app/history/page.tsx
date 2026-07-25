@@ -24,6 +24,18 @@ export default function HistoryPage() {
   );
 }
 
+// ---------------------------------------------------------------------------
+// SortIndicator — stable module-level component so it is never recreated.
+// Defined here (not inside HistoryPageContent) to prevent React from
+// unmounting and remounting the element on every render.
+// ---------------------------------------------------------------------------
+function SortIndicator({ active, dir }: { active: boolean; dir: "asc" | "desc" }) {
+  if (!active) return <span className="ml-1 opacity-30" aria-hidden="true">↕</span>;
+  return (
+    <span className="ml-1" aria-hidden="true">{dir === "asc" ? "↑" : "↓"}</span>
+  );
+}
+
 function HistoryPageContent() {
   const { wallet, isConnected, isConnecting, connect, disconnect } = useStellarWallet();
   const { transactions, isLoading, error, saveNote, updateTransaction } =
@@ -59,13 +71,13 @@ function HistoryPageContent() {
     setNoteError(await saveNote(id, note));
   };
 
-  const handleClaimSuccess = (claimId: string) => {
+  const handleClaimSuccess = useCallback((claimId: string) => {
     if (!claimingTransaction?.insurance) return;
     updateTransaction(claimingTransaction.id, {
       insurance: { ...claimingTransaction.insurance, status: "claimed", claimId },
     });
     setClaimingTransaction(null);
-  };
+  }, [claimingTransaction]);
 
   const handleSaveCurrentView = () => {
     const name = window.prompt("Name this view:");
