@@ -1,23 +1,12 @@
-interface SkeletonProps {
-  width?: string | number;
-  height?: string | number;
-  className?: string;
-  "aria-label"?: string;
-}
-
 /**
- * Inline skeleton placeholder. Matches the exact dimensions of its loaded
- * counterpart so no layout shift occurs when data arrives.
- * pointer-events: none and user-select: none are applied via the .skeleton CSS class.
+ * Backwards-compatible alias for the shared skeleton primitive.
+ *
+ * The canonical implementation now lives in
+ * `@/components/skeletons/SkeletonBase` so there is a single shared shimmer
+ * source. This re-export keeps the historical `@/components/ui/Skeleton`
+ * import path working for existing callers.
  */
-export function Skeleton({ width, height, className = "", "aria-label": ariaLabel }: SkeletonProps) {
-  return (
-    <span
-      className={`skeleton ${className}`}
-      style={{ width, height }}
-      role="status"
-      aria-label={ariaLabel ?? "Loading…"}
-      aria-busy="true"
-    />
-  );
-}
+export {
+  SkeletonBase as Skeleton,
+  type SkeletonBaseProps as SkeletonProps,
+} from "@/components/skeletons/SkeletonBase";

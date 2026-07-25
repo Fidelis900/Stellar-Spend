@@ -1,0 +1,1141 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`skeleton components > AnalyticsDashboardSkeleton renders and uses the shared shimmer primitive 1`] = `
+<div
+  aria-busy="true"
+  aria-label="Loading analytics"
+  class="space-y-6"
+>
+  <div
+    class="flex gap-2"
+  >
+    <span
+      aria-busy="true"
+      aria-label="Loading period option…"
+      class="skeleton"
+      role="status"
+      style="width: 110px; height: 36px;"
+    />
+    <span
+      aria-busy="true"
+      aria-label="Loading period option…"
+      class="skeleton"
+      role="status"
+      style="width: 110px; height: 36px;"
+    />
+    <span
+      aria-busy="true"
+      aria-label="Loading period option…"
+      class="skeleton"
+      role="status"
+      style="width: 110px; height: 36px;"
+    />
+  </div>
+  <div
+    class="grid grid-cols-2 md:grid-cols-4 gap-4"
+  >
+    <div
+      class="bg-white p-4 rounded-lg border flex flex-col gap-2"
+    >
+      <span
+        aria-busy="true"
+        aria-label="Loading metric label…"
+        class="skeleton"
+        role="status"
+        style="width: 60%; height: 12px;"
+      />
+      <span
+        aria-busy="true"
+        aria-label="Loading metric value…"
+        class="skeleton"
+        role="status"
+        style="width: 80%; height: 24px;"
+      />
+    </div>
+    <div
+      class="bg-white p-4 rounded-lg border flex flex-col gap-2"
+    >
+      <span
+        aria-busy="true"
+        aria-label="Loading metric label…"
+        class="skeleton"
+        role="status"
+        style="width: 60%; height: 12px;"
+      />
+      <span
+        aria-busy="true"
+        aria-label="Loading metric value…"
+        class="skeleton"
+        role="status"
+        style="width: 80%; height: 24px;"
+      />
+    </div>
+    <div
+      class="bg-white p-4 rounded-lg border flex flex-col gap-2"
+    >
+      <span
+        aria-busy="true"
+        aria-label="Loading metric label…"
+        class="skeleton"
+        role="status"
+        style="width: 60%; height: 12px;"
+      />
+      <span
+        aria-busy="true"
+        aria-label="Loading metric value…"
+        class="skeleton"
+        role="status"
+        style="width: 80%; height: 24px;"
+      />
+    </div>
+    <div
+      class="bg-white p-4 rounded-lg border flex flex-col gap-2"
+    >
+      <span
+        aria-busy="true"
+        aria-label="Loading metric label…"
+        class="skeleton"
+        role="status"
+        style="width: 60%; height: 12px;"
+      />
+      <span
+        aria-busy="true"
+        aria-label="Loading metric value…"
+        class="skeleton"
+        role="status"
+        style="width: 80%; height: 24px;"
+      />
+    </div>
+  </div>
+  <div
+    class="bg-gray-900 p-6 rounded-lg border border-gray-700"
+  >
+    <div
+      class="flex items-center justify-between mb-4"
+    >
+      <span
+        aria-busy="true"
+        aria-label="Loading funnel title…"
+        class="skeleton"
+        role="status"
+        style="width: 180px; height: 18px;"
+      />
+      <span
+        aria-busy="true"
+        aria-label="Loading funnel meta…"
+        class="skeleton"
+        role="status"
+        style="width: 100px; height: 14px;"
+      />
+    </div>
+    <div
+      class="flex flex-col gap-3"
+    >
+      <span
+        aria-busy="true"
+        aria-label="Loading funnel step…"
+        class="skeleton"
+        role="status"
+        style="width: 100%; height: 28px;"
+      />
+      <span
+        aria-busy="true"
+        aria-label="Loading funnel step…"
+        class="skeleton"
+        role="status"
+        style="width: 85%; height: 28px;"
+      />
+      <span
+        aria-busy="true"
+        aria-label="Loading funnel step…"
+        class="skeleton"
+        role="status"
+        style="width: 70%; height: 28px;"
+      />
+      <span
+        aria-busy="true"
+        aria-label="Loading funnel step…"
+        class="skeleton"
+        role="status"
+        style="width: 55%; height: 28px;"
+      />
+    </div>
+  </div>
+  <div
+    class="bg-white p-6 rounded-lg border"
+  >
+    <span
+      aria-busy="true"
+      aria-label="Loading section title…"
+      class="skeleton mb-4"
+      role="status"
+      style="width: 180px; height: 18px;"
+    />
+    <div
+      class="space-y-3"
+    >
+      <div
+        class="flex items-center justify-between"
+      >
+        <div
+          class="flex flex-col gap-1.5"
+        >
+          <span
+            aria-busy="true"
+            aria-label="Loading currency…"
+            class="skeleton"
+            role="status"
+            style="width: 60px; height: 14px;"
+          />
+          <span
+            aria-busy="true"
+            aria-label="Loading transaction count…"
+            class="skeleton"
+            role="status"
+            style="width: 100px; height: 11px;"
+          />
+        </div>
+        <div
+          class="flex flex-col items-end gap-1.5"
+        >
+          <span
+            aria-busy="true"
+            aria-label="Loading volume…"
+            class="skeleton"
+            role="status"
+            style="width: 80px; height: 14px;"
+          />
+          <span
+            aria-busy="true"
+            aria-label="Loading percentage…"
+            class="skeleton"
+            role="status"
+            style="width: 40px; height: 11px;"
+          />
+        </div>
+      </div>
+      <div
+        class="flex items-center justify-between"
+      >
+        <div
+          class="flex flex-col gap-1.5"
+        >
+          <span
+            aria-busy="true"
+            aria-label="Loading currency…"
+            class="skeleton"
+            role="status"
+            style="width: 60px; height: 14px;"
+          />
+          <span
+            aria-busy="true"
+            aria-label="Loading transaction count…"
+            class="skeleton"
+            role="status"
+            style="width: 100px; height: 11px;"
+          />
+        </div>
+        <div
+          class="flex flex-col items-end gap-1.5"
+        >
+          <span
+            aria-busy="true"
+            aria-label="Loading volume…"
+            class="skeleton"
+            role="status"
+            style="width: 80px; height: 14px;"
+          />
+          <span
+            aria-busy="true"
+            aria-label="Loading percentage…"
+            class="skeleton"
+            role="status"
+            style="width: 40px; height: 11px;"
+          />
+        </div>
+      </div>
+      <div
+        class="flex items-center justify-between"
+      >
+        <div
+          class="flex flex-col gap-1.5"
+        >
+          <span
+            aria-busy="true"
+            aria-label="Loading currency…"
+            class="skeleton"
+            role="status"
+            style="width: 60px; height: 14px;"
+          />
+          <span
+            aria-busy="true"
+            aria-label="Loading transaction count…"
+            class="skeleton"
+            role="status"
+            style="width: 100px; height: 11px;"
+          />
+        </div>
+        <div
+          class="flex flex-col items-end gap-1.5"
+        >
+          <span
+            aria-busy="true"
+            aria-label="Loading volume…"
+            class="skeleton"
+            role="status"
+            style="width: 80px; height: 14px;"
+          />
+          <span
+            aria-busy="true"
+            aria-label="Loading percentage…"
+            class="skeleton"
+            role="status"
+            style="width: 40px; height: 11px;"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="bg-white p-6 rounded-lg border"
+  >
+    <span
+      aria-busy="true"
+      aria-label="Loading section title…"
+      class="skeleton mb-4"
+      role="status"
+      style="width: 140px; height: 18px;"
+    />
+    <div
+      class="grid grid-cols-2 gap-4"
+    >
+      <div
+        class="flex flex-col gap-1.5"
+      >
+        <span
+          aria-busy="true"
+          aria-label="Loading fee label…"
+          class="skeleton"
+          role="status"
+          style="width: 70%; height: 11px;"
+        />
+        <span
+          aria-busy="true"
+          aria-label="Loading fee value…"
+          class="skeleton"
+          role="status"
+          style="width: 50%; height: 22px;"
+        />
+      </div>
+      <div
+        class="flex flex-col gap-1.5"
+      >
+        <span
+          aria-busy="true"
+          aria-label="Loading fee label…"
+          class="skeleton"
+          role="status"
+          style="width: 70%; height: 11px;"
+        />
+        <span
+          aria-busy="true"
+          aria-label="Loading fee value…"
+          class="skeleton"
+          role="status"
+          style="width: 50%; height: 22px;"
+        />
+      </div>
+      <div
+        class="flex flex-col gap-1.5"
+      >
+        <span
+          aria-busy="true"
+          aria-label="Loading fee label…"
+          class="skeleton"
+          role="status"
+          style="width: 70%; height: 11px;"
+        />
+        <span
+          aria-busy="true"
+          aria-label="Loading fee value…"
+          class="skeleton"
+          role="status"
+          style="width: 50%; height: 22px;"
+        />
+      </div>
+      <div
+        class="flex flex-col gap-1.5"
+      >
+        <span
+          aria-busy="true"
+          aria-label="Loading fee label…"
+          class="skeleton"
+          role="status"
+          style="width: 70%; height: 11px;"
+        />
+        <span
+          aria-busy="true"
+          aria-label="Loading fee value…"
+          class="skeleton"
+          role="status"
+          style="width: 50%; height: 22px;"
+        />
+      </div>
+    </div>
+  </div>
+  <div
+    class="bg-white p-6 rounded-lg border"
+  >
+    <span
+      aria-busy="true"
+      aria-label="Loading section title…"
+      class="skeleton mb-4"
+      role="status"
+      style="width: 180px; height: 18px;"
+    />
+    <div
+      class="space-y-2"
+    >
+      <div
+        class="flex items-center justify-between py-2 border-b"
+      >
+        <div
+          class="flex flex-col gap-1.5"
+        >
+          <span
+            aria-busy="true"
+            aria-label="Loading date…"
+            class="skeleton"
+            role="status"
+            style="width: 100px; height: 14px;"
+          />
+          <span
+            aria-busy="true"
+            aria-label="Loading transaction count…"
+            class="skeleton"
+            role="status"
+            style="width: 140px; height: 11px;"
+          />
+        </div>
+        <span
+          aria-busy="true"
+          aria-label="Loading amount…"
+          class="skeleton"
+          role="status"
+          style="width: 70px; height: 16px;"
+        />
+      </div>
+      <div
+        class="flex items-center justify-between py-2 border-b"
+      >
+        <div
+          class="flex flex-col gap-1.5"
+        >
+          <span
+            aria-busy="true"
+            aria-label="Loading date…"
+            class="skeleton"
+            role="status"
+            style="width: 100px; height: 14px;"
+          />
+          <span
+            aria-busy="true"
+            aria-label="Loading transaction count…"
+            class="skeleton"
+            role="status"
+            style="width: 140px; height: 11px;"
+          />
+        </div>
+        <span
+          aria-busy="true"
+          aria-label="Loading amount…"
+          class="skeleton"
+          role="status"
+          style="width: 70px; height: 16px;"
+        />
+      </div>
+      <div
+        class="flex items-center justify-between py-2 border-b"
+      >
+        <div
+          class="flex flex-col gap-1.5"
+        >
+          <span
+            aria-busy="true"
+            aria-label="Loading date…"
+            class="skeleton"
+            role="status"
+            style="width: 100px; height: 14px;"
+          />
+          <span
+            aria-busy="true"
+            aria-label="Loading transaction count…"
+            class="skeleton"
+            role="status"
+            style="width: 140px; height: 11px;"
+          />
+        </div>
+        <span
+          aria-busy="true"
+          aria-label="Loading amount…"
+          class="skeleton"
+          role="status"
+          style="width: 70px; height: 16px;"
+        />
+      </div>
+      <div
+        class="flex items-center justify-between py-2 border-b"
+      >
+        <div
+          class="flex flex-col gap-1.5"
+        >
+          <span
+            aria-busy="true"
+            aria-label="Loading date…"
+            class="skeleton"
+            role="status"
+            style="width: 100px; height: 14px;"
+          />
+          <span
+            aria-busy="true"
+            aria-label="Loading transaction count…"
+            class="skeleton"
+            role="status"
+            style="width: 140px; height: 11px;"
+          />
+        </div>
+        <span
+          aria-busy="true"
+          aria-label="Loading amount…"
+          class="skeleton"
+          role="status"
+          style="width: 70px; height: 16px;"
+        />
+      </div>
+      <div
+        class="flex items-center justify-between py-2 border-b"
+      >
+        <div
+          class="flex flex-col gap-1.5"
+        >
+          <span
+            aria-busy="true"
+            aria-label="Loading date…"
+            class="skeleton"
+            role="status"
+            style="width: 100px; height: 14px;"
+          />
+          <span
+            aria-busy="true"
+            aria-label="Loading transaction count…"
+            class="skeleton"
+            role="status"
+            style="width: 140px; height: 11px;"
+          />
+        </div>
+        <span
+          aria-busy="true"
+          aria-label="Loading amount…"
+          class="skeleton"
+          role="status"
+          style="width: 70px; height: 16px;"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`skeleton components > BankAccountInputSkeleton renders a field row per requested field 1`] = `
+<div
+  aria-busy="true"
+  aria-label="Loading bank account input"
+  class="flex flex-col gap-3"
+>
+  <div
+    class="flex gap-4 border-b border-[#333333] pb-1"
+  >
+    <span
+      aria-busy="true"
+      aria-label="Loading mode tab…"
+      class="skeleton"
+      role="status"
+      style="width: 50px; height: 14px;"
+    />
+    <span
+      aria-busy="true"
+      aria-label="Loading mode tab…"
+      class="skeleton"
+      role="status"
+      style="width: 70px; height: 14px;"
+    />
+    <span
+      aria-busy="true"
+      aria-label="Loading mode tab…"
+      class="skeleton"
+      role="status"
+      style="width: 50px; height: 14px;"
+    />
+  </div>
+  <div
+    class="flex flex-col gap-1.5"
+  >
+    <span
+      aria-busy="true"
+      aria-label="Loading field label…"
+      class="skeleton"
+      role="status"
+      style="width: 110px; height: 11px;"
+    />
+    <span
+      aria-busy="true"
+      aria-label="Loading field input…"
+      class="skeleton"
+      role="status"
+      style="width: 100%; height: 46px;"
+    />
+  </div>
+  <div
+    class="flex flex-col gap-1.5"
+  >
+    <span
+      aria-busy="true"
+      aria-label="Loading field label…"
+      class="skeleton"
+      role="status"
+      style="width: 110px; height: 11px;"
+    />
+    <span
+      aria-busy="true"
+      aria-label="Loading field input…"
+      class="skeleton"
+      role="status"
+      style="width: 100%; height: 46px;"
+    />
+  </div>
+</div>
+`;
+
+exports[`skeleton components > FormCardSkeleton renders and uses the shared shimmer primitive 1`] = `
+<section
+  aria-busy="true"
+  aria-label="Loading offramp form"
+  class="bg-panel border border-line p-6 flex flex-col gap-6"
+>
+  <div
+    class="flex flex-col gap-1.5"
+  >
+    <span
+      aria-busy="true"
+      aria-label="Loading label…"
+      class="skeleton"
+      role="status"
+      style="width: 80px; height: 10px;"
+    />
+    <span
+      aria-busy="true"
+      aria-label="Loading amount input…"
+      class="skeleton"
+      role="status"
+      style="width: 100%; height: 42px;"
+    />
+  </div>
+  <div
+    class="flex flex-col gap-1.5"
+  >
+    <span
+      aria-busy="true"
+      aria-label="Loading label…"
+      class="skeleton"
+      role="status"
+      style="width: 100px; height: 10px;"
+    />
+    <div
+      class="flex gap-2"
+    >
+      <span
+        aria-busy="true"
+        aria-label="Loading fee option…"
+        class="skeleton"
+        role="status"
+        style="width: 50%; height: 44px;"
+      />
+      <span
+        aria-busy="true"
+        aria-label="Loading fee option…"
+        class="skeleton"
+        role="status"
+        style="width: 50%; height: 44px;"
+      />
+    </div>
+  </div>
+  <div
+    class="grid grid-cols-1 md:grid-cols-2 gap-4"
+  >
+    <div
+      class="flex flex-col gap-1.5"
+    >
+      <span
+        aria-busy="true"
+        aria-label="Loading label…"
+        class="skeleton"
+        role="status"
+        style="width: 60px; height: 10px;"
+      />
+      <span
+        aria-busy="true"
+        aria-label="Loading currency select…"
+        class="skeleton"
+        role="status"
+        style="width: 100%; height: 42px;"
+      />
+    </div>
+    <div
+      class="flex flex-col gap-1.5"
+    >
+      <span
+        aria-busy="true"
+        aria-label="Loading label…"
+        class="skeleton"
+        role="status"
+        style="width: 120px; height: 10px;"
+      />
+      <span
+        aria-busy="true"
+        aria-label="Loading bank select…"
+        class="skeleton"
+        role="status"
+        style="width: 100%; height: 42px;"
+      />
+    </div>
+  </div>
+  <div
+    class="flex flex-col gap-1.5"
+  >
+    <span
+      aria-busy="true"
+      aria-label="Loading label…"
+      class="skeleton"
+      role="status"
+      style="width: 110px; height: 10px;"
+    />
+    <span
+      aria-busy="true"
+      aria-label="Loading account number input…"
+      class="skeleton"
+      role="status"
+      style="width: 100%; height: 42px;"
+    />
+  </div>
+  <div
+    class="flex flex-col gap-1.5"
+  >
+    <span
+      aria-busy="true"
+      aria-label="Loading label…"
+      class="skeleton"
+      role="status"
+      style="width: 90px; height: 10px;"
+    />
+    <span
+      aria-busy="true"
+      aria-label="Loading account name…"
+      class="skeleton"
+      role="status"
+      style="width: 100%; height: 42px;"
+    />
+  </div>
+  <span
+    aria-busy="true"
+    aria-label="Loading submit button…"
+    class="skeleton"
+    role="status"
+    style="width: 100%; height: 52px;"
+  />
+</section>
+`;
+
+exports[`skeleton components > QuoteDisplaySkeleton renders and uses the shared shimmer primitive 1`] = `
+<div
+  aria-busy="true"
+  aria-label="Loading quote"
+  class="flex flex-col gap-4 w-full"
+>
+  <div
+    class="border border-[#333333] bg-[#111111] p-5 flex flex-col gap-4"
+  >
+    <span
+      aria-busy="true"
+      aria-label="Loading label…"
+      class="skeleton"
+      role="status"
+      style="width: 120px; height: 10px;"
+    />
+    <span
+      aria-busy="true"
+      aria-label="Loading payout amount…"
+      class="skeleton"
+      role="status"
+      style="width: 70%; height: 38px;"
+    />
+    <span
+      aria-busy="true"
+      aria-label="Loading meta…"
+      class="skeleton"
+      role="status"
+      style="width: 180px; height: 11px;"
+    />
+  </div>
+  <div
+    class="border border-[#333333] bg-[#111111] p-5 flex flex-col gap-3"
+  >
+    <span
+      aria-busy="true"
+      aria-label="Loading section title…"
+      class="skeleton"
+      role="status"
+      style="width: 160px; height: 10px;"
+    />
+    <div
+      class="flex items-center justify-between gap-4"
+    >
+      <span
+        aria-busy="true"
+        aria-label="Loading fee label…"
+        class="skeleton"
+        role="status"
+        style="width: 90px; height: 12px;"
+      />
+      <span
+        aria-busy="true"
+        aria-label="Loading fee value…"
+        class="skeleton"
+        role="status"
+        style="width: 80px; height: 12px;"
+      />
+    </div>
+    <div
+      class="flex items-center justify-between gap-4"
+    >
+      <span
+        aria-busy="true"
+        aria-label="Loading fee label…"
+        class="skeleton"
+        role="status"
+        style="width: 90px; height: 12px;"
+      />
+      <span
+        aria-busy="true"
+        aria-label="Loading fee value…"
+        class="skeleton"
+        role="status"
+        style="width: 80px; height: 12px;"
+      />
+    </div>
+    <div
+      class="border-t border-[#333333] my-1"
+    />
+    <div
+      class="flex items-end justify-between gap-4"
+    >
+      <span
+        aria-busy="true"
+        aria-label="Loading total label…"
+        class="skeleton"
+        role="status"
+        style="width: 80px; height: 12px;"
+      />
+      <span
+        aria-busy="true"
+        aria-label="Loading payout total…"
+        class="skeleton"
+        role="status"
+        style="width: 120px; height: 24px;"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`skeleton components > TransactionTableSkeleton renders the requested number of rows 1`] = `
+<div
+  aria-busy="true"
+  aria-label="Loading recent transactions"
+  class="border border-[#333333] bg-[#111111]"
+>
+  <div
+    class="flex items-center justify-between px-5 py-4 border-b border-[#333333]"
+  >
+    <span
+      aria-busy="true"
+      aria-label="Loading section title…"
+      class="skeleton"
+      role="status"
+      style="width: 120px; height: 10px;"
+    />
+    <span
+      aria-busy="true"
+      aria-label="Loading view all link…"
+      class="skeleton"
+      role="status"
+      style="width: 64px; height: 26px;"
+    />
+  </div>
+  <div
+    class="overflow-x-auto"
+  >
+    <table
+      aria-label="Loading transactions table"
+      class="w-full min-w-[520px] border-collapse"
+    >
+      <thead>
+        <tr
+          class="bg-[#c9a962]"
+        >
+          <th
+            class="px-5 py-2.5 text-left text-[10px] tracking-[0.18em] font-semibold text-[#0a0a0a] uppercase whitespace-nowrap"
+            scope="col"
+          >
+            TX HASH
+          </th>
+          <th
+            class="px-5 py-2.5 text-left text-[10px] tracking-[0.18em] font-semibold text-[#0a0a0a] uppercase whitespace-nowrap"
+            scope="col"
+          >
+            USDC
+          </th>
+          <th
+            class="px-5 py-2.5 text-left text-[10px] tracking-[0.18em] font-semibold text-[#0a0a0a] uppercase whitespace-nowrap"
+            scope="col"
+          >
+            FIAT
+          </th>
+          <th
+            class="px-5 py-2.5 text-left text-[10px] tracking-[0.18em] font-semibold text-[#0a0a0a] uppercase whitespace-nowrap"
+            scope="col"
+          >
+            STATUS
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          class="border-b border-[#222222] bg-[#111111]"
+        >
+          <td
+            class="px-5 py-3"
+          >
+            <span
+              aria-busy="true"
+              aria-label="Loading transaction hash…"
+              class="skeleton"
+              role="status"
+              style="width: 120px; height: 14px;"
+            />
+          </td>
+          <td
+            class="px-5 py-3"
+          >
+            <span
+              aria-busy="true"
+              aria-label="Loading USDC amount…"
+              class="skeleton"
+              role="status"
+              style="width: 80px; height: 14px;"
+            />
+          </td>
+          <td
+            class="px-5 py-3"
+          >
+            <span
+              aria-busy="true"
+              aria-label="Loading fiat amount…"
+              class="skeleton"
+              role="status"
+              style="width: 80px; height: 14px;"
+            />
+          </td>
+          <td
+            class="px-5 py-3"
+          >
+            <span
+              aria-busy="true"
+              aria-label="Loading status…"
+              class="skeleton"
+              role="status"
+              style="width: 60px; height: 20px;"
+            />
+          </td>
+        </tr>
+        <tr
+          class="border-b border-[#222222] bg-[#0f0f0f]"
+        >
+          <td
+            class="px-5 py-3"
+          >
+            <span
+              aria-busy="true"
+              aria-label="Loading transaction hash…"
+              class="skeleton"
+              role="status"
+              style="width: 120px; height: 14px;"
+            />
+          </td>
+          <td
+            class="px-5 py-3"
+          >
+            <span
+              aria-busy="true"
+              aria-label="Loading USDC amount…"
+              class="skeleton"
+              role="status"
+              style="width: 80px; height: 14px;"
+            />
+          </td>
+          <td
+            class="px-5 py-3"
+          >
+            <span
+              aria-busy="true"
+              aria-label="Loading fiat amount…"
+              class="skeleton"
+              role="status"
+              style="width: 80px; height: 14px;"
+            />
+          </td>
+          <td
+            class="px-5 py-3"
+          >
+            <span
+              aria-busy="true"
+              aria-label="Loading status…"
+              class="skeleton"
+              role="status"
+              style="width: 60px; height: 20px;"
+            />
+          </td>
+        </tr>
+        <tr
+          class="border-b border-[#222222] bg-[#111111]"
+        >
+          <td
+            class="px-5 py-3"
+          >
+            <span
+              aria-busy="true"
+              aria-label="Loading transaction hash…"
+              class="skeleton"
+              role="status"
+              style="width: 120px; height: 14px;"
+            />
+          </td>
+          <td
+            class="px-5 py-3"
+          >
+            <span
+              aria-busy="true"
+              aria-label="Loading USDC amount…"
+              class="skeleton"
+              role="status"
+              style="width: 80px; height: 14px;"
+            />
+          </td>
+          <td
+            class="px-5 py-3"
+          >
+            <span
+              aria-busy="true"
+              aria-label="Loading fiat amount…"
+              class="skeleton"
+              role="status"
+              style="width: 80px; height: 14px;"
+            />
+          </td>
+          <td
+            class="px-5 py-3"
+          >
+            <span
+              aria-busy="true"
+              aria-label="Loading status…"
+              class="skeleton"
+              role="status"
+              style="width: 60px; height: 20px;"
+            />
+          </td>
+        </tr>
+        <tr
+          class="border-b border-[#222222] bg-[#0f0f0f]"
+        >
+          <td
+            class="px-5 py-3"
+          >
+            <span
+              aria-busy="true"
+              aria-label="Loading transaction hash…"
+              class="skeleton"
+              role="status"
+              style="width: 120px; height: 14px;"
+            />
+          </td>
+          <td
+            class="px-5 py-3"
+          >
+            <span
+              aria-busy="true"
+              aria-label="Loading USDC amount…"
+              class="skeleton"
+              role="status"
+              style="width: 80px; height: 14px;"
+            />
+          </td>
+          <td
+            class="px-5 py-3"
+          >
+            <span
+              aria-busy="true"
+              aria-label="Loading fiat amount…"
+              class="skeleton"
+              role="status"
+              style="width: 80px; height: 14px;"
+            />
+          </td>
+          <td
+            class="px-5 py-3"
+          >
+            <span
+              aria-busy="true"
+              aria-label="Loading status…"
+              class="skeleton"
+              role="status"
+              style="width: 60px; height: 20px;"
+            />
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+`;
+
+exports[`skeleton components > WalletConnectionSkeleton renders two balance placeholders 1`] = `
+<div
+  aria-busy="true"
+  aria-label="Loading wallet"
+  class="flex flex-col items-end gap-0.5"
+>
+  <span
+    aria-busy="true"
+    aria-label="Loading USDC balance…"
+    class="skeleton"
+    role="status"
+    style="width: 100px; height: 12px;"
+  />
+  <span
+    aria-busy="true"
+    aria-label="Loading XLM balance…"
+    class="skeleton"
+    role="status"
+    style="width: 70px; height: 12px;"
+  />
+</div>
+`;

@@ -17,7 +17,9 @@
     "build-storybook": "storybook build",
     "test-storybook": "test-storybook",
     "dead-code": "knip",
-    "dead-code:ci": "knip --reporter compact"
+    "dead-code:ci": "knip --reporter compact",
+    "storybook:check-orphans": "node scripts/check-orphaned-stories.js",
+    "storybook:fix-orphans": "node scripts/check-orphaned-stories.js --fix"
   },
   "dependencies": {
     "@allbridge/bridge-core-sdk": "^3.29.1",
@@ -26,6 +28,7 @@
     "@stellar/freighter-api": "^6.0.1",
     "@stellar/stellar-sdk": "^14.6.1",
     "@zxing/browser": "^0.2.0",
+    "class-variance-authority": "^0.7.1",
     "isomorphic-dompurify": "^2.11.0",
     "next": "^15.5.14",
     "pg": "^8.21.0",

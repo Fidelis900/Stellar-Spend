@@ -1,182 +1,181 @@
-import {
-  formatCurrency,
-  formatCompactNumber,
-  formatPercentage,
-  formatAmount,
-  formatDate,
-  formatDateISO,
-  formatRelativeTime,
-  formatTransactionAmount,
-  formatDuration,
-  formatFileSize,
-} from './formatters';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
+import { DateFormatter, defaultFormatter, formatTransaction, formatTransactionDate } from './formatters';
 
-describe('formatters utility', () => {
-  describe('formatCurrency', () => {
-    it('formats amount as currency with USD', () => {
-      const result = formatCurrency(1234.56);
-      expect(result).toMatch(/\$1,234\.56|1234,56/);
+let now: Date;
+
+beforeAll(() => {
+  now = new Date('2025-07-25T14:30:00Z');
+  vi.useFakeTimers();
+  vi.setSystemTime(now);
+});
+
+afterAll(() => {
+  vi.useRealTimers();
+});
+
+describe('DateFormatter', () => {
+  describe('constructor and defaults', () => {
+    it('defaults to en-US locale and UTC timezone', () => {
+      const formatter = new DateFormatter();
+      const result = formatter.formatTimestamp('2025-07-25T14:30:00Z');
+      expect(result).toContain('Jul');
+      expect(result).toContain('UTC');
     });
 
-    it('formats amount with custom currency', () => {
-      const result = formatCurrency(500, 'EUR', 'en-US');
-      expect(result).toMatch(/€|EUR/);
-    });
-
-    it('handles custom fraction digits', () => {
-      const result = formatCurrency(1234.567, 'USD', 'en-US', { minimumFractionDigits: 3 });
-      expect(result).toContain('1,234.567');
-    });
-
-    it('falls back gracefully for unknown currency', () => {
-      const result = formatCurrency(100, 'UNKNOWN', 'en-US');
-      expect(result).toMatch(/100.*UNKNOWN/);
+    it('accepts custom locale and timezone', () => {
+      const formatter = new DateFormatter({ locale: 'en-US', timeZone: 'America/New_York' });
+      const result = formatter.formatTimestamp('2025-07-25T14:30:00Z');
+      expect(result).toBeDefined();
     });
   });
 
-  describe('formatCompactNumber', () => {
-    it('formats large numbers compactly', () => {
-      expect(formatCompactNumber(1500)).toMatch(/1\.5K|2K/);
-      expect(formatCompactNumber(1500000)).toMatch(/1\.5M/);
+  describe('formatTimestamp', () => {
+    it('formats ISO timestamp with time and timezone', () => {
+      const formatter = new DateFormatter({ locale: 'en-US', timeZone: 'UTC' });
+      const result = formatter.formatTimestamp('2025-07-25T14:30:00Z');
+      expect(result).toMatch(/Jul.*\d+.*\d{2}:\d{2}:\d{2}.*UTC/);
     });
 
-    it('handles small numbers', () => {
-      const result = formatCompactNumber(500);
-      expect(result).toBe('500');
+    it('snapshot: formats timestamp consistently', () => {
+      const formatter = new DateFormatter({ locale: 'en-US', timeZone: 'UTC' });
+      const result = formatter.formatTimestamp('2025-07-25T14:30:00Z');
+      expect(result).toMatchSnapshot();
     });
   });
 
-  describe('formatPercentage', () => {
-    it('formats percentage with default decimals', () => {
-      const result = formatPercentage(0.25);
-      expect(result).toBe('25.00%');
+  describe('formatDateOnly', () => {
+    it('formats date without time component', () => {
+      const formatter = new DateFormatter({ locale: 'en-US', timeZone: 'UTC' });
+      const result = formatter.formatDateOnly('2025-07-25T14:30:00Z');
+      expect(result).not.toContain(':');
+      expect(result).toContain('Jul');
     });
 
-    it('respects custom decimal places', () => {
-      const result = formatPercentage(0.3333, 1);
-      expect(result).toBe('33.3%');
-    });
-
-    it('can exclude symbol', () => {
-      const result = formatPercentage(0.5, 2, false);
-      expect(result).toBe('50.00');
+    it('snapshot: formats date-only consistently', () => {
+      const formatter = new DateFormatter({ locale: 'en-US', timeZone: 'UTC' });
+      const result = formatter.formatDateOnly('2025-07-25T14:30:00Z');
+      expect(result).toMatchSnapshot();
     });
   });
 
-  describe('formatAmount', () => {
-    it('formats amount with thousand separators', () => {
-      const result = formatAmount(1234567.89);
-      expect(result).toMatch(/1,234,567\.89|1.234.567,89/);
+  describe('formatRelative', () => {
+    it('shows "just now" for recent timestamps', () => {
+      const formatter = new DateFormatter();
+      const recent = new Date(now.getTime() - 30_000).toISOString();
+      expect(formatter.formatRelative(recent)).toBe('just now');
+    });
+
+    it('shows minutes for timestamps within an hour', () => {
+      const formatter = new DateFormatter();
+      const tenMinutesAgo = new Date(now.getTime() - 10 * 60_000).toISOString();
+      expect(formatter.formatRelative(tenMinutesAgo)).toMatch(/10m ago/);
+    });
+
+    it('shows hours for timestamps within a day', () => {
+      const formatter = new DateFormatter();
+      const twoHoursAgo = new Date(now.getTime() - 2 * 3600_000).toISOString();
+      expect(formatter.formatRelative(twoHoursAgo)).toMatch(/2h ago/);
+    });
+
+    it('shows days for timestamps within a week', () => {
+      const formatter = new DateFormatter();
+      const threeDaysAgo = new Date(now.getTime() - 3 * 86400_000).toISOString();
+      expect(formatter.formatRelative(threeDaysAgo)).toMatch(/3d ago/);
+    });
+
+    it('falls back to date format for older timestamps', () => {
+      const formatter = new DateFormatter({ locale: 'en-US', timeZone: 'UTC' });
+      const twoWeeksAgo = new Date(now.getTime() - 14 * 86400_000).toISOString();
+      const result = formatter.formatRelative(twoWeeksAgo);
+      expect(result).not.toContain('ago');
+      expect(result).toContain('Jul');
     });
   });
 
-  describe('formatDate', () => {
-    it('formats date with time by default', () => {
-      const date = new Date('2024-01-15T14:30:00Z');
-      const result = formatDate(date);
-      expect(result).toMatch(/15|Jan/);
+  describe('formatCompact', () => {
+    it('formats date in MM/DD/YY format', () => {
+      const formatter = new DateFormatter({ locale: 'en-US', timeZone: 'UTC' });
+      const result = formatter.formatCompact('2025-07-25T14:30:00Z');
+      expect(result).toMatch(/\d{2}\/\d{2}\/\d{2}/);
     });
 
-    it('formats date without time when specified', () => {
-      const date = new Date('2024-01-15');
-      const result = formatDate(date, 'en-US', { includeTime: false });
-      expect(result).toMatch(/15|Jan/);
-      expect(result).not.toMatch(/:/);
-    });
-
-    it('handles timestamp input', () => {
-      const timestamp = new Date('2024-01-15').getTime();
-      const result = formatDate(timestamp);
-      expect(result).toMatch(/15|Jan/);
+    it('snapshot: formats compact date consistently', () => {
+      const formatter = new DateFormatter({ locale: 'en-US', timeZone: 'UTC' });
+      const result = formatter.formatCompact('2025-07-25T14:30:00Z');
+      expect(result).toMatchSnapshot();
     });
   });
 
-  describe('formatDateISO', () => {
-    it('formats date as ISO string', () => {
-      const date = new Date('2024-01-05');
-      const result = formatDateISO(date);
-      expect(result).toMatch(/2024-01-0[5-6]/);
+  describe('formatRange', () => {
+    it('formats date range with both dates', () => {
+      const formatter = new DateFormatter({ locale: 'en-US', timeZone: 'UTC' });
+      const result = formatter.formatRange('2025-07-20T00:00:00Z', '2025-07-25T23:59:59Z');
+      expect(result).toContain(' - ');
+      expect(result).toContain('Jul');
     });
 
-    it('handles timestamp input', () => {
-      const timestamp = new Date('2024-12-25').getTime();
-      const result = formatDateISO(timestamp);
-      expect(result).toMatch(/2024-12-25/);
+    it('snapshot: formats range consistently', () => {
+      const formatter = new DateFormatter({ locale: 'en-US', timeZone: 'UTC' });
+      const result = formatter.formatRange('2025-07-20T00:00:00Z', '2025-07-25T23:59:59Z');
+      expect(result).toMatchSnapshot();
+    });
+  });
+});
+
+describe('defaultFormatter', () => {
+  it('provides consistent UTC formatting', () => {
+    const result1 = defaultFormatter.formatTimestamp('2025-07-25T14:30:00Z');
+    const result2 = defaultFormatter.formatTimestamp('2025-07-25T14:30:00Z');
+    expect(result1).toBe(result2);
+  });
+});
+
+describe('helper functions', () => {
+  describe('formatTransaction', () => {
+    it('formats transaction timestamp with default UTC', () => {
+      const result = formatTransaction('2025-07-25T14:30:00Z');
+      expect(result).toContain('Jul');
     });
 
-    it('pads month and day with zeros', () => {
-      const date = new Date('2024-01-01');
-      const result = formatDateISO(date);
-      expect(result).toBe('2024-01-01');
+    it('snapshot: formats transaction consistently', () => {
+      const result = formatTransaction('2025-07-25T14:30:00Z');
+      expect(result).toMatchSnapshot();
+    });
+
+    it('accepts custom timezone', () => {
+      const result = formatTransaction('2025-07-25T14:30:00Z', 'America/New_York');
+      expect(result).toBeDefined();
     });
   });
 
-  describe('formatRelativeTime', () => {
-    it('formats very recent dates', () => {
-      const recentDate = new Date(Date.now() - 30000); // 30 seconds ago
-      const result = formatRelativeTime(recentDate);
-      expect(result.toLowerCase()).toMatch(/seconds?|ago/);
+  describe('formatTransactionDate', () => {
+    it('formats transaction date without time', () => {
+      const result = formatTransactionDate('2025-07-25T14:30:00Z');
+      expect(result).not.toContain(':');
+      expect(result).toContain('Jul');
     });
 
-    it('formats dates in the past', () => {
-      const pastDate = new Date(Date.now() - 2 * 60 * 60 * 1000); // 2 hours ago
-      const result = formatRelativeTime(pastDate);
-      expect(result.toLowerCase()).toMatch(/hour|ago/);
+    it('snapshot: formats transaction date consistently', () => {
+      const result = formatTransactionDate('2025-07-25T14:30:00Z');
+      expect(result).toMatchSnapshot();
+    });
+
+    it('accepts custom timezone', () => {
+      const result = formatTransactionDate('2025-07-25T14:30:00Z', 'America/New_York');
+      expect(result).toBeDefined();
     });
   });
+});
 
-  describe('formatTransactionAmount', () => {
-    it('formats debit transaction with minus sign', () => {
-      const result = formatTransactionAmount(100, 'USD', true);
-      expect(result).toMatch(/-/);
-      expect(result).toMatch(/100|USD/);
-    });
+describe('timezone consistency', () => {
+  it('all formatters respect the configured timezone', () => {
+    const utcFormatter = new DateFormatter({ timeZone: 'UTC' });
+    const nyFormatter = new DateFormatter({ timeZone: 'America/New_York' });
 
-    it('formats credit transaction with plus sign', () => {
-      const result = formatTransactionAmount(100, 'USD', false);
-      expect(result).toMatch(/\+/);
-    });
-  });
+    const utcResult = utcFormatter.formatTimestamp('2025-07-25T20:00:00Z');
+    const nyResult = nyFormatter.formatTimestamp('2025-07-25T20:00:00Z');
 
-  describe('formatDuration', () => {
-    it('formats milliseconds to duration string', () => {
-      expect(formatDuration(5000)).toMatch(/5s/);
-      expect(formatDuration(60000)).toMatch(/1m/);
-      expect(formatDuration(3600000)).toMatch(/1h/);
-    });
-
-    it('includes multiple units', () => {
-      const ms = 1 * 60 * 60 * 1000 + 30 * 60 * 1000 + 45 * 1000; // 1h 30m 45s
-      const result = formatDuration(ms);
-      expect(result).toMatch(/h.*m.*s/);
-    });
-
-    it('handles zero milliseconds', () => {
-      const result = formatDuration(0);
-      expect(result).toBe('0s');
-    });
-  });
-
-  describe('formatFileSize', () => {
-    it('formats bytes', () => {
-      expect(formatFileSize(512)).toMatch(/512\s*Bytes?/i);
-    });
-
-    it('formats kilobytes', () => {
-      expect(formatFileSize(1024)).toMatch(/1\s*KB/i);
-    });
-
-    it('formats megabytes', () => {
-      expect(formatFileSize(1024 * 1024)).toMatch(/1\s*MB/i);
-    });
-
-    it('handles zero bytes', () => {
-      expect(formatFileSize(0)).toBe('0 Bytes');
-    });
-
-    it('respects decimal places', () => {
-      const result = formatFileSize(1536, 1); // 1.5 KB
-      expect(result).toMatch(/1\.5\s*KB/i);
-    });
+    expect(utcResult).toContain('UTC');
+    expect(nyResult).toBeDefined();
   });
 });

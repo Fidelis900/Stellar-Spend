@@ -83,15 +83,13 @@ export function ReversalModal({
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      aria-hidden="true"
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="reversal-modal-title"
+        aria-describedby="reversal-modal-desc"
         className="relative bg-[#1a1a1a] border border-[#333333] p-6 max-w-md w-full mx-4"
       >
         <h2
@@ -100,6 +98,9 @@ export function ReversalModal({
         >
           Reverse Transaction
         </h2>
+        <p id="reversal-modal-desc" className="sr-only">
+          Reverse a completed transaction by entering an amount and a reason.
+        </p>
 
         <button
           onClick={onClose}

@@ -67,13 +67,17 @@ export function DisputeForm({ transactionId, onSubmit, onCancel }: DisputeFormPr
   return (
     <form onSubmit={handleSubmit} className="space-y-5 animate-in fade-in duration-300">
       <div className="space-y-1.5">
-        <label className="block text-[10px] tracking-widest uppercase text-[#777777] font-bold">
+        <label htmlFor="dispute-reason" className="block text-[10px] tracking-widest uppercase text-[#777777] font-bold">
           {t('dispute.reason')} *
         </label>
         <select
+          id="dispute-reason"
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           required
+          aria-required="true"
+          aria-invalid={!!error}
+          aria-describedby={error ? 'dispute-error' : undefined}
           className="w-full bg-[#111111] border border-[#333333] px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#c9a962] appearance-none cursor-pointer"
         >
           <option value="">Select a reason...</option>
@@ -86,10 +90,11 @@ export function DisputeForm({ transactionId, onSubmit, onCancel }: DisputeFormPr
       </div>
 
       <div className="space-y-1.5">
-        <label className="block text-[10px] tracking-widest uppercase text-[#777777] font-bold">
+        <label htmlFor="dispute-description" className="block text-[10px] tracking-widest uppercase text-[#777777] font-bold">
           {t('dispute.description')}
         </label>
         <textarea
+          id="dispute-description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Provide additional details about the dispute..."
@@ -100,23 +105,37 @@ export function DisputeForm({ transactionId, onSubmit, onCancel }: DisputeFormPr
 
       {/* Document Upload */}
       <div className="space-y-1.5">
-        <label className="block text-[10px] tracking-widest uppercase text-[#777777] font-bold">
+        <span id="dispute-document-label" className="block text-[10px] tracking-widest uppercase text-[#777777] font-bold">
           {t('insurance.upload_document')}
-        </label>
-        <div 
+        </span>
+        <input
+          type="file"
+          id="dispute-document"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          className="sr-only"
+          tabIndex={-1}
+          aria-label={t('insurance.upload_document')}
+          accept="image/*,application/pdf"
+        />
+        <div
+          role="button"
+          tabIndex={0}
+          aria-labelledby="dispute-document-label"
+          aria-describedby="dispute-document-hint"
+          aria-controls="dispute-document"
           onClick={() => fileInputRef.current?.click()}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              fileInputRef.current?.click();
+            }
+          }}
           className={cn(
-            "border-2 border-dashed border-[#333333] p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#c9a962] transition-colors bg-[#0a0a0a]",
+            "border-2 border-dashed border-[#333333] p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#c9a962] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a962] transition-colors bg-[#0a0a0a]",
             filePreview && "border-[#c9a962] bg-[#c9a962]/5"
           )}
         >
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleFileChange} 
-            className="hidden" 
-            accept="image/*,application/pdf"
-          />
           {filePreview ? (
             <div className="flex flex-col items-center gap-2">
               {selectedFile?.type.startsWith('image/') ? (
@@ -133,6 +152,9 @@ export function DisputeForm({ transactionId, onSubmit, onCancel }: DisputeFormPr
             </>
           )}
         </div>
+        <span id="dispute-document-hint" className="sr-only">
+          Optional supporting document. Accepted formats: JPG, PNG or PDF, up to 5MB.
+        </span>
       </div>
 
       <div className="p-3 bg-blue-900/10 border border-blue-500/20 rounded">
@@ -141,7 +163,16 @@ export function DisputeForm({ transactionId, onSubmit, onCancel }: DisputeFormPr
         </p>
       </div>
 
-      {error && <div className="text-red-400 text-xs font-bold uppercase tracking-tight">{error}</div>}
+      {error && (
+        <div
+          id="dispute-error"
+          role="alert"
+          aria-live="assertive"
+          className="text-red-400 text-xs font-bold uppercase tracking-tight"
+        >
+          {error}
+        </div>
+      )}
 
       <div className="flex gap-3">
         <button
