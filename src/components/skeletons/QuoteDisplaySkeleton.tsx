@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/Skeleton";
+import { SkeletonBase } from "./SkeletonBase";
 
 /**
  * Skeleton for the RightPanel quote display while a quote is being fetched.
@@ -12,25 +12,25 @@ export function QuoteDisplaySkeleton() {
     >
       {/* Hero panel */}
       <div className="border border-[#333333] bg-[#111111] p-5 flex flex-col gap-4">
-        <Skeleton width={120} height={10} aria-label="Loading label…" />
-        <Skeleton width="70%" height={38} aria-label="Loading payout amount…" />
-        <Skeleton width={180} height={11} aria-label="Loading meta…" />
+        <SkeletonBase width={120} height={10} aria-label="Loading label…" />
+        <SkeletonBase width="70%" height={38} aria-label="Loading payout amount…" />
+        <SkeletonBase width={180} height={11} aria-label="Loading meta…" />
       </div>
 
       {/* Settlement breakdown */}
       <div className="border border-[#333333] bg-[#111111] p-5 flex flex-col gap-3">
-        <Skeleton width={160} height={10} aria-label="Loading section title…" />
+        <SkeletonBase width={160} height={10} aria-label="Loading section title…" />
 
         {/* Network fee row */}
         <div className="flex items-center justify-between gap-4">
-          <Skeleton width={90} height={12} aria-label="Loading fee label…" />
-          <Skeleton width={80} height={12} aria-label="Loading fee value…" />
+          <SkeletonBase width={90} height={12} aria-label="Loading fee label…" />
+          <SkeletonBase width={80} height={12} aria-label="Loading fee value…" />
         </div>
 
         {/* Platform fee row */}
         <div className="flex items-center justify-between gap-4">
-          <Skeleton width={90} height={12} aria-label="Loading fee label…" />
-          <Skeleton width={80} height={12} aria-label="Loading fee value…" />
+          <SkeletonBase width={90} height={12} aria-label="Loading fee label…" />
+          <SkeletonBase width={80} height={12} aria-label="Loading fee value…" />
         </div>
 
         {/* Divider */}
@@ -38,8 +38,8 @@ export function QuoteDisplaySkeleton() {
 
         {/* Payout total */}
         <div className="flex items-end justify-between gap-4">
-          <Skeleton width={80} height={12} aria-label="Loading total label…" />
-          <Skeleton width={120} height={24} aria-label="Loading payout total…" />
+          <SkeletonBase width={80} height={12} aria-label="Loading total label…" />
+          <SkeletonBase width={120} height={24} aria-label="Loading payout total…" />
         </div>
       </div>
     </div>

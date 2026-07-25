@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/Skeleton";
+import { SkeletonBase } from "./SkeletonBase";
 import { cn } from "@/lib/cn";
 
 interface TransactionTableSkeletonProps {
@@ -17,8 +17,8 @@ export function TransactionTableSkeleton({ rows = 3 }: TransactionTableSkeletonP
     >
       {/* Header bar */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-[#333333]">
-        <Skeleton width={120} height={10} aria-label="Loading section title…" />
-        <Skeleton width={64} height={26} aria-label="Loading view all link…" />
+        <SkeletonBase width={120} height={10} aria-label="Loading section title…" />
+        <SkeletonBase width={64} height={26} aria-label="Loading view all link…" />
       </div>
 
       {/* Table */}
@@ -43,10 +43,10 @@ export function TransactionTableSkeleton({ rows = 3 }: TransactionTableSkeletonP
                 key={i}
                 className={cn("border-b border-[#222222]", i % 2 === 0 ? "bg-[#111111]" : "bg-[#0f0f0f]")}
               >
-                <td className="px-5 py-3"><Skeleton width={120} height={14} aria-label="Loading transaction hash…" /></td>
-                <td className="px-5 py-3"><Skeleton width={80} height={14} aria-label="Loading USDC amount…" /></td>
-                <td className="px-5 py-3"><Skeleton width={80} height={14} aria-label="Loading fiat amount…" /></td>
-                <td className="px-5 py-3"><Skeleton width={60} height={20} aria-label="Loading status…" /></td>
+                <td className="px-5 py-3"><SkeletonBase width={120} height={14} aria-label="Loading transaction hash…" /></td>
+                <td className="px-5 py-3"><SkeletonBase width={80} height={14} aria-label="Loading USDC amount…" /></td>
+                <td className="px-5 py-3"><SkeletonBase width={80} height={14} aria-label="Loading fiat amount…" /></td>
+                <td className="px-5 py-3"><SkeletonBase width={60} height={20} aria-label="Loading status…" /></td>
               </tr>
             ))}
           </tbody>
