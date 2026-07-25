@@ -22,7 +22,7 @@ export interface PollStatusOptions {
  * Generic polling hook for status endpoints
  * Handles common polling patterns: terminal states, error handling, storage updates
  */
-export function useGenericPolling<T extends string>({
+export function useGenericPolling<T extends string, D = unknown>({
   config,
   terminalStates,
   onTerminalState,
@@ -35,7 +35,7 @@ export function useGenericPolling<T extends string>({
     async (
       endpoint: string,
       options: PollStatusOptions,
-      parseResponse: (data: any) => T
+      parseResponse: (data: D) => T
     ): Promise<void> => {
       const fetchFn = async (id: string, signal: AbortSignal): Promise<StatusResponse> => {
         const res = await fetch(endpoint, {
