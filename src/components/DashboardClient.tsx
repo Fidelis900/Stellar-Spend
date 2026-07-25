@@ -44,7 +44,6 @@ export default function DashboardClient() {
   }, []);
 
   const handleSubmit = useCallback(async (payload: OfframpPayload) => {
-    console.log('Offramp payload:', payload);
     // Implement actual submission logic
     await new Promise((resolve) => setTimeout(resolve, 2000));
     alert('Offramp initiated successfully!');
