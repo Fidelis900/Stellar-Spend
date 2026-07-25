@@ -1,3 +1,4 @@
+export { SkeletonBase, type SkeletonBaseProps } from "./SkeletonBase";
 export { FormCardSkeleton } from "./FormCardSkeleton";
 export { TransactionTableSkeleton } from "./TransactionTableSkeleton";
 export { QuoteDisplaySkeleton } from "./QuoteDisplaySkeleton";

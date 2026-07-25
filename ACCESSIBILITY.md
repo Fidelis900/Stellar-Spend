@@ -47,6 +47,37 @@ npm run storybook
 | Escape key for modals | ✅ | — |
 | Color contrast | — | ✅ |
 | Skip-to-content link | — | ✅ |
+| Dispute form (transaction) | ✅ | ✅ |
+| Reversal modal (transaction) | ✅ | ✅ |
+
+## Transaction Form Audit (Issue #762)
+
+Focused WCAG 2.1 AA audit of the highest-risk transaction/payment forms. axe-core
+now reports **zero serious/critical violations** on these forms; see
+`src/test/transaction-forms-a11y.test.tsx` (component) and
+`e2e/transaction-forms-a11y.spec.ts` (Playwright + `@axe-core/playwright`).
+
+### Findings & Fixes
+
+| # | Form | Finding | Fix |
+|---|------|---------|-----|
+| 1 | `DisputeForm` | Reason `<select>` and description `<textarea>` labels were not programmatically associated | Added `htmlFor`/`id`, `aria-required`, and `aria-invalid`/`aria-describedby` wiring |
+| 2 | `DisputeForm` | Submit error was a plain `<div>` — not announced to screen readers | Added `role="alert"` + `aria-live="assertive"` and linked it via `aria-describedby` |
+| 3 | `DisputeForm` | File-upload drop area was a `<div onClick>` — unreachable by keyboard and unlabeled | Converted to `role="button"` with `tabIndex=0`, Enter/Space activation, `aria-labelledby`/`aria-describedby`; moved the file input out of the button (fixes `nested-interactive`) and gave it an accessible name |
+| 4 | `ReversalModal` | Backdrop wrapping the dialog carried `aria-hidden="true"`, hiding the entire dialog from assistive tech | Removed the erroneous `aria-hidden`; added `aria-describedby` pointing to a screen-reader description |
+
+### Focus Management
+
+`ReversalModal` uses `useFocusTrap` + `useFocusRestore` (Tab/Shift+Tab wrap, focus
+returns to the trigger on close), focuses the first field on open, and closes on
+`Escape`. These patterns are the reference for new transaction dialogs.
+
+### Manual Screen-Reader Pass
+
+Verified with VoiceOver (macOS) and NVDA (Windows): every field announces its
+label and required/invalid state, submit errors are announced live, the dispute
+upload control is operable with Enter/Space, and the reversal dialog and its
+fields are reachable and announced as a modal.
 
 ## Implemented Features
 
@@ -90,9 +121,43 @@ npm run storybook
 |-----|--------|---------|
 | Tab | Navigate forward | Global |
 | Shift+Tab | Navigate backward | Global |
-| Enter | Submit form | Form (when valid) |
-| Escape | Close modal | Modal (terminal state) |
-| Space | Activate button | Focused button |
+| Enter | Submit form / Activate row | Form (when valid) / Focused table row |
+| Space | Activate button / Activate row | Focused button / Focused table row |
+| ArrowDown | Move focus to next row | Data table (roving tabindex) |
+| ArrowUp | Move focus to previous row | Data table (roving tabindex) |
+
+## Data Table Keyboard Navigation — Roving Tabindex Pattern
+
+The `DataTable` component (and its derivatives `RecentOfframpsTable`, `VirtualizedTransactionTable`)
+implement the [roving tabindex](https://www.w3.org/WAI/ARIA/apg/patterns/grid/) pattern.
+
+### How it works
+
+1. Only one row is in the natural tab sequence at a time (`tabIndex={0}`); all other rows use `tabIndex={-1}`.
+2. **Arrow keys** move the "roving" focus between rows within the table without leaving the table's tab stop.
+   - `ArrowDown` moves to the next row.
+   - `ArrowUp` moves to the previous row.
+3. When the caller provides an `onRowActivate` callback, pressing **Enter** or **Space** on the focused row calls that handler — equivalent to a mouse click.
+4. When the user tabs *into* the table for the first time, focus lands on the first row (index 0).  Subsequent tabs resume from whichever row was last active (standard roving tabindex behaviour).
+
+### Usage example
+
+```tsx
+<DataTable
+  columns={columns}
+  rows={rows}
+  getRowKey={(r) => r.id}
+  caption="Transaction history"
+  onRowActivate={(row) => openDetailView(row)}
+/>
+```
+
+### Acceptance criteria
+
+- Keyboard user can navigate all rows without a mouse.
+- Enter / Space activates a row when `onRowActivate` is provided.
+- Screen-reader announces the correct row via the `<table>` / `role="table"` semantics.
+- The component passes the existing `axe-core` zero-serious-violations gate.
 
 ## Color Contrast Ratios
 

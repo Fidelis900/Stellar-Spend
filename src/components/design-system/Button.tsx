@@ -1,45 +1,8 @@
-import React from 'react';
-import { cn } from '@/lib/cn';
-
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
-  isLoading?: boolean;
-}
-
-export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', isLoading, disabled, children, ...props }, ref) => {
-    const baseStyles = 'font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2';
-    
-    const variantStyles = {
-      primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
-      secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500',
-      danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-    };
-
-    const sizeStyles = {
-      sm: 'px-3 py-1.5 text-sm',
-      md: 'px-4 py-2 text-base',
-      lg: 'px-6 py-3 text-lg',
-    };
-
-    return (
-      <button
-        ref={ref}
-        disabled={disabled || isLoading}
-        className={cn(
-          baseStyles,
-          variantStyles[variant],
-          sizeStyles[size],
-          (disabled || isLoading) && 'opacity-50 cursor-not-allowed',
-          className
-        )}
-        {...props}
-      >
-        {isLoading ? '...' : children}
-      </button>
-    );
-  }
-);
-
-Button.displayName = 'Button';
+/**
+ * The design-system Button is the single cva-driven Button primitive
+ * (see issue #761). It is re-exported here so existing
+ * `@/components/design-system` consumers keep working while there is only
+ * one Button implementation in the codebase.
+ */
+export { Button, buttonVariants } from '@/components/ui/Button';
+export type { ButtonProps } from '@/components/ui/Button';

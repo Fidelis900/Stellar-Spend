@@ -338,6 +338,7 @@ Key architectural decisions are documented as ADRs in [`docs/adr/`](./docs/adr/)
 | [ADR-009](./docs/adr/ADR-009-provider-abstraction-routing.md) | Provider Abstraction and Routing | 2026-06-27 | Accepted |
 | [ADR-010](./docs/adr/ADR-010-realtime-transport-sse-vs-websocket.md) | Real-Time Transport — SSE vs WebSocket | 2026-06-27 | Accepted |
 | [ADR-011](./docs/adr/ADR-011-feature-flag-approach.md) | Feature Flag Approach | 2026-06-27 | Accepted |
+| [ADR-012](./docs/adr/ADR-012-contract-architecture.md) | Soroban Contract Architecture — Separation of Concerns | 2026-07-24 | Accepted |
 
 ---
 
