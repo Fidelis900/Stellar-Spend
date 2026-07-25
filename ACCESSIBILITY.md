@@ -121,9 +121,43 @@ fields are reachable and announced as a modal.
 |-----|--------|---------|
 | Tab | Navigate forward | Global |
 | Shift+Tab | Navigate backward | Global |
-| Enter | Submit form | Form (when valid) |
-| Escape | Close modal | Modal (terminal state) |
-| Space | Activate button | Focused button |
+| Enter | Submit form / Activate row | Form (when valid) / Focused table row |
+| Space | Activate button / Activate row | Focused button / Focused table row |
+| ArrowDown | Move focus to next row | Data table (roving tabindex) |
+| ArrowUp | Move focus to previous row | Data table (roving tabindex) |
+
+## Data Table Keyboard Navigation — Roving Tabindex Pattern
+
+The `DataTable` component (and its derivatives `RecentOfframpsTable`, `VirtualizedTransactionTable`)
+implement the [roving tabindex](https://www.w3.org/WAI/ARIA/apg/patterns/grid/) pattern.
+
+### How it works
+
+1. Only one row is in the natural tab sequence at a time (`tabIndex={0}`); all other rows use `tabIndex={-1}`.
+2. **Arrow keys** move the "roving" focus between rows within the table without leaving the table's tab stop.
+   - `ArrowDown` moves to the next row.
+   - `ArrowUp` moves to the previous row.
+3. When the caller provides an `onRowActivate` callback, pressing **Enter** or **Space** on the focused row calls that handler — equivalent to a mouse click.
+4. When the user tabs *into* the table for the first time, focus lands on the first row (index 0).  Subsequent tabs resume from whichever row was last active (standard roving tabindex behaviour).
+
+### Usage example
+
+```tsx
+<DataTable
+  columns={columns}
+  rows={rows}
+  getRowKey={(r) => r.id}
+  caption="Transaction history"
+  onRowActivate={(row) => openDetailView(row)}
+/>
+```
+
+### Acceptance criteria
+
+- Keyboard user can navigate all rows without a mouse.
+- Enter / Space activates a row when `onRowActivate` is provided.
+- Screen-reader announces the correct row via the `<table>` / `role="table"` semantics.
+- The component passes the existing `axe-core` zero-serious-violations gate.
 
 ## Color Contrast Ratios
 

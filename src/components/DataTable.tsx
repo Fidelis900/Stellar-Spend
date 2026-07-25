@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useCallback, useId, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import VirtualList from "./VirtualList";
 
@@ -45,6 +45,12 @@ export interface DataTableProps<T> {
   /** Visual theme — "dark-gold" matches the main offramp UI, "light" matches the design-system Card/Badge surfaces. */
   variant?: DataTableVariant;
   className?: string;
+  /**
+   * Called when the user activates a row via Enter or Space.
+   * Providing this callback also sets `role="button"` and `aria-label` on the row,
+   * making it a keyboard-operable interactive element.
+   */
+  onRowActivate?: (row: T) => void;
 }
 
 const DEFAULT_ROW_HEIGHT = 49;
@@ -106,6 +112,7 @@ export function DataTable<T>({
   maxBodyHeight = 420,
   variant = "dark-gold",
   className,
+  onRowActivate,
 }: DataTableProps<T>) {
   const theme = THEME[variant];
   const menuId = useId();
@@ -115,6 +122,10 @@ export function DataTable<T>({
     () => new Set(columns.filter((c) => c.hiddenByDefault).map((c) => c.key))
   );
   const [showColumnMenu, setShowColumnMenu] = useState(false);
+
+  // Roving tabindex: track which row index is the current "tab stop" within the table.
+  const [rovingIndex, setRovingIndex] = useState<number>(0);
+  const rowRefs = useRef<Map<number, HTMLTableRowElement | HTMLDivElement>>(new Map());
 
   const visibleColumns = useMemo(
     () => columns.filter((c) => !hiddenColumns.has(c.key)),
@@ -164,6 +175,42 @@ export function DataTable<T>({
     if (!sort || sort.key !== key) return "none";
     return sort.direction === "asc" ? "ascending" : "descending";
   }
+
+  /**
+   * Keyboard handler for roving tabindex navigation within table rows.
+   * ArrowDown/ArrowUp move the focus between rows; Enter/Space activate the row.
+   */
+  const handleRowKeyDown = useCallback(
+    (e: React.KeyboardEvent, index: number, row: T) => {
+      const total = pagedRows.length;
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        const nextIndex = Math.min(index + 1, total - 1);
+        setRovingIndex(nextIndex);
+        rowRefs.current.get(nextIndex)?.focus();
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        const prevIndex = Math.max(index - 1, 0);
+        setRovingIndex(prevIndex);
+        rowRefs.current.get(prevIndex)?.focus();
+      } else if ((e.key === "Enter" || e.key === " ") && onRowActivate) {
+        e.preventDefault();
+        onRowActivate(row);
+      }
+    },
+    [pagedRows.length, onRowActivate],
+  );
+
+  const registerRowRef = useCallback(
+    (el: HTMLTableRowElement | HTMLDivElement | null, index: number) => {
+      if (el) {
+        rowRefs.current.set(index, el);
+      } else {
+        rowRefs.current.delete(index);
+      }
+    },
+    [],
+  );
 
   if (isLoading) return <>{loadingState ?? null}</>;
   if (rows.length === 0) return <>{emptyState ?? null}</>;
@@ -310,12 +357,18 @@ export function DataTable<T>({
               containerHeight={Math.min(maxBodyHeight, pagedRows.length * rowHeight)}
               renderItem={(row, i) => (
                 <div
+                  ref={(el) => registerRowRef(el, i)}
                   role="row"
+                  tabIndex={i === rovingIndex ? 0 : -1}
+                  onClick={onRowActivate ? () => onRowActivate(row) : undefined}
+                  onKeyDown={(e) => handleRowKeyDown(e, i, row)}
+                  onFocus={() => setRovingIndex(i)}
                   className={cn(
                     "grid border-b transition-colors duration-100",
                     theme.border,
                     i % 2 === 0 ? theme.rowEven : theme.rowOdd,
-                    theme.rowHover
+                    theme.rowHover,
+                    onRowActivate && "cursor-pointer",
                   )}
                   style={{ gridTemplateColumns }}
                 >
@@ -365,11 +418,19 @@ export function DataTable<T>({
             {pagedRows.map((row, i) => (
               <tr
                 key={getRowKey(row)}
+                ref={(el) => registerRowRef(el, i)}
+                tabIndex={i === rovingIndex ? 0 : -1}
+                aria-selected={onRowActivate ? undefined : undefined}
+                role={onRowActivate ? "row" : undefined}
+                onClick={onRowActivate ? () => onRowActivate(row) : undefined}
+                onKeyDown={(e) => handleRowKeyDown(e, i, row)}
+                onFocus={() => setRovingIndex(i)}
                 className={cn(
                   "border-b transition-colors duration-100",
                   theme.border,
                   i % 2 === 0 ? theme.rowEven : theme.rowOdd,
-                  theme.rowHover
+                  theme.rowHover,
+                  onRowActivate && "cursor-pointer",
                 )}
               >
                 {visibleColumns.map((col) => (
