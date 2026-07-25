@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { KYCLimitService, KYCStatus, LimitTier } from '@/lib/kyc-limits';
-import { Button } from '@/components/design-system/Button';
-import { Card } from '@/components/design-system/Card';
+import { Button, Card } from '@/components/design-system';
 
 interface KYCLimitManagerProps {
   userId: string;
