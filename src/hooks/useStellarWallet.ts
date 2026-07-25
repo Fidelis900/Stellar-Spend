@@ -4,6 +4,24 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { WalletManager } from '@/lib/wallets/manager';
 import { WalletType, WalletConnection, WalletError } from '@/lib/wallets/adapter';
 
+interface FreighterWindow extends Window {
+  freighter?: {
+    addEventListener: (event: string, handler: () => void) => void;
+    removeEventListener: (event: string, handler: () => void) => void;
+  };
+}
+
+interface StellarWindow extends Window {
+  stellar?: {
+    addEventListener: (event: string, handler: () => void) => void;
+    removeEventListener: (event: string, handler: () => void) => void;
+  };
+  lobstr?: {
+    addEventListener: (event: string, handler: () => void) => void;
+    removeEventListener: (event: string, handler: () => void) => void;
+  };
+}
+
 const STORAGE_KEYS = {
   LAST_WALLET: 'stellar.lastWallet',
   LAST_PUBLIC_KEY: 'stellar.lastPublicKey',
@@ -154,7 +172,7 @@ export function useStellarWallet(
         };
 
         // Listen to freighter events via window object
-        const w = window as any;
+        const w = window as unknown as FreighterWindow;
         if (w.freighter?.addEventListener) {
           w.freighter.addEventListener('publicKeyChange', handler);
           accountChangeListenersRef.current.push(() => {
@@ -178,7 +196,7 @@ export function useStellarWallet(
           }));
         };
 
-        const w = window as any;
+        const w = window as unknown as StellarWindow;
         const provider = w.lobstr ?? w.stellar;
         if (provider?.addEventListener) {
           provider.addEventListener('accountChange', handler);
