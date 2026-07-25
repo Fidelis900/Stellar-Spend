@@ -47,6 +47,37 @@ npm run storybook
 | Escape key for modals | ✅ | — |
 | Color contrast | — | ✅ |
 | Skip-to-content link | — | ✅ |
+| Dispute form (transaction) | ✅ | ✅ |
+| Reversal modal (transaction) | ✅ | ✅ |
+
+## Transaction Form Audit (Issue #762)
+
+Focused WCAG 2.1 AA audit of the highest-risk transaction/payment forms. axe-core
+now reports **zero serious/critical violations** on these forms; see
+`src/test/transaction-forms-a11y.test.tsx` (component) and
+`e2e/transaction-forms-a11y.spec.ts` (Playwright + `@axe-core/playwright`).
+
+### Findings & Fixes
+
+| # | Form | Finding | Fix |
+|---|------|---------|-----|
+| 1 | `DisputeForm` | Reason `<select>` and description `<textarea>` labels were not programmatically associated | Added `htmlFor`/`id`, `aria-required`, and `aria-invalid`/`aria-describedby` wiring |
+| 2 | `DisputeForm` | Submit error was a plain `<div>` — not announced to screen readers | Added `role="alert"` + `aria-live="assertive"` and linked it via `aria-describedby` |
+| 3 | `DisputeForm` | File-upload drop area was a `<div onClick>` — unreachable by keyboard and unlabeled | Converted to `role="button"` with `tabIndex=0`, Enter/Space activation, `aria-labelledby`/`aria-describedby`; moved the file input out of the button (fixes `nested-interactive`) and gave it an accessible name |
+| 4 | `ReversalModal` | Backdrop wrapping the dialog carried `aria-hidden="true"`, hiding the entire dialog from assistive tech | Removed the erroneous `aria-hidden`; added `aria-describedby` pointing to a screen-reader description |
+
+### Focus Management
+
+`ReversalModal` uses `useFocusTrap` + `useFocusRestore` (Tab/Shift+Tab wrap, focus
+returns to the trigger on close), focuses the first field on open, and closes on
+`Escape`. These patterns are the reference for new transaction dialogs.
+
+### Manual Screen-Reader Pass
+
+Verified with VoiceOver (macOS) and NVDA (Windows): every field announces its
+label and required/invalid state, submit errors are announced live, the dispute
+upload control is operable with Enter/Space, and the reversal dialog and its
+fields are reachable and announced as a modal.
 
 ## Implemented Features
 
