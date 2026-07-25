@@ -1,14 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
-import { ToastProvider } from "@/contexts/ToastContext";
-import { ThemeProvider } from "@/contexts/ThemeContext";
+import { AppProviders } from "@/contexts/AppProviders";
 import { ToastContainer } from "@/components/Toast";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import OfflineBanner from "@/components/OfflineBanner";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { I18nProvider } from "@/lib/i18n/provider";
 import { HtmlDirSync } from "@/components/HtmlDirSync";
 
 const ibmPlexMono = IBM_Plex_Mono({
@@ -55,20 +52,14 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className={`${ibmPlexMono.variable} ${spaceGrotesk.variable} font-ibm-plex-mono`}>
-        <I18nProvider>
+        <AppProviders>
           <HtmlDirSync />
-          <ThemeProvider>
-            <ToastProvider>
-              <OfflineBanner />
-              <ErrorBoundary>
-                {children}
-              </ErrorBoundary>
-              <ToastContainer />
-              <ServiceWorkerRegistration />
-              <PWAInstallPrompt />
-            </ToastProvider>
-          </ThemeProvider>
-        </I18nProvider>
+          <OfflineBanner />
+          {children}
+          <ToastContainer />
+          <ServiceWorkerRegistration />
+          <PWAInstallPrompt />
+        </AppProviders>
       </body>
     </html>
   );
