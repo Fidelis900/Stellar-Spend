@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/cn';
+import { AsyncBoundary, ListEmptyState, ListLoadingState } from './AsyncBoundary';
 import type { NotificationCenterEvent } from '@/hooks/useNotificationCenter';
 
 interface NotificationCenterProps {
@@ -228,32 +229,31 @@ export function NotificationCenter({
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto">
-            {loading ? (
-              // Loading state
-              <div className="px-4 py-6 text-center text-[#777777] text-sm">
-                Loading notifications...
-              </div>
-            ) : events.length === 0 ? (
-              // Empty state
-              <div className="px-4 py-12 text-center">
-                <svg
-                  width="32"
-                  height="32"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  className="mx-auto text-[#333333] mb-2"
-                  aria-hidden="true"
-                >
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                </svg>
-                <p className="text-[#777777] text-sm">No notifications yet</p>
-                <p className="text-[#555555] text-xs mt-1">Stay tuned for updates on your transactions</p>
-              </div>
-            ) : (
-              // Notification list
+            <AsyncBoundary
+              isLoading={loading}
+              isEmpty={events.length === 0}
+              loadingContent={<ListLoadingState rows={3} />}
+              emptyContent={
+                <ListEmptyState
+                  title="No notifications yet"
+                  description="Stay tuned for updates on your transactions"
+                  icon={
+                    <svg
+                      width="32"
+                      height="32"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    >
+                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg>
+                  }
+                />
+              }
+            >
+              {/* Notification list */}
               <ul className="divide-y divide-[#222222]">
                 {events.map(event => (
                   <li
@@ -329,7 +329,7 @@ export function NotificationCenter({
                   </li>
                 ))}
               </ul>
-            )}
+            </AsyncBoundary>
           </div>
 
           {/* Footer */}
