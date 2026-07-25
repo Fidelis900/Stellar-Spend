@@ -17,7 +17,9 @@
     "build-storybook": "storybook build",
     "test-storybook": "test-storybook",
     "dead-code": "knip",
-    "dead-code:ci": "knip --reporter compact"
+    "dead-code:ci": "knip --reporter compact",
+    "storybook:check-orphans": "node scripts/check-orphaned-stories.js",
+    "storybook:fix-orphans": "node scripts/check-orphaned-stories.js --fix"
   },
   "dependencies": {
     "@allbridge/bridge-core-sdk": "^3.29.1",
