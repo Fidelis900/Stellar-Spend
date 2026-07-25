@@ -55,6 +55,7 @@ export default [
       "react/no-unescaped-entities": "off",
       "@next/next/no-img-element": "warn",
       "@typescript-eslint/no-explicit-any": "error",
+      "no-console": "warn",
     },
   },
 ];
