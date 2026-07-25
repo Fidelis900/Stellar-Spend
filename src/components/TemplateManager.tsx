@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { TemplateStorage, TransactionTemplate } from '@/lib/transaction-templates';
-import { Button } from '@/components/design-system/Button';
-import { Card } from '@/components/design-system/Card';
+import { Button, Card } from '@/components/design-system';
 
 interface TemplateManagerProps {
   onSelectTemplate?: (template: TransactionTemplate) => void;

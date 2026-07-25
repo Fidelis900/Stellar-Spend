@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/Skeleton";
+import { SkeletonBase } from "./SkeletonBase";
 
 /**
  * Skeleton for BankAccountInput while bank metadata (mode + field shape)
@@ -14,16 +14,16 @@ export function BankAccountInputSkeleton({ fields = 1 }: { fields?: 1 | 2 }) {
     >
       {/* Mode tabs */}
       <div className="flex gap-4 border-b border-[#333333] pb-1">
-        <Skeleton width={50} height={14} aria-label="Loading mode tab…" />
-        <Skeleton width={70} height={14} aria-label="Loading mode tab…" />
-        <Skeleton width={50} height={14} aria-label="Loading mode tab…" />
+        <SkeletonBase width={50} height={14} aria-label="Loading mode tab…" />
+        <SkeletonBase width={70} height={14} aria-label="Loading mode tab…" />
+        <SkeletonBase width={50} height={14} aria-label="Loading mode tab…" />
       </div>
 
       {/* Field rows */}
       {Array.from({ length: fields }).map((_, i) => (
         <div key={i} className="flex flex-col gap-1.5">
-          <Skeleton width={110} height={11} aria-label="Loading field label…" />
-          <Skeleton width="100%" height={46} aria-label="Loading field input…" />
+          <SkeletonBase width={110} height={11} aria-label="Loading field label…" />
+          <SkeletonBase width="100%" height={46} aria-label="Loading field input…" />
         </div>
       ))}
     </div>

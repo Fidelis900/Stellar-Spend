@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/Skeleton";
+import { SkeletonBase } from "./SkeletonBase";
 
 /**
  * Full-form skeleton shown while the form is initialising
@@ -13,45 +13,45 @@ export function FormCardSkeleton() {
     >
       {/* Amount row */}
       <div className="flex flex-col gap-1.5">
-        <Skeleton width={80} height={10} aria-label="Loading label…" />
-        <Skeleton width="100%" height={42} aria-label="Loading amount input…" />
+        <SkeletonBase width={80} height={10} aria-label="Loading label…" />
+        <SkeletonBase width="100%" height={42} aria-label="Loading amount input…" />
       </div>
 
       {/* Fee method row */}
       <div className="flex flex-col gap-1.5">
-        <Skeleton width={100} height={10} aria-label="Loading label…" />
+        <SkeletonBase width={100} height={10} aria-label="Loading label…" />
         <div className="flex gap-2">
-          <Skeleton width="50%" height={44} aria-label="Loading fee option…" />
-          <Skeleton width="50%" height={44} aria-label="Loading fee option…" />
+          <SkeletonBase width="50%" height={44} aria-label="Loading fee option…" />
+          <SkeletonBase width="50%" height={44} aria-label="Loading fee option…" />
         </div>
       </div>
 
       {/* Currency + Bank row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
-          <Skeleton width={60} height={10} aria-label="Loading label…" />
-          <Skeleton width="100%" height={42} aria-label="Loading currency select…" />
+          <SkeletonBase width={60} height={10} aria-label="Loading label…" />
+          <SkeletonBase width="100%" height={42} aria-label="Loading currency select…" />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Skeleton width={120} height={10} aria-label="Loading label…" />
-          <Skeleton width="100%" height={42} aria-label="Loading bank select…" />
+          <SkeletonBase width={120} height={10} aria-label="Loading label…" />
+          <SkeletonBase width="100%" height={42} aria-label="Loading bank select…" />
         </div>
       </div>
 
       {/* Account number */}
       <div className="flex flex-col gap-1.5">
-        <Skeleton width={110} height={10} aria-label="Loading label…" />
-        <Skeleton width="100%" height={42} aria-label="Loading account number input…" />
+        <SkeletonBase width={110} height={10} aria-label="Loading label…" />
+        <SkeletonBase width="100%" height={42} aria-label="Loading account number input…" />
       </div>
 
       {/* Account name */}
       <div className="flex flex-col gap-1.5">
-        <Skeleton width={90} height={10} aria-label="Loading label…" />
-        <Skeleton width="100%" height={42} aria-label="Loading account name…" />
+        <SkeletonBase width={90} height={10} aria-label="Loading label…" />
+        <SkeletonBase width="100%" height={42} aria-label="Loading account name…" />
       </div>
 
       {/* CTA button */}
-      <Skeleton width="100%" height={52} aria-label="Loading submit button…" />
+      <SkeletonBase width="100%" height={52} aria-label="Loading submit button…" />
     </section>
   );
 }
