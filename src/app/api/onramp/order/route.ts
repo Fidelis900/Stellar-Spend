@@ -62,5 +62,5 @@ export async function POST(request: NextRequest) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       return NextResponse.json({ error: message }, { status: 500 });
     }
-  });
+  }, { required: true });
 }

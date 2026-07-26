@@ -76,5 +76,5 @@ export async function POST(request: NextRequest) {
             }
             return ErrorHandler.serverError(err);
         }
-    });
+    }, { required: true });
 }

@@ -121,5 +121,5 @@ export async function POST(request: NextRequest) {
     KYCLimitService.recordTransaction(userAddress, numericAmount);
 
     return NextResponse.json({ id, status: 'pending' }, { status: 200 });
-  });
+  }, { required: true });
 }

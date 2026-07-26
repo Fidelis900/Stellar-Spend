@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     } catch (err) {
       return ErrorHandler.handle(err);
     }
-  });
+  }, { required: true });
 }
 
 export async function GET(request: Request) {
