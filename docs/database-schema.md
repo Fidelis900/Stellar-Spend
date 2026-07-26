@@ -380,7 +380,7 @@ Supports future-dated transaction scheduling.
 
 ### `ip_whitelist`
 
-**Migration:** `010_add_ip_whitelisting.sql`
+**Migration:** `012_add_ip_whitelisting.sql`
 
 Allowlisted IP addresses or ranges for per-user API access control.
 
@@ -400,7 +400,7 @@ Allowlisted IP addresses or ranges for per-user API access control.
 
 ### `ip_violations`
 
-**Migration:** `010_add_ip_whitelisting.sql`
+**Migration:** `012_add_ip_whitelisting.sql`
 
 Audit log for requests blocked by IP whitelisting.
 
@@ -442,7 +442,7 @@ Tracks user disputes for failed or erroneous transactions.
 
 ### `sessions`
 
-**Migration:** `011_add_session_management.sql`
+**Migration:** `013_add_session_management.sql`
 
 Active user sessions with timeout and refresh token support.
 
@@ -464,7 +464,7 @@ Active user sessions with timeout and refresh token support.
 
 ### `session_revocations`
 
-**Migration:** `011_add_session_management.sql`
+**Migration:** `013_add_session_management.sql`
 
 Audit trail for all revoked sessions.
 
@@ -480,7 +480,7 @@ Audit trail for all revoked sessions.
 
 ### `transaction_signatures`
 
-**Migration:** `012_add_transaction_signing.sql`
+**Migration:** `014_add_transaction_signing.sql`
 
 Cryptographic signatures over transaction data for non-repudiation.
 
@@ -501,7 +501,7 @@ Cryptographic signatures over transaction data for non-repudiation.
 
 ### `signature_verification_logs`
 
-**Migration:** `012_add_transaction_signing.sql`
+**Migration:** `014_add_transaction_signing.sql`
 
 Audit trail for signature verification attempts.
 
@@ -518,7 +518,7 @@ Audit trail for signature verification attempts.
 
 ### `audit_logs`
 
-**Migration:** `013_add_audit_logging.sql`
+**Migration:** `015_add_audit_logging.sql`
 
 Comprehensive audit trail for all significant application events.
 
@@ -540,7 +540,7 @@ Comprehensive audit trail for all significant application events.
 
 ### `admin_actions`
 
-**Migration:** `013_add_audit_logging.sql`
+**Migration:** `015_add_audit_logging.sql`
 
 Dedicated audit trail for administrator operations.
 
@@ -558,7 +558,7 @@ Dedicated audit trail for administrator operations.
 
 ### `audit_log_retention`
 
-**Migration:** `013_add_audit_logging.sql`
+**Migration:** `015_add_audit_logging.sql`
 
 Configuration for audit log retention policy.
 
@@ -797,7 +797,7 @@ ORDER BY td.created_at ASC;
 
 ### `onramp_transactions`
 
-**Migration:** `017_create_onramp_transactions.sql`
+**Migration:** `020_create_onramp_transactions.sql`
 
 Stores on-ramp transactions (fiat → stablecoin to Stellar). Counterpart to `transactions` (off-ramp).
 
@@ -832,7 +832,7 @@ Stores on-ramp transactions (fiat → stablecoin to Stellar). Counterpart to `tr
 
 ### `webhook_subscriptions`
 
-**Migration:** `017_create_webhook_subscriptions.sql`
+**Migration:** `019_create_webhook_subscriptions.sql`
 
 Manages outbound webhook endpoints registered by integrators.
 
@@ -852,7 +852,7 @@ Manages outbound webhook endpoints registered by integrators.
 
 ### `webhook_delivery_logs`
 
-**Migration:** `017_create_webhook_subscriptions.sql`
+**Migration:** `019_create_webhook_subscriptions.sql`
 
 Audit trail for every webhook delivery attempt.
 
@@ -874,7 +874,7 @@ Audit trail for every webhook delivery attempt.
 
 ### `ledger_accounts`
 
-**Migration:** `018_create_ledger_tables.sql`
+**Migration:** `021_create_ledger_tables.sql`
 
 Chart of accounts for the double-entry internal ledger.
 
@@ -893,7 +893,7 @@ Chart of accounts for the double-entry internal ledger.
 
 ### `ledger_entries`
 
-**Migration:** `018_create_ledger_tables.sql`
+**Migration:** `021_create_ledger_tables.sql`
 
 Individual debit/credit entries in the double-entry ledger.
 
@@ -915,7 +915,7 @@ Individual debit/credit entries in the double-entry ledger.
 
 ### `ledger_reconciliation`
 
-**Migration:** `018_create_ledger_tables.sql`
+**Migration:** `021_create_ledger_tables.sql`
 
 Records reconciliation results comparing external reports to the internal ledger.
 
@@ -936,7 +936,7 @@ Records reconciliation results comparing external reports to the internal ledger
 
 ### `multisig_proposals`
 
-**Migration:** `019_add_multisig_settlement.sql`
+**Migration:** `022_add_multisig_settlement.sql`
 
 Multi-signer governance proposals for admin/settlement operations.
 
@@ -956,7 +956,7 @@ Multi-signer governance proposals for admin/settlement operations.
 
 ### `multisig_signatures`
 
-**Migration:** `019_add_multisig_settlement.sql`
+**Migration:** `022_add_multisig_settlement.sql`
 
 Partial signatures collected for multi-sig proposals.
 
@@ -985,21 +985,21 @@ Partial signatures collected for multi-sig proposals.
 | 007 | `007_add_transaction_batching.sql` | `transaction_batches`, `batch_transactions` | — |
 | 008 | `008_add_referral_program.sql` | `referral_codes`, `referral_rewards` | — |
 | 009 | `009_add_transaction_scheduling.sql` | `scheduled_transactions` | — |
-| 010a | `010_add_ip_whitelisting.sql` | `ip_whitelist`, `ip_violations` | — |
-| 010b | `010_add_query_indexes.sql` | (indexes only) | — |
-| 010c | `010_create_transaction_disputes.sql` | `transaction_disputes` | — |
-| 011 | `011_add_session_management.sql` | `sessions`, `session_revocations` | — |
-| 012 | `012_add_transaction_signing.sql` | `transaction_signatures`, `signature_verification_logs` | — |
-| 013 | `013_add_audit_logging.sql` | `audit_logs`, `admin_actions`, `audit_log_retention` | — |
-| 014 | `014_add_api_key_scopes.sql` | `api_keys` (alter — scopes column) | — |
-| 015 | `015_enhance_audit_logging.sql` | `api_key_usage_logs`, `sensitive_data_access_logs` | — |
-| 016 | `016_optimize_database_queries.sql` | (indexes + statistics only) | — |
-| 017a | `017_create_onramp_transactions.sql` | `onramp_transactions` | — |
-| 017b | `017_create_webhook_subscriptions.sql` | `webhook_subscriptions`, `webhook_delivery_logs` | — |
-| 018 | `018_create_ledger_tables.sql` | `ledger_accounts`, `ledger_entries`, `ledger_reconciliation` | — |
-| 019 | `019_add_multisig_settlement.sql` | `multisig_proposals`, `multisig_signatures` | — |
+| 010 | `010_create_transaction_disputes.sql` | `transaction_disputes` | — |
+| 011 | `011_add_query_indexes.sql` | (indexes only) | — |
+| 012 | `012_add_ip_whitelisting.sql` | `ip_whitelist`, `ip_violations` | — |
+| 013 | `013_add_session_management.sql` | `sessions`, `session_revocations` | — |
+| 014 | `014_add_transaction_signing.sql` | `transaction_signatures`, `signature_verification_logs` | — |
+| 015 | `015_add_audit_logging.sql` | `audit_logs`, `admin_actions`, `audit_log_retention` | — |
+| 016 | `016_add_api_key_scopes.sql` | `api_keys` (alter — scopes column) | — |
+| 017 | `017_enhance_audit_logging.sql` | `api_key_usage_logs`, `sensitive_data_access_logs` | — |
+| 018 | `018_optimize_database_queries.sql` | (indexes + statistics only) | — |
+| 019 | `019_create_webhook_subscriptions.sql` | `webhook_subscriptions`, `webhook_delivery_logs` | — |
+| 020 | `020_create_onramp_transactions.sql` | `onramp_transactions` | — |
+| 021 | `021_create_ledger_tables.sql` | `ledger_accounts`, `ledger_entries`, `ledger_reconciliation` | — |
+| 022 | `022_add_multisig_settlement.sql` | `multisig_proposals`, `multisig_signatures` | — |
 
-> Note: Two files share the `017_` prefix — this should be resolved by renaming one to `017b_` or renumbering subsequent files. Run both; they are idempotent.
+> Note (#788): `010`, `017`, and `021` previously each had multiple files sharing the same prefix. They've been renumbered sequentially (`010`–`026`) based on actual git commit history order; see `migrations/README.md` for the full before/after mapping.
 
 ---
 

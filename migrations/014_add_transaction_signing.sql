@@ -1,4 +1,4 @@
--- Migration: 012_add_transaction_signing
+-- Migration: 014_add_transaction_signing
 -- Creates tables for transaction signing and verification
 
 CREATE TABLE IF NOT EXISTS transaction_signatures (

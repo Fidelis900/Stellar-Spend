@@ -1,4 +1,4 @@
--- Migration: 017_create_webhook_subscriptions
+-- Migration: 019_create_webhook_subscriptions
 -- Adds tables for managing outbound webhook subscriptions.
 -- Idempotent: safe to run multiple times.
 

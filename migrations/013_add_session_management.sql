@@ -1,4 +1,4 @@
--- Migration: 011_add_session_management
+-- Migration: 013_add_session_management
 -- Creates tables for session management with timeout and refresh support
 
 CREATE TABLE IF NOT EXISTS sessions (

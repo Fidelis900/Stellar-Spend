@@ -1,4 +1,4 @@
--- Migration: 010_add_ip_whitelisting
+-- Migration: 012_add_ip_whitelisting
 -- Creates tables for IP whitelisting and violation logging
 
 CREATE TABLE IF NOT EXISTS ip_whitelist (

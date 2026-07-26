@@ -201,26 +201,16 @@ For a migration that has already destroyed data, or where `down` would drop a co
 
 These are current, verifiable problems in this directory. They are documented here so they are not rediscovered one incident at a time. Fixing them is out of scope for this README.
 
-### 1. Duplicate migration numbers
+### 1. Duplicate migration numbers (#788: `010`/`017`/`021` resolved)
 
-Five numbers are used by more than one file:
+`010`, `017`, and `021` were each used by more than one file, which — because `schema_migrations.id` was derived from the bare numeric prefix and is a primary key — broke the runner in two different ways depending on database state:
 
-| Number | Files |
-|---|---|
-| `001` | `001_create_transactions.sql`, `001_initial_schema.sql` |
-| `002` | `002_add_balance.sql`, `002_add_transaction_analytics_fields.sql` |
-| `010` | `010_add_ip_whitelisting.sql`, `010_add_query_indexes.sql`, `010_create_transaction_disputes.sql` |
-| `017` | `017_create_onramp_transactions.sql`, `017_create_webhook_subscriptions.sql` |
-| `021` | `021_add_webhook_schema_version.sql`, `021_db_optimization_701.sql` |
+- **On a fresh database**, all files with the same number were pending at once. The first applied and inserted its row; the second ran its `up` block and then failed the `INSERT` on the primary key. The run aborted, having already executed SQL it did not record.
+- **On an existing database**, the number was already in `schema_migrations`, so every other file sharing it was treated as applied and **skipped silently**. Its DDL never ran, and nothing reported a problem.
 
-Because `schema_migrations.id` is the number and is a primary key, duplicates break the runner in two different ways depending on database state:
+This is fixed as of `scripts/migrate.ts`'s `reconcileLegacyIds()`: the runner now keys `schema_migrations.id` off the filename slug with the numeric prefix stripped (e.g. `create_transaction_disputes`), not the number itself. On startup it re-keys any legacy row still using a bare-numeric id to the slug derived from that row's own `name` column, so renumbering these files does not desync already-applied tracking on any deployed database, whatever its actual applied state turns out to be. The colliding files (`010_add_ip_whitelisting.sql`, `010_add_query_indexes.sql`, `010_create_transaction_disputes.sql`; `017_create_onramp_transactions.sql`, `017_create_webhook_subscriptions.sql`; `021_add_webhook_schema_version.sql`, `021_db_optimization_701.sql`) were renumbered sequentially into `010`–`026` based on their actual git commit history order.
 
-- **On a fresh database**, all files with the same number are pending at once. The first applies and inserts its row; the second runs its `up` block and then fails the `INSERT` on the primary key. The run aborts, having already executed SQL it did not record.
-- **On an existing database**, the number is already in `schema_migrations`, so every other file sharing it is treated as applied and **skipped silently**. Its DDL never runs, and nothing reports a problem.
-
-The practical consequence: **do not assume a migration in this directory has been applied just because it is present and the runner reported success.** Verify the schema directly.
-
-Renumbering these files is tracked separately (see the Cleanup issue referenced from #752). It needs care — the numbers already present in `schema_migrations` on deployed databases must be reconciled, so this cannot be a pure file rename.
+`001` and `002` still each have two files (`001_create_transactions.sql`/`001_initial_schema.sql`, `002_add_balance.sql`/`002_add_transaction_analytics_fields.sql`) — same defect class, not renumbered here since they weren't in scope for #790. The id-stability fix above means they're no longer at risk of the runner-abort/skip failure modes described above, but the duplicate prefixes should still be cleaned up for readability.
 
 To check for a new collision:
 

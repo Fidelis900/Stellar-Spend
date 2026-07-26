@@ -406,7 +406,7 @@ await sessionService.revokeSession(sessionId, 'User requested logout');
 
 ## IP Whitelisting
 
-IP whitelisting is managed via the `ip_whitelist` and `ip_violations` tables (migration `010_add_ip_whitelisting.sql`).
+IP whitelisting is managed via the `ip_whitelist` and `ip_violations` tables (migration `012_add_ip_whitelisting.sql`).
 
 ### Configuration
 
@@ -438,7 +438,7 @@ All requests from non-allowlisted IPs are logged to `ip_violations` with:
 
 ## Audit Logging
 
-All significant actions are logged to the `audit_logs` table (migration `013_add_audit_logging.sql`) via `src/lib/audit-logging.ts`.
+All significant actions are logged to the `audit_logs` table (migration `015_add_audit_logging.sql`) via `src/lib/audit-logging.ts`.
 
 ### What is Audited
 

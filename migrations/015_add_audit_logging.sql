@@ -1,4 +1,4 @@
--- Migration: 013_add_audit_logging
+-- Migration: 015_add_audit_logging
 -- Creates tables for comprehensive audit trail
 
 CREATE TABLE IF NOT EXISTS audit_logs (

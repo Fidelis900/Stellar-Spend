@@ -1,4 +1,4 @@
--- Migration: 021_db_optimization_701
+-- Migration: 024_db_optimization_701
 -- Targeted index additions for issue #701 (Performance: DB query & index optimization pass)
 
 -- Case-insensitive lookup index on user_address (supports LOWER(user_address) = LOWER($1))

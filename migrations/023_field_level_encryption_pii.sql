@@ -1,4 +1,4 @@
--- Migration: 020_field_level_encryption_pii
+-- Migration: 023_field_level_encryption_pii
 -- Adds encrypted columns for PII fields in the transactions table (#692).
 --
 -- Strategy: add the encrypted columns alongside the originals so the

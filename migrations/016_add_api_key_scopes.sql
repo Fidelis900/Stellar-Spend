@@ -1,4 +1,4 @@
--- Migration: 014_add_api_key_scopes
+-- Migration: 016_add_api_key_scopes
 -- Adds scopes/permissions column to api_keys table.
 -- Idempotent: safe to run multiple times.
 

@@ -136,7 +136,7 @@ Implemented comprehensive database optimization including indexes, query analysi
 
 ### Components Implemented
 
-#### 1. Database Indexes (`migrations/016_optimize_database_queries.sql`)
+#### 1. Database Indexes (`migrations/018_optimize_database_queries.sql`)
 - **Composite Indexes**: Multi-column indexes for common query patterns
 - **Partial Indexes**: Indexes on filtered data (e.g., pending transactions)
 - **Statistics**: Enhanced column statistics for query planner
