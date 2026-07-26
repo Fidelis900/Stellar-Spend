@@ -1,5 +1,7 @@
 import { logger } from '@/lib/logger';
 import { NextResponse } from "next/server";
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 export const maxDuration = 10;
 // Revalidate every 30 s at the edge
@@ -31,7 +33,7 @@ export async function GET() {
       .map((r) => r.value);
 
     if (rates.length === 0) {
-      return NextResponse.json({ error: "No rates available" }, { status: 502 });
+      return ErrorHandler.handle(new ApiError(ErrorType.EXTERNAL_SERVICE, "No rates available"));
     }
 
     return NextResponse.json(
@@ -40,6 +42,6 @@ export async function GET() {
     );
   } catch (error) {
     logger.error("fx-rates error:", {}, error);
-    return NextResponse.json({ error: "Failed to fetch rates" }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, "Failed to fetch rates"));
   }
 }

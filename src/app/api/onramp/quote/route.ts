@@ -4,6 +4,7 @@ import { globalContainer } from '@/lib/di';
 import { SERVICE_KEYS } from '@/lib/di/registry';
 import { isSupportedCurrency } from '@/lib/currencies';
 import { getCachedQuote } from '@/lib/cache';
+import { ErrorHandler } from '@/lib/error-handler';
 
 export const maxDuration = 15;
 
@@ -13,19 +14,19 @@ export async function POST(request: NextRequest) {
     const { fiatAmount, fiatCurrency, destinationToken, destinationAddress, provider } = body;
 
     if (!fiatAmount || parseFloat(fiatAmount) <= 0) {
-      return NextResponse.json({ error: 'Invalid fiatAmount' }, { status: 400 });
+      return ErrorHandler.validation('Invalid fiatAmount');
     }
 
     if (!fiatCurrency || !isSupportedCurrency(fiatCurrency)) {
-      return NextResponse.json({ error: `Unsupported currency: ${fiatCurrency}` }, { status: 400 });
+      return ErrorHandler.validation(`Unsupported currency: ${fiatCurrency}`);
     }
 
     if (!destinationToken) {
-      return NextResponse.json({ error: 'destinationToken is required' }, { status: 400 });
+      return ErrorHandler.validation('destinationToken is required');
     }
 
     if (!destinationAddress) {
-      return NextResponse.json({ error: 'destinationAddress is required' }, { status: 400 });
+      return ErrorHandler.validation('destinationAddress is required');
     }
 
     const quote = await getCachedQuote(
@@ -41,7 +42,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(quote);
   } catch (error) {
     logger.error('Onramp quote error:', {}, error);
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return ErrorHandler.serverError(error);
   }
 }

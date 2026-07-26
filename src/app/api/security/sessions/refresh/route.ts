@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sessionManagementService } from "@/lib/session-management";
 import { logger } from "@/lib/logger";
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,27 +10,18 @@ export async function POST(request: NextRequest) {
     const { refreshToken } = body;
 
     if (!refreshToken) {
-      return NextResponse.json(
-        { error: "Refresh token required" },
-        { status: 400 },
-      );
+      return ErrorHandler.validation("Refresh token required");
     }
 
     const session = await sessionManagementService.refreshSession(refreshToken);
 
     if (!session) {
-      return NextResponse.json(
-        { error: "Invalid or expired refresh token" },
-        { status: 401 },
-      );
+      return ErrorHandler.unauthorized("Invalid or expired refresh token");
     }
 
     return NextResponse.json(session);
   } catch (error) {
     logger.error("Failed to refresh session", { error });
-    return NextResponse.json(
-      { error: "Failed to refresh session" },
-      { status: 500 },
-    );
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, "Failed to refresh session"));
   }
 }

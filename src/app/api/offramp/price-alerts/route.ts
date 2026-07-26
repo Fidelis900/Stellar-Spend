@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AlertType, PriceAlert, PriceAlertStorage } from '@/lib/price-alerts';
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 const VALID_ALERT_TYPES: AlertType[] = ['above', 'below'];
 
@@ -14,13 +16,13 @@ export async function GET(req: NextRequest) {
     }
 
     if (!userAddress) {
-      return NextResponse.json({ error: 'Missing userAddress' }, { status: 400 });
+      return ErrorHandler.validation('Missing userAddress');
     }
 
     const alerts = PriceAlertStorage.getAlertsByUser(userAddress);
     return NextResponse.json({ alerts });
   } catch {
-    return NextResponse.json({ error: 'Failed to fetch price alerts' }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to fetch price alerts'));
   }
 }
 
@@ -30,15 +32,15 @@ export async function POST(req: NextRequest) {
     const { currency, targetPrice, alertType, userAddress, recurring } = body;
 
     if (!currency || targetPrice === undefined || !alertType) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+      return ErrorHandler.validation('Missing required fields');
     }
 
     if (!VALID_ALERT_TYPES.includes(alertType)) {
-      return NextResponse.json({ error: 'Invalid alertType' }, { status: 400 });
+      return ErrorHandler.validation('Invalid alertType');
     }
 
     if (typeof targetPrice !== 'number' || targetPrice <= 0) {
-      return NextResponse.json({ error: 'targetPrice must be a positive number' }, { status: 400 });
+      return ErrorHandler.validation('targetPrice must be a positive number');
     }
 
     const alertInput: Omit<PriceAlert, 'id' | 'createdAt' | 'triggeredAt' | 'notificationSent' | 'triggerHistory'> = {
@@ -54,6 +56,6 @@ export async function POST(req: NextRequest) {
     const alert = PriceAlertStorage.createAlert(alertInput);
     return NextResponse.json({ alert }, { status: 201 });
   } catch {
-    return NextResponse.json({ error: 'Failed to create price alert' }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to create price alert'));
   }
 }

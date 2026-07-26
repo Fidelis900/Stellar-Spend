@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auditLoggingService } from "@/lib/audit-logging";
 import { logger } from "@/lib/logger";
+import { ErrorHandler } from "@/lib/error-handler";
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,7 +9,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ retentionDays: policy });
   } catch (error) {
     logger.error("Failed to fetch retention policy", { error });
-    return NextResponse.json({ error: "Failed to fetch retention policy" }, { status: 500 });
+    return ErrorHandler.serverError(error);
   }
 }
 
@@ -18,13 +19,13 @@ export async function POST(request: NextRequest) {
     const { retentionDays } = body;
 
     if (!retentionDays || retentionDays < 1) {
-      return NextResponse.json({ error: "Invalid retention days" }, { status: 400 });
+      return ErrorHandler.validation("Invalid retention days");
     }
 
     await auditLoggingService.setRetentionPolicy(retentionDays);
     return NextResponse.json({ success: true, retentionDays });
   } catch (error) {
     logger.error("Failed to set retention policy", { error });
-    return NextResponse.json({ error: "Failed to set retention policy" }, { status: 500 });
+    return ErrorHandler.serverError(error);
   }
 }

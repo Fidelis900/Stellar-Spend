@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { globalContainer } from '@/lib/di';
 import { SERVICE_KEYS } from '@/lib/di/registry';
 import { withIdempotency } from '@/lib/idempotency';
+import { ErrorHandler } from '@/lib/error-handler';
 
 export const maxDuration = 20;
 
@@ -13,35 +14,35 @@ export async function POST(request: NextRequest) {
       const { quoteId, fiatAmount, fiatCurrency, destinationAmount, destinationToken, destinationAddress, provider, rate } = body;
 
       if (!quoteId) {
-        return NextResponse.json({ error: 'quoteId is required' }, { status: 400 });
+        return ErrorHandler.validation('quoteId is required');
       }
 
       if (!fiatAmount || parseFloat(fiatAmount) <= 0) {
-        return NextResponse.json({ error: 'Invalid fiatAmount' }, { status: 400 });
+        return ErrorHandler.validation('Invalid fiatAmount');
       }
 
       if (!fiatCurrency) {
-        return NextResponse.json({ error: 'fiatCurrency is required' }, { status: 400 });
+        return ErrorHandler.validation('fiatCurrency is required');
       }
 
       if (!destinationAmount || parseFloat(destinationAmount) <= 0) {
-        return NextResponse.json({ error: 'Invalid destinationAmount' }, { status: 400 });
+        return ErrorHandler.validation('Invalid destinationAmount');
       }
 
       if (!destinationToken) {
-        return NextResponse.json({ error: 'destinationToken is required' }, { status: 400 });
+        return ErrorHandler.validation('destinationToken is required');
       }
 
       if (!destinationAddress) {
-        return NextResponse.json({ error: 'destinationAddress is required' }, { status: 400 });
+        return ErrorHandler.validation('destinationAddress is required');
       }
 
       if (!provider) {
-        return NextResponse.json({ error: 'provider is required' }, { status: 400 });
+        return ErrorHandler.validation('provider is required');
       }
 
       if (!rate || rate <= 0) {
-        return NextResponse.json({ error: 'Invalid rate' }, { status: 400 });
+        return ErrorHandler.validation('Invalid rate');
       }
 
       const svc = await globalContainer.resolve(SERVICE_KEYS.ONRAMP_SERVICE);
@@ -59,8 +60,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(order, { status: 201 });
     } catch (error) {
       logger.error('Onramp order error:', {}, error);
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return NextResponse.json({ error: message }, { status: 500 });
+      return ErrorHandler.serverError(error);
     }
   }, { required: true });
 }

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 import {
   createReferralCode,
   getReferralCode,
@@ -23,15 +25,12 @@ export async function POST(req: NextRequest) {
 
       if (action === 'track') {
         if (!referralCode || !userId) {
-          return NextResponse.json({ error: 'Missing referralCode or userId' }, { status: 400 });
+          return ErrorHandler.validation('Missing referralCode or userId');
         }
 
         const fraudCheck = await detectReferralFraud(userId, referralCode);
         if (fraudCheck.suspicious) {
-          return NextResponse.json(
-            { error: 'Referral flagged', reasons: fraudCheck.reasons },
-            { status: 422 },
-          );
+          return ErrorHandler.handle(new ApiError(ErrorType.VALIDATION, 'Referral flagged', 422, { reasons: fraudCheck.reasons }));
         }
 
         const reward = await trackReferral(referralCode, userId);
@@ -40,7 +39,7 @@ export async function POST(req: NextRequest) {
 
       if (action === 'distribute') {
         if (!referralId) {
-          return NextResponse.json({ error: 'Missing referralId' }, { status: 400 });
+          return ErrorHandler.validation('Missing referralId');
         }
         const distributed = await distributeReward(referralId);
         return NextResponse.json({ distributed });
@@ -51,12 +50,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ leaderboard });
       }
 
-      return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
-    } catch (error) {
-      return NextResponse.json(
-        { error: 'Failed to process referral' },
-        { status: 500 },
-      );
+      return ErrorHandler.validation('Invalid action');
+    } catch {
+      return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to process referral'));
     }
   }, { required: true });
 }
@@ -65,7 +61,7 @@ export async function GET(req: NextRequest) {
   try {
     const userId = req.nextUrl.searchParams.get('userId');
     if (!userId) {
-      return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
+      return ErrorHandler.validation('Missing userId');
     }
 
     const view = req.nextUrl.searchParams.get('view');
@@ -79,10 +75,7 @@ export async function GET(req: NextRequest) {
     const stats = await getReferralStats(userId);
 
     return NextResponse.json({ code, stats });
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to get referral data' },
-      { status: 500 },
-    );
+  } catch {
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to get referral data'));
   }
 }

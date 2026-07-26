@@ -44,7 +44,7 @@ export async function GET(request: Request) {
     }
     const tx = await dal.getById(transactionId);
     if (!tx) {
-      return NextResponse.json({ error: 'Transaction not found' }, { status: 404 });
+      return ErrorHandler.notFound('Transaction');
     }
     const ageMs = Date.now() - tx.timestamp;
     return NextResponse.json({

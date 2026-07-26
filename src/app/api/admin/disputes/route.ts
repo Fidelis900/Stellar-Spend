@@ -2,6 +2,8 @@ import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { disputeRepository } from '@/lib/repositories/dispute-repository';
 import { DisputeStatus, DisputeUpdate } from '@/types/disputes';
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 export async function GET(req: NextRequest) {
   try {
@@ -15,10 +17,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(disputes);
   } catch (error) {
     logger.error('Error fetching disputes', {}, error);
-    return NextResponse.json(
-      { error: 'Failed to fetch disputes' },
-      { status: 500 }
-    );
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to fetch disputes'));
   }
 }
 
@@ -28,21 +27,18 @@ export async function PATCH(req: NextRequest) {
     const { disputeId, update }: { disputeId: string; update: DisputeUpdate } = await req.json();
 
     if (!disputeId) {
-      return NextResponse.json({ error: 'Dispute ID required' }, { status: 400 });
+      return ErrorHandler.validation('Dispute ID required');
     }
 
     const dispute = await disputeRepository.updateDispute(disputeId, update);
 
     if (!dispute) {
-      return NextResponse.json({ error: 'Dispute not found' }, { status: 404 });
+      return ErrorHandler.notFound("Dispute");
     }
 
     return NextResponse.json(dispute);
   } catch (error) {
     logger.error('Error updating dispute', {}, error);
-    return NextResponse.json(
-      { error: 'Failed to update dispute' },
-      { status: 500 }
-    );
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to update dispute'));
   }
 }

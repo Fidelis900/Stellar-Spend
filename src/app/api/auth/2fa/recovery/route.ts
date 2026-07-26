@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { TwoFAService } from '@/lib/two-fa';
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 // Initiate recovery — issues a short-lived token
 export async function POST(req: NextRequest) {
@@ -19,15 +21,12 @@ export async function POST(req: NextRequest) {
     // Complete recovery: token + new method provided
     if (recoveryToken && newMethod) {
       if (!['totp', 'sms'].includes(newMethod)) {
-        return NextResponse.json({ error: "newMethod must be 'totp' or 'sms'" }, { status: 400 });
+        return ErrorHandler.validation("newMethod must be 'totp' or 'sms'");
       }
 
       const config = TwoFAService.completeRecovery(recoveryToken, newMethod);
       if (!config) {
-        return NextResponse.json(
-          { error: 'Invalid or expired recovery token' },
-          { status: 400 },
-        );
+        return ErrorHandler.validation('Invalid or expired recovery token');
       }
 
       return NextResponse.json({
@@ -38,11 +37,8 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    return NextResponse.json(
-      { error: 'Provide userId to initiate, or recoveryToken + newMethod to complete' },
-      { status: 400 },
-    );
+    return ErrorHandler.validation('Provide userId to initiate, or recoveryToken + newMethod to complete');
   } catch (error) {
-    return NextResponse.json({ error: 'Recovery flow failed' }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Recovery flow failed'));
   }
 }

@@ -7,6 +7,8 @@ import { withIdempotency } from '@/lib/idempotency';
 import { KYCLimitService } from '@/lib/kyc-limits';
 import { isSupportedCurrency } from '@/lib/currencies';
 import { screenAddress, isHighValue } from '@/lib/compliance-screening';
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 type FeeMethodInput = 'USDC' | 'XLM' | 'stablecoin' | 'native';
 
@@ -27,7 +29,7 @@ export async function POST(request: NextRequest) {
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json({ error: 'invalid request body' }, { status: 400 });
+      return ErrorHandler.validation('invalid request body');
     }
 
     const {
@@ -45,17 +47,17 @@ export async function POST(request: NextRequest) {
     };
 
     if (!userAddress || !amount || !currency || !beneficiary) {
-      return NextResponse.json({ error: 'missing required fields' }, { status: 400 });
+      return ErrorHandler.validation('missing required fields');
     }
 
     if (!isSupportedCurrency(currency)) {
-      return NextResponse.json({ error: `Unsupported currency: ${currency}` }, { status: 400 });
+      return ErrorHandler.validation(`Unsupported currency: ${currency}`);
     }
 
     // Server-side KYC limit enforcement
     const numericAmount = parseFloat(amount);
     if (isNaN(numericAmount) || numericAmount <= 0) {
-      return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
+      return ErrorHandler.validation('Invalid amount');
     }
 
     // Compliance screening on source address and beneficiary account
@@ -64,10 +66,7 @@ export async function POST(request: NextRequest) {
       { failClosed: isHighValue(numericAmount) },
     );
     if (sourceScreen.verdict === 'deny') {
-      return NextResponse.json(
-        { error: 'Source address blocked by compliance', screening: sourceScreen },
-        { status: 403 },
-      );
+      return ErrorHandler.handle(new ApiError(ErrorType.FORBIDDEN, 'Source address blocked by compliance', 403, { screening: sourceScreen }));
     }
 
     if (beneficiary?.accountIdentifier) {
@@ -78,16 +77,13 @@ export async function POST(request: NextRequest) {
         currency,
       });
       if (beneficiaryScreen.verdict === 'deny') {
-        return NextResponse.json(
-          { error: 'Beneficiary account blocked by compliance', screening: beneficiaryScreen },
-          { status: 403 },
-        );
+        return ErrorHandler.handle(new ApiError(ErrorType.FORBIDDEN, 'Beneficiary account blocked by compliance', 403, { screening: beneficiaryScreen }));
       }
     }
 
     const canTransact = KYCLimitService.canTransact(userAddress, numericAmount, currency);
     if (!canTransact.allowed) {
-      return NextResponse.json({ error: `Transaction blocked: ${canTransact.reason}` }, { status: 403 });
+      return ErrorHandler.forbidden(`Transaction blocked: ${canTransact.reason}`);
     }
 
     const feeMethod = normalizeFeeMethod(body.feeMethod);
@@ -114,7 +110,7 @@ export async function POST(request: NextRequest) {
     try {
       await dal.save(transaction);
     } catch {
-      return NextResponse.json({ error: 'internal server error' }, { status: 500 });
+      return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'internal server error'));
     }
 
     // Record the transaction for KYC limit tracking

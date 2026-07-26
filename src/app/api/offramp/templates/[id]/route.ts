@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { TemplateStorage } from '@/lib/transaction-templates';
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 export async function GET(
   _req: NextRequest,
@@ -8,11 +10,11 @@ export async function GET(
   try {
     const template = TemplateStorage.getTemplate(params.id);
     if (!template) {
-      return NextResponse.json({ error: 'Template not found' }, { status: 404 });
+      return ErrorHandler.notFound("Template");
     }
     return NextResponse.json({ template });
   } catch {
-    return NextResponse.json({ error: 'Failed to fetch template' }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to fetch template'));
   }
 }
 
@@ -26,19 +28,19 @@ export async function PUT(
 
     if (action === 'share') {
       if (!targetAddress) {
-        return NextResponse.json({ error: 'Missing targetAddress' }, { status: 400 });
+        return ErrorHandler.validation('Missing targetAddress');
       }
       const template = TemplateStorage.shareTemplate(params.id, targetAddress);
-      if (!template) return NextResponse.json({ error: 'Template not found' }, { status: 404 });
+      if (!template) return ErrorHandler.notFound("Template");
       return NextResponse.json({ template });
     }
 
     if (action === 'unshare') {
       if (!targetAddress) {
-        return NextResponse.json({ error: 'Missing targetAddress' }, { status: 400 });
+        return ErrorHandler.validation('Missing targetAddress');
       }
       const template = TemplateStorage.unshareTemplate(params.id, targetAddress);
-      if (!template) return NextResponse.json({ error: 'Template not found' }, { status: 404 });
+      if (!template) return ErrorHandler.notFound("Template");
       return NextResponse.json({ template });
     }
 
@@ -48,10 +50,10 @@ export async function PUT(
     }
 
     const updated = TemplateStorage.updateTemplate(params.id, updates);
-    if (!updated) return NextResponse.json({ error: 'Template not found' }, { status: 404 });
+    if (!updated) return ErrorHandler.notFound("Template");
     return NextResponse.json({ template: updated });
   } catch {
-    return NextResponse.json({ error: 'Failed to update template' }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to update template'));
   }
 }
 
@@ -61,9 +63,9 @@ export async function DELETE(
 ) {
   try {
     const deleted = TemplateStorage.deleteTemplate(params.id);
-    if (!deleted) return NextResponse.json({ error: 'Template not found' }, { status: 404 });
+    if (!deleted) return ErrorHandler.notFound("Template");
     return NextResponse.json({ deleted: params.id });
   } catch {
-    return NextResponse.json({ error: 'Failed to delete template' }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to delete template'));
   }
 }

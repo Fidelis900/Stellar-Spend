@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { TransactionTemplate, TemplateStorage } from '@/lib/transaction-templates';
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 export async function GET(req: NextRequest) {
   try {
@@ -7,7 +9,7 @@ export async function GET(req: NextRequest) {
     const userAddress = req.nextUrl.searchParams.get('userAddress');
 
     if (!ownerAddress && !userAddress) {
-      return NextResponse.json({ error: 'Missing ownerAddress or userAddress' }, { status: 400 });
+      return ErrorHandler.validation('Missing ownerAddress or userAddress');
     }
 
     const address = (userAddress || ownerAddress) as string;
@@ -17,7 +19,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ templates });
   } catch {
-    return NextResponse.json({ error: 'Failed to fetch templates' }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to fetch templates'));
   }
 }
 
@@ -27,11 +29,11 @@ export async function POST(req: NextRequest) {
     const { name, amount, currency, feeMethod, category, ownerAddress, beneficiaryId, note } = body;
 
     if (!name || !amount || !currency || !feeMethod || !ownerAddress) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+      return ErrorHandler.validation('Missing required fields');
     }
 
     if (!['XLM', 'USDC'].includes(feeMethod)) {
-      return NextResponse.json({ error: 'Invalid feeMethod' }, { status: 400 });
+      return ErrorHandler.validation('Invalid feeMethod');
     }
 
     const template: Omit<TransactionTemplate, 'id' | 'createdAt' | 'sharedWith'> = {
@@ -49,6 +51,6 @@ export async function POST(req: NextRequest) {
     const created = TemplateStorage.createTemplate(template);
     return NextResponse.json({ template: created }, { status: 201 });
   } catch {
-    return NextResponse.json({ error: 'Failed to create template' }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to create template'));
   }
 }

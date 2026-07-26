@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 import {
   scheduleTransaction,
   getScheduledTransactions,
@@ -36,12 +38,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ updated: updated.rows[0] });
       }
 
-      return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
-    } catch (error) {
-      return NextResponse.json(
-        { error: 'Failed to process scheduled transaction' },
-        { status: 500 }
-      );
+      return ErrorHandler.validation('Invalid action');
+    } catch {
+      return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to process scheduled transaction'));
     }
   }, { required: true });
 }
@@ -50,15 +49,12 @@ export async function GET(req: NextRequest) {
   try {
     const userId = req.nextUrl.searchParams.get('userId');
     if (!userId) {
-      return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
+      return ErrorHandler.validation('Missing userId');
     }
 
     const scheduled = await getScheduledTransactions(userId);
     return NextResponse.json({ scheduled });
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to get scheduled transactions' },
-      { status: 500 }
-    );
+  } catch {
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to get scheduled transactions'));
   }
 }

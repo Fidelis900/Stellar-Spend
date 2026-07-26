@@ -1,24 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { TransactionStorage } from '@/lib/transaction-storage';
+import { ErrorHandler } from '@/lib/error-handler';
 
 export async function GET(req: NextRequest) {
   try {
     const wallet = req.nextUrl.searchParams.get('wallet');
 
     if (!wallet) {
-      return NextResponse.json(
-        { error: 'Missing wallet parameter' },
-        { status: 400 }
-      );
+      return ErrorHandler.validation('Missing wallet parameter');
     }
 
     const favorites = TransactionStorage.getFavoritesByUser(wallet);
     return NextResponse.json(favorites);
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
+    return ErrorHandler.serverError(error);
   }
 }
 
@@ -27,18 +22,12 @@ export async function POST(req: NextRequest) {
     const { transactionId } = await req.json();
 
     if (!transactionId) {
-      return NextResponse.json(
-        { error: 'Missing transactionId' },
-        { status: 400 }
-      );
+      return ErrorHandler.validation('Missing transactionId');
     }
 
     const tx = TransactionStorage.getById(transactionId);
     if (!tx) {
-      return NextResponse.json(
-        { error: 'Transaction not found' },
-        { status: 404 }
-      );
+      return ErrorHandler.notFound("Transaction");
     }
 
     TransactionStorage.toggleFavorite(transactionId);
@@ -48,9 +37,6 @@ export async function POST(req: NextRequest) {
       isFavorite: TransactionStorage.getById(transactionId)?.isFavorite,
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
+    return ErrorHandler.serverError(error);
   }
 }

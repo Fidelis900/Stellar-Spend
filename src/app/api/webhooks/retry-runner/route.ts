@@ -5,6 +5,7 @@ import * as dlq from "@/lib/webhook/dlq";
 import * as alertService from "@/lib/webhook/alert-service";
 import { scheduleNext, hasRemainingAttempts } from "@/lib/webhook/retry-scheduler";
 import type { DeliveryRecord } from "@/lib/webhook/types";
+import { ErrorHandler } from "@/lib/error-handler";
 
 interface RecordResult {
     id: string;
@@ -88,8 +89,7 @@ export async function GET() {
         const summary = await runRetries();
         return NextResponse.json({ ok: true, ...summary });
     } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        return NextResponse.json({ ok: false, error: message }, { status: 500 });
+        return ErrorHandler.serverError(err);
     }
 }
 
@@ -98,7 +98,6 @@ export async function POST() {
         const summary = await runRetries();
         return NextResponse.json({ ok: true, ...summary });
     } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        return NextResponse.json({ ok: false, error: message }, { status: 500 });
+        return ErrorHandler.serverError(err);
     }
 }

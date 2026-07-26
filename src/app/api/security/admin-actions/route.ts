@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auditLoggingService } from "@/lib/audit-logging";
 import { logger } from "@/lib/logger";
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,10 +15,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ actions });
   } catch (error) {
     logger.error("Failed to fetch admin actions", { error });
-    return NextResponse.json(
-      { error: "Failed to fetch admin actions" },
-      { status: 500 },
-    );
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, "Failed to fetch admin actions"));
   }
 }
 
@@ -24,20 +23,14 @@ export async function POST(request: NextRequest) {
   try {
     const adminAddress = request.headers.get("x-admin-address");
     if (!adminAddress) {
-      return NextResponse.json(
-        { error: "Admin address required" },
-        { status: 400 },
-      );
+      return ErrorHandler.validation("Admin address required");
     }
 
     const body = await request.json();
     const { actionType, targetUser, actionDetails, reason } = body;
 
     if (!actionType) {
-      return NextResponse.json(
-        { error: "actionType is required" },
-        { status: 400 },
-      );
+      return ErrorHandler.validation("actionType is required");
     }
 
     const action = await auditLoggingService.logAdminAction(adminAddress, actionType, {
@@ -49,9 +42,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(action, { status: 201 });
   } catch (error) {
     logger.error("Failed to log admin action", { error });
-    return NextResponse.json(
-      { error: "Failed to log admin action" },
-      { status: 500 },
-    );
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, "Failed to log admin action"));
   }
 }

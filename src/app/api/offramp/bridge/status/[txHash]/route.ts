@@ -1,9 +1,9 @@
 import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
-import { env } from '@/lib/env';
 import { extractErrorMessage } from '@/lib/offramp/utils/errors';
 import { get, set, isFresh } from '@/lib/polling/status-cache';
 import type { BridgeStatus } from '@/lib/offramp/types';
+import { ErrorHandler } from '@/lib/error-handler';
 
 const BRIDGE_TERMINAL_STATES: BridgeStatus[] = ['completed', 'failed', 'expired'];
 
@@ -139,9 +139,6 @@ export async function GET(
       });
     }
 
-    return NextResponse.json(
-      { error: message || 'Failed to fetch bridge status' },
-      { status: 500 }
-    );
+    return ErrorHandler.serverError(error);
   }
 }

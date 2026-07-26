@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cache } from '@/lib/cache';
+import { ErrorHandler } from '@/lib/error-handler';
 
 /**
  * GET /api/monitoring/cache
@@ -24,13 +25,7 @@ export async function GET() {
     });
   } catch (error) {
     console.error('[Cache Metrics] Error:', error);
-    return NextResponse.json(
-      {
-        status: 'error',
-        error: 'Failed to retrieve cache metrics',
-      },
-      { status: 500 }
-    );
+    return ErrorHandler.serverError(error);
   }
 }
 
@@ -50,13 +45,7 @@ export async function POST() {
     });
   } catch (error) {
     console.error('[Cache Warming] Error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to warm cache',
-      },
-      { status: 500 }
-    );
+    return ErrorHandler.serverError(error);
   }
 }
 
@@ -76,12 +65,6 @@ export async function DELETE() {
     });
   } catch (error) {
     console.error('[Cache Clear] Error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to clear cache',
-      },
-      { status: 500 }
-    );
+    return ErrorHandler.serverError(error);
   }
 }

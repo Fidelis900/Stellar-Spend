@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { recordVital, recordFunnelEvent } from "@/lib/performance";
+import { ErrorHandler } from "@/lib/error-handler";
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,8 +25,8 @@ export async function POST(request: NextRequest) {
       return new NextResponse(null, { status: 204 });
     }
 
-    return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+    return ErrorHandler.validation("Invalid payload");
   } catch {
-    return NextResponse.json({ error: "Bad request" }, { status: 400 });
+    return ErrorHandler.validation("Bad request");
   }
 }

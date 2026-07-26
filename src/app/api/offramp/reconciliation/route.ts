@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { ErrorHandler } from '@/lib/error-handler';
 import {
   generateReconciliationReport,
   buildSettlementCsv,
@@ -15,18 +16,12 @@ export async function POST(request: NextRequest) {
     const { records, format } = body;
 
     if (!Array.isArray(records) || records.length === 0) {
-      return NextResponse.json(
-        { error: 'records array is required and must not be empty' },
-        { status: 400 },
-      );
+      return ErrorHandler.validation('records array is required and must not be empty');
     }
 
     for (const record of records) {
       if (!record.transactionId) {
-        return NextResponse.json(
-          { error: 'Each record must have a transactionId' },
-          { status: 400 },
-        );
+        return ErrorHandler.validation('Each record must have a transactionId');
       }
     }
 
@@ -51,11 +46,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(report);
   } catch (error) {
     logger.error('reconciliation.error', {}, error);
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : 'Failed to generate reconciliation report',
-      },
-      { status: 500 },
-    );
+    return ErrorHandler.serverError(error);
   }
 }

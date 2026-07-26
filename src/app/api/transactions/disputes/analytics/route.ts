@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { disputeRepository } from '@/lib/repositories/dispute-repository';
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 export async function GET(req: NextRequest) {
   try {
     const adminId = req.headers.get('x-admin-id');
     if (!adminId) {
-      return NextResponse.json({ error: 'Admin authorization required' }, { status: 401 });
+      return ErrorHandler.unauthorized('Admin authorization required');
     }
 
     const analytics = await disputeRepository.getAnalytics();
     return NextResponse.json(analytics);
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch dispute analytics' }, { status: 500 });
+  } catch {
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to fetch dispute analytics'));
   }
 }

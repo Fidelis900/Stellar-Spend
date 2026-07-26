@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ipWhitelistService } from "@/lib/ip-whitelist";
 import { logger } from "@/lib/logger";
+import { ErrorHandler } from "@/lib/error-handler";
+import { ApiError, ErrorType } from "@/lib/error-types";
 
 export async function GET(request: NextRequest) {
   try {
     const userAddress = request.headers.get("x-user-address");
     if (!userAddress) {
-      return NextResponse.json({ error: "User address required" }, { status: 400 });
+      return ErrorHandler.validation("User address required");
     }
 
     const searchParams = request.nextUrl.searchParams;
@@ -16,6 +18,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ violations, count: violations.length });
   } catch (error) {
     logger.error("Failed to fetch IP violations", { error });
-    return NextResponse.json({ error: "Failed to fetch IP violations" }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, "Failed to fetch IP violations"));
   }
 }

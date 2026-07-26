@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PriceAlertStorage } from '@/lib/price-alerts';
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 export async function GET(
   req: NextRequest,
@@ -8,14 +10,14 @@ export async function GET(
   try {
     const history = req.nextUrl.searchParams.get('history') === 'true';
     const alert = PriceAlertStorage.getAlert(params.id);
-    if (!alert) return NextResponse.json({ error: 'Alert not found' }, { status: 404 });
+    if (!alert) return ErrorHandler.notFound("Alert");
 
     if (history) {
       return NextResponse.json({ history: alert.triggerHistory ?? [] });
     }
     return NextResponse.json({ alert });
   } catch {
-    return NextResponse.json({ error: 'Failed to fetch alert' }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to fetch alert'));
   }
 }
 
@@ -32,21 +34,21 @@ export async function PUT(
         status: 'active',
         notificationSent: false,
       });
-      if (!updated) return NextResponse.json({ error: 'Alert not found' }, { status: 404 });
+      if (!updated) return ErrorHandler.notFound("Alert");
       return NextResponse.json({ alert: updated });
     }
 
     if (action === 'deactivate') {
       const updated = PriceAlertStorage.updateAlert(params.id, { status: 'inactive' });
-      if (!updated) return NextResponse.json({ error: 'Alert not found' }, { status: 404 });
+      if (!updated) return ErrorHandler.notFound("Alert");
       return NextResponse.json({ alert: updated });
     }
 
     const updated = PriceAlertStorage.updateAlert(params.id, updates);
-    if (!updated) return NextResponse.json({ error: 'Alert not found' }, { status: 404 });
+    if (!updated) return ErrorHandler.notFound("Alert");
     return NextResponse.json({ alert: updated });
   } catch {
-    return NextResponse.json({ error: 'Failed to update alert' }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to update alert'));
   }
 }
 
@@ -56,9 +58,9 @@ export async function DELETE(
 ) {
   try {
     const deleted = PriceAlertStorage.deleteAlert(params.id);
-    if (!deleted) return NextResponse.json({ error: 'Alert not found' }, { status: 404 });
+    if (!deleted) return ErrorHandler.notFound("Alert");
     return NextResponse.json({ deleted: params.id });
   } catch {
-    return NextResponse.json({ error: 'Failed to delete alert' }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to delete alert'));
   }
 }

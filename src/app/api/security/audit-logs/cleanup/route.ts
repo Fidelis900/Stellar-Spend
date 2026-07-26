@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auditLoggingService } from "@/lib/audit-logging";
 import { logger } from "@/lib/logger";
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 export async function POST(request: NextRequest) {
   try {
     const adminAddress = request.headers.get("x-admin-address");
     if (!adminAddress) {
-      return NextResponse.json(
-        { error: "Admin address required" },
-        { status: 400 },
-      );
+      return ErrorHandler.validation("Admin address required");
     }
 
     const body = await request.json();
@@ -30,9 +29,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     logger.error("Failed to cleanup audit logs", { error });
-    return NextResponse.json(
-      { error: "Failed to cleanup audit logs" },
-      { status: 500 },
-    );
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, "Failed to cleanup audit logs"));
   }
 }

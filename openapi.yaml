@@ -168,28 +168,54 @@ components:
 
   # ───────── Reusable schemas ─────────
   schemas:
+    # Standard error contract returned by every API route (src/lib/error-handler.ts,
+    # src/lib/error-types.ts). Every 4xx/5xx JSON response body conforms to this shape —
+    # there is a single error contract used across the entire API surface.
     Error:
       type: object
       required: [error]
       properties:
         error:
           type: string
-          example: Human-readable error message
-
-    ValidationError:
-      type: object
-      required: [error, details]
-      properties:
-        error:
+          description: Machine-readable error code, stable across releases. Safe to branch client logic on.
+          enum:
+            - validation_error
+            - not_found
+            - unauthorized
+            - forbidden
+            - conflict
+            - rate_limit_exceeded
+            - server_error
+            - external_service_error
+          example: validation_error
+        message:
           type: string
-          example: Validation failed
+          description: Human-readable description of the error, safe to display to end users.
+          example: Invalid request parameters
         details:
           type: object
-          additionalProperties:
-            type: string
-          example:
-            amount: amount must be a positive number
-            "recipient.institution": recipient.institution is required
+          description: >
+            Additional machine-readable context (e.g. per-field validation failures).
+            Only populated outside production; omitted entirely when production hides internals.
+          additionalProperties: true
+
+    ValidationError:
+      description: Error response for validation_error, with per-field detail messages.
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - type: object
+          required: [error, details]
+          properties:
+            error:
+              type: string
+              enum: [validation_error]
+            details:
+              type: object
+              additionalProperties:
+                type: string
+              example:
+                amount: amount must be a positive number
+                "recipient.institution": recipient.institution is required
 
     HealthResponse:
       type: object

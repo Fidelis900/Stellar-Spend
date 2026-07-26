@@ -1,7 +1,9 @@
 import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
-import { decodeTxResultXdr, extractErrorMessage } from '@/lib/offramp/utils/errors';
+import { decodeTxResultXdr } from '@/lib/offramp/utils/errors';
 import { withIdempotency } from '@/lib/idempotency';
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 export const maxDuration = 15;
 
@@ -11,12 +13,12 @@ export async function POST(req: NextRequest) {
       const { signedXdr } = await req.json();
 
       if (!signedXdr) {
-        return NextResponse.json({ error: 'signedXdr is required' }, { status: 400 });
+        return ErrorHandler.validation('signedXdr is required');
       }
 
       const rpcUrl = process.env.STELLAR_SOROBAN_RPC_URL;
       if (!rpcUrl) {
-        return NextResponse.json({ error: 'Soroban RPC URL not configured' }, { status: 500 });
+        return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Soroban RPC URL not configured'));
       }
 
       const res = await fetch(rpcUrl, {
@@ -33,7 +35,7 @@ export async function POST(req: NextRequest) {
       const data = await res.json();
 
       if (data.error) {
-        return NextResponse.json({ error: data.error.message ?? 'RPC error' }, { status: 400 });
+        return ErrorHandler.validation(data.error.message ?? 'RPC error');
       }
 
       const result = data.result;
@@ -59,16 +61,12 @@ export async function POST(req: NextRequest) {
           logger.error('Diagnostic events:', {}, result.diagnosticEventsXdr);
         }
 
-        return NextResponse.json(
-          { error: errorMessage || 'Transaction failed' },
-          { status: 400 }
-        );
+        return ErrorHandler.validation(errorMessage || 'Transaction failed');
       }
 
       return NextResponse.json({ status: status || 'PENDING', hash });
     } catch (err: unknown) {
-      const message = extractErrorMessage(err);
-      return NextResponse.json({ error: message }, { status: 500 });
+      return ErrorHandler.serverError(err);
     }
   }, { required: true });
 }

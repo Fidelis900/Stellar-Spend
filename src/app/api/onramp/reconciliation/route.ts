@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server';
 import { globalContainer } from '@/lib/di';
 import { SERVICE_KEYS } from '@/lib/di/registry';
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 export async function POST(request: Request) {
   try {
     const { orderId } = await request.json();
 
     if (!orderId) {
-      return NextResponse.json({ error: 'orderId is required' }, { status: 400 });
+      return ErrorHandler.validation('orderId is required');
     }
 
     const svc = await globalContainer.resolve(SERVICE_KEYS.ONRAMP_SERVICE);
@@ -18,8 +20,8 @@ export async function POST(request: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     if (message.includes('not found')) {
-      return NextResponse.json({ error: message }, { status: 404 });
+      return ErrorHandler.handle(new ApiError(ErrorType.NOT_FOUND, message));
     }
-    return NextResponse.json({ error: message }, { status: 500 });
+    return ErrorHandler.serverError(error);
   }
 }

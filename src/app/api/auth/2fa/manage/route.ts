@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { TwoFAService } from '@/lib/two-fa';
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 export async function GET(req: NextRequest) {
   try {
     const userId = req.headers.get('x-user-id');
     if (!userId) {
-      return NextResponse.json({ error: 'User ID required' }, { status: 401 });
+      return ErrorHandler.unauthorized('User ID required');
     }
 
     const config = TwoFAService.getConfig(userId);
@@ -21,7 +23,7 @@ export async function GET(req: NextRequest) {
       lastVerifiedAt: config.lastVerifiedAt,
     });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch 2FA status' }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to fetch 2FA status'));
   }
 }
 
@@ -29,7 +31,7 @@ export async function POST(req: NextRequest) {
   try {
     const userId = req.headers.get('x-user-id');
     if (!userId) {
-      return NextResponse.json({ error: 'User ID required' }, { status: 401 });
+      return ErrorHandler.unauthorized('User ID required');
     }
 
     const { action } = await req.json();
@@ -37,10 +39,7 @@ export async function POST(req: NextRequest) {
     if (action === 'enable') {
       const config = TwoFAService.enable(userId);
       if (!config) {
-        return NextResponse.json(
-          { error: '2FA not configured. Call /setup first.' },
-          { status: 400 },
-        );
+        return ErrorHandler.validation('2FA not configured. Call /setup first.');
       }
       return NextResponse.json({ success: true, enabled: true });
     }
@@ -48,13 +47,13 @@ export async function POST(req: NextRequest) {
     if (action === 'disable') {
       const config = TwoFAService.disable(userId);
       if (!config) {
-        return NextResponse.json({ error: '2FA not configured' }, { status: 400 });
+        return ErrorHandler.validation('2FA not configured');
       }
       return NextResponse.json({ success: true, enabled: false });
     }
 
-    return NextResponse.json({ error: "action must be 'enable' or 'disable'" }, { status: 400 });
+    return ErrorHandler.validation("action must be 'enable' or 'disable'");
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to update 2FA' }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to update 2FA'));
   }
 }
