@@ -1,5 +1,7 @@
 import { graphql, parse, validate, visit, type DocumentNode, type ValidationRule } from "graphql";
 import { schema } from "../../../../lib/graphql/schema";
+// Resolvers are now split by domain under src/lib/graphql/resolvers/
+// The re-export from resolvers.ts keeps this import path unchanged.
 import { resolvers } from "../../../../lib/graphql/resolvers";
 import { buildContext } from "../../../../lib/graphql/context";
 import { MAX_DEPTH, validateQueryDepth, resetNodeCount, GraphQLError } from "../../../../lib/graphql/auth-guards";
