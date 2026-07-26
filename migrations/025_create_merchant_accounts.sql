@@ -1,4 +1,4 @@
--- Migration 022: Create merchant accounts and payout tables
+-- Migration 025: Create merchant accounts and payout tables
 
 CREATE TYPE merchant_role AS ENUM ('owner', 'admin', 'viewer');
 CREATE TYPE merchant_status AS ENUM ('active', 'suspended');

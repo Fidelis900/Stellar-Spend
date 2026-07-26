@@ -1,4 +1,4 @@
--- Migration: 017_create_onramp_transactions
+-- Migration: 020_create_onramp_transactions
 -- Stores on-ramp (fiat in → stablecoin out to Stellar) transactions.
 
 CREATE TABLE IF NOT EXISTS onramp_transactions (

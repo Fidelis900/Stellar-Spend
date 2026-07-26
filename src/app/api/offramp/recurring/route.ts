@@ -72,5 +72,5 @@ export async function POST(req: NextRequest) {
     } catch {
       return NextResponse.json({ error: 'Failed to create recurring schedule' }, { status: 500 });
     }
-  });
+  }, { required: true });
 }

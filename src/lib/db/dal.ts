@@ -4,7 +4,7 @@ import { queryOptimizer } from "./query-optimizer";
 
 async function timedQuery(sql: string, values: unknown[]) {
     const start = Date.now();
-    const result = await timedQuery(sql, values);
+    const result = await pool.query(sql, values);
     queryOptimizer.recordQuery(sql, Date.now() - start, result.rowCount ?? 0);
     return result;
 }

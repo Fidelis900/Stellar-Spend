@@ -5,7 +5,7 @@ import { generateRequestId, createRequestLogger } from '@/lib/offramp/utils/logg
 import { mapPaycrestStatus } from '@/lib/offramp/utils/mapPaycrestStatus';
 import { dal, DatabaseError } from '@/lib/db/dal';
 import { enqueue } from '@/lib/webhook/dispatcher';
-import { verifyWebhookSignature, createNonceTable } from '@/lib/webhook/security';
+import { verifyWebhookSignature, createNonceTable } from '@/lib/webhookVerify';
 import { notifyTransactionStatusUpdate } from '@/lib/notifications/service';
 import { withIdempotency } from '@/lib/idempotency';
 import { logger } from '@/lib/logger';

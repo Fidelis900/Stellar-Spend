@@ -1,4 +1,4 @@
--- Migration: 015_enhance_audit_logging
+-- Migration: 017_enhance_audit_logging
 -- Enhances audit logging with additional tables for API key usage and sensitive data access
 
 CREATE TABLE IF NOT EXISTS api_key_usage_logs (

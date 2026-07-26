@@ -42,5 +42,5 @@ export async function PATCH(
             }
             return ErrorHandler.serverError(err);
         }
-    });
+    }, { required: true });
 }

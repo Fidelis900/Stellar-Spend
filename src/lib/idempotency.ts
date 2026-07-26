@@ -33,6 +33,15 @@ interface BeginIdempotencyResult {
 export interface IdempotencyOptions {
   ttlMs?: number;
   lockTtlMs?: number;
+  /** When true, requests missing the Idempotency-Key header are rejected with 400 instead of bypassing idempotency checks. */
+  required?: boolean;
+}
+
+function buildMissingKeyResponse(): NextResponse {
+  return NextResponse.json(
+    { error: `${IDEMPOTENCY_KEY_HEADER} header is required for this request` },
+    { status: 400 }
+  );
 }
 
 function getConfig() {
@@ -283,6 +292,9 @@ export async function withIdempotency(
 ): Promise<NextResponse> {
   const idempotencyKey = request.headers.get(IDEMPOTENCY_KEY_HEADER);
   if (!idempotencyKey) {
+    if (options?.required) {
+      return buildMissingKeyResponse();
+    }
     return handler();
   }
 

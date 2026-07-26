@@ -64,7 +64,7 @@ Added indexes on frequently queried columns to speed up lookups:
 **To apply indexes:**
 
 ```bash
-psql $DATABASE_URL < migrations/010_add_query_indexes.sql
+psql $DATABASE_URL < migrations/011_add_query_indexes.sql
 ```
 
 ### 4. Query Monitoring
@@ -189,7 +189,7 @@ console.log("Slow queries:", metrics.slowQueries);
 
 ## #701 Optimizations (2026-06-29)
 
-### New Indexes — `021_db_optimization_701.sql`
+### New Indexes — `024_db_optimization_701.sql`
 
 | Index | Table | Columns | Type | Rationale |
 |---|---|---|---|---|

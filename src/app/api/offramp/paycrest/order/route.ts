@@ -167,5 +167,5 @@ export async function POST(req: NextRequest) {
         { status: 500, headers: { 'X-Request-Id': requestId } }
       );
     }
-  });
+  }, { required: true });
 }

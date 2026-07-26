@@ -42,6 +42,23 @@ class MigrationRunner {
         checksum VARCHAR(64)
       );
     `);
+
+    await this.reconcileLegacyIds();
+  }
+
+  // Older rows were keyed by bare numeric filename prefix (e.g. "010"), which
+  // breaks the moment two files share a prefix (see migrations/README.md).
+  // Re-key any such legacy row to the filename slug with the number
+  // stripped, derived from the already-recorded `name` column, so renaming
+  // migration files to fix numbering never desyncs applied-migration
+  // tracking again. Safe to run on every startup: once a row's id is no
+  // longer purely numeric this is a no-op for it.
+  async reconcileLegacyIds(): Promise<void> {
+    await this.query(`
+      UPDATE schema_migrations
+      SET id = regexp_replace(name, '^[0-9]+_', '')
+      WHERE id ~ '^[0-9]+$'
+    `);
   }
 
   async query(sql: string, params?: any[]): Promise<any> {
@@ -85,8 +102,10 @@ class MigrationRunner {
     const migrations: Migration[] = [];
     
     for (const file of migrationFiles) {
-      const id = file.split('_')[0];
       const name = file.replace(/\.sql$/, '');
+      // Stable across renumbering: derived from the descriptive part of the
+      // filename, not the numeric prefix. See reconcileLegacyIds().
+      const id = name.replace(/^\d+_/, '');
       
       if (!appliedIds.has(id)) {
         const content = fs.readFileSync(`./migrations/${file}`, 'utf-8');

@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     } catch (error) {
       return NextResponse.json({ error: 'Failed to process batch request' }, { status: 500 });
     }
-  });
+  }, { required: true });
 }
 
 export async function GET(req: NextRequest) {

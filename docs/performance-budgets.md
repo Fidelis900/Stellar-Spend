@@ -102,6 +102,60 @@ Runs on PRs:
 3. **CLS**: Reserve space for dynamic content, use aspect ratios
 4. **TTFB**: Enable edge caching, optimize API routes
 
+## Database Query Budgets
+
+Latency budgets for the highest-traffic database queries, added for #787. See
+[`docs/database-optimization.md`](./database-optimization.md) for the general
+optimization strategies (connection pooling, query caching) these budgets sit
+on top of.
+
+> **Methodology note:** this pass was done by statically auditing the routes
+> and middleware that run on most requests and checking their query shape
+> against the indexes actually defined in `migrations/`, since no live
+> database or production traffic sample was available to run `EXPLAIN
+> ANALYZE` against directly. Treat the "Index coverage" column below as
+> reasoned-about, not measured. Before relying on it, confirm against a real
+> query plan with `queryOptimizer.analyzeQueries()` (`src/lib/db/query-optimizer.ts`,
+> already recording live timings for every `dal.ts` call) or `EXPLAIN ANALYZE`
+> on staging.
+
+### Top queries by request-path traffic
+
+| # | Query (table / predicate) | Called from | Budget (P95) | Index coverage |
+|---|---|---|---|---|
+| 1 | `sessions` by `token` | `session-management.ts` `validateSession` — runs on every authenticated request | < 10ms | `idx_sessions_token` (013) |
+| 2 | `api_keys` by `key_hash` | `api-keys/service.ts` — runs on every API-key-authenticated request | < 10ms | `idx_api_keys_key_hash` (011) |
+| 3 | `idempotency_keys` by `(idempotency_key, method, path)` | `withIdempotency()` middleware — now enforced on all financial mutation routes (#790) | < 15ms | composite primary key (003) |
+| 4 | `ip_whitelist` by `user_address` | `ip-whitelist.ts` `isIPWhitelisted` — runs on mutation endpoints with IP enforcement | < 10ms | `idx_ip_whitelist_user_address` (012) |
+| 5 | `transactions` by `LOWER(user_address)`, ordered by `timestamp DESC` | `dal.ts` `getByUser` — transaction history / `v1/sync/history` | < 50ms | **was missing** — `011`/`018`/`024` intended to cover this but reference a `created_at` column that doesn't exist on `transactions`; fixed in `027_fix_query_optimization_indexes.sql` |
+| 6 | `transactions` by `id` | `dal.ts` `getById` — used after nearly every mutation to return the updated row | < 10ms | primary key (001) |
+| 7 | `transactions` by `payout_order_id` | `dal.ts` `getByPayoutOrderId` — Paycrest webhook order lookup | < 10ms | `idx_transactions_payout_order_id` (024) |
+| 8 | `audit_logs` insert + by `(user_address, action_type, created_at)` | `audit-logging.ts` — one insert per audited action, read on the admin audit dashboard | insert < 15ms, read < 100ms | `idx_audit_logs_user_address_action_type` (018) |
+| 9 | `webhook_nonces` by `nonce_key` | `webhookVerify.ts` `isReplay`/`markNonceUsed` — every inbound webhook with replay protection | < 10ms | primary key (created by `createNonceTable()`) |
+| 10 | `transaction_notification_preferences` by `LOWER(user_address)` | `notifications/preferences-store.ts` | < 10ms | **was missing** — PK is on raw `user_address`, unusable under `LOWER()`; fixed in `027_fix_query_optimization_indexes.sql` |
+
+### Known issues fixed alongside this pass
+
+- **`src/lib/db/dal.ts`'s `timedQuery` called itself instead of `pool.query`**,
+  an infinite-recursion bug in the function every transaction read/write in
+  #5–#7 above goes through. Fixed to call `pool.query` directly.
+- **`transactions(created_at DESC)` indexes never existed.** `011_add_query_indexes.sql`,
+  `018_optimize_database_queries.sql`, and `024_db_optimization_701.sql` all
+  reference a `created_at` column that was never added to `transactions`
+  (the column is `timestamp`), so those `CREATE INDEX` statements fail every
+  time they run. Rather than editing already-shipped migrations,
+  `027_fix_query_optimization_indexes.sql` adds the equivalent index against
+  the correct column.
+
+### Enforcing the budget
+
+There is no automated CI check for query latency yet (unlike the bundle-size
+budgets above). `queryOptimizer` already flags anything over 1000ms as a slow
+query and logs it (`SLOW_QUERY_THRESHOLD` in `src/lib/db/query-optimizer.ts`);
+wiring `queryOptimizer.getStatistics()` into a monitoring endpoint or CI gate
+is the natural next step if these budgets need enforcement rather than
+documentation.
+
 ## Monitoring Integration
 
 In production, forward metrics to your observability platform:

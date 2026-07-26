@@ -1,4 +1,4 @@
--- Migration: 018_create_ledger_tables
+-- Migration: 021_create_ledger_tables
 -- Adds double-entry ledger tables for finance reporting.
 -- Idempotent: safe to run multiple times.
 

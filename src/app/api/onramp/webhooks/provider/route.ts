@@ -3,8 +3,13 @@ import { NextResponse } from 'next/server';
 import { globalContainer } from '@/lib/di';
 import { SERVICE_KEYS } from '@/lib/di/registry';
 import { onrampProviderRegistry } from '@/lib/onramp/adapters/provider-registry';
+import { verifyHmacSignature } from '@/lib/webhookVerify';
 
 export const maxDuration = 15;
+
+function resolveProviderWebhookSecret(provider: string): string | undefined {
+  return process.env[`ONRAMP_${provider.toUpperCase()}_WEBHOOK_SECRET`];
+}
 
 export async function POST(request: Request) {
   try {
@@ -23,6 +28,18 @@ export async function POST(request: Request) {
     const adapter = onrampProviderRegistry.getProvider(provider);
     if (!adapter) {
       return NextResponse.json({ error: `Unknown provider: ${provider}` }, { status: 400 });
+    }
+
+    const secret = resolveProviderWebhookSecret(provider);
+    if (!secret) {
+      logger.error('Onramp webhook secret not configured for provider', { provider });
+      return NextResponse.json({ error: 'Webhook not configured for this provider' }, { status: 500 });
+    }
+
+    const verification = await verifyHmacSignature(rawBody, signature, secret);
+    if (!verification.valid) {
+      logger.warn('Onramp webhook signature verification failed', { provider, reason: verification.reason });
+      return NextResponse.json({ error: verification.reason ?? 'Invalid signature' }, { status: 401 });
     }
 
     const payload = JSON.parse(rawBody);

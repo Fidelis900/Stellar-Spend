@@ -8,6 +8,7 @@ import {
   type SplitRecipient,
   type SplitTransaction,
 } from '@/lib/transaction-split';
+import { withIdempotency } from '@/lib/idempotency';
 
 // GET: fetch split, reconciliation, or analytics
 export async function GET(req: NextRequest) {
@@ -42,86 +43,90 @@ export async function GET(req: NextRequest) {
 
 // POST: create a new split transaction
 export async function POST(req: NextRequest) {
-  try {
-    const { totalAmount, currency, recipients } = await req.json();
+  return withIdempotency(req, async () => {
+    try {
+      const { totalAmount, currency, recipients } = await req.json();
 
-    if (!totalAmount || !currency || !recipients) {
+      if (!totalAmount || !currency || !recipients) {
+        return NextResponse.json(
+          { error: 'Missing required fields: totalAmount, currency, recipients' },
+          { status: 400 }
+        );
+      }
+
+      if (!Array.isArray(recipients) || recipients.length === 0) {
+        return NextResponse.json({ error: 'recipients must be a non-empty array' }, { status: 400 });
+      }
+
+      const validationError = validateSplit(recipients as SplitRecipient[]);
+      if (validationError) {
+        return NextResponse.json({ error: validationError }, { status: 400 });
+      }
+
+      const fees = calculateSplitFees(totalAmount, recipients.length);
+      if (fees.netAmount <= 0) {
+        return NextResponse.json({ error: 'Amount too small to cover split fees' }, { status: 400 });
+      }
+
+      const splitId = SplitStorage.generateId();
+      const recipientsWithAmounts = computeSplitAmounts(String(fees.netAmount), recipients as SplitRecipient[]);
+
+      const split: SplitTransaction = {
+        id: splitId,
+        createdAt: Date.now(),
+        totalAmount: String(totalAmount),
+        currency,
+        recipients: recipientsWithAmounts,
+        status: 'pending',
+        results: {},
+      };
+
+      SplitStorage.save(split);
+
+      return NextResponse.json({
+        success: true,
+        splitId,
+        fees,
+        split,
+      });
+    } catch (error) {
       return NextResponse.json(
-        { error: 'Missing required fields: totalAmount, currency, recipients' },
-        { status: 400 }
+        { error: error instanceof Error ? error.message : 'Internal server error' },
+        { status: 500 }
       );
     }
-
-    if (!Array.isArray(recipients) || recipients.length === 0) {
-      return NextResponse.json({ error: 'recipients must be a non-empty array' }, { status: 400 });
-    }
-
-    const validationError = validateSplit(recipients as SplitRecipient[]);
-    if (validationError) {
-      return NextResponse.json({ error: validationError }, { status: 400 });
-    }
-
-    const fees = calculateSplitFees(totalAmount, recipients.length);
-    if (fees.netAmount <= 0) {
-      return NextResponse.json({ error: 'Amount too small to cover split fees' }, { status: 400 });
-    }
-
-    const splitId = SplitStorage.generateId();
-    const recipientsWithAmounts = computeSplitAmounts(String(fees.netAmount), recipients as SplitRecipient[]);
-
-    const split: SplitTransaction = {
-      id: splitId,
-      createdAt: Date.now(),
-      totalAmount: String(totalAmount),
-      currency,
-      recipients: recipientsWithAmounts,
-      status: 'pending',
-      results: {},
-    };
-
-    SplitStorage.save(split);
-
-    return NextResponse.json({
-      success: true,
-      splitId,
-      fees,
-      split,
-    });
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
-  }
+  }, { required: true });
 }
 
 // PATCH: update recipient result (partial failure handling)
 export async function PATCH(req: NextRequest) {
-  try {
-    const { splitId, recipientId, status, error: recipientError } = await req.json();
+  return withIdempotency(req, async () => {
+    try {
+      const { splitId, recipientId, status, error: recipientError } = await req.json();
 
-    if (!splitId || !recipientId || !status) {
+      if (!splitId || !recipientId || !status) {
+        return NextResponse.json(
+          { error: 'Missing required fields: splitId, recipientId, status' },
+          { status: 400 }
+        );
+      }
+
+      if (!['completed', 'failed'].includes(status)) {
+        return NextResponse.json({ error: 'status must be "completed" or "failed"' }, { status: 400 });
+      }
+
+      const split = SplitStorage.getById(splitId);
+      if (!split) return NextResponse.json({ error: 'Split not found' }, { status: 404 });
+
+      SplitStorage.updateResult(splitId, recipientId, { status, error: recipientError });
+
+      const updated = SplitStorage.getById(splitId);
+      return NextResponse.json({ success: true, split: updated });
+    } catch (error) {
       return NextResponse.json(
-        { error: 'Missing required fields: splitId, recipientId, status' },
-        { status: 400 }
+        { error: error instanceof Error ? error.message : 'Internal server error' },
+        { status: 500 }
       );
     }
-
-    if (!['completed', 'failed'].includes(status)) {
-      return NextResponse.json({ error: 'status must be "completed" or "failed"' }, { status: 400 });
-    }
-
-    const split = SplitStorage.getById(splitId);
-    if (!split) return NextResponse.json({ error: 'Split not found' }, { status: 404 });
-
-    SplitStorage.updateResult(splitId, recipientId, { status, error: recipientError });
-
-    const updated = SplitStorage.getById(splitId);
-    return NextResponse.json({ success: true, split: updated });
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
-  }
+  }, { required: true });
 }

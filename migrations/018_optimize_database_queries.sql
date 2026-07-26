@@ -1,4 +1,4 @@
--- Migration: 016_optimize_database_queries
+-- Migration: 018_optimize_database_queries
 -- Adds indexes and optimizations for common query patterns
 
 -- Transaction query optimization

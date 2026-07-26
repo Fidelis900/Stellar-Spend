@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
-  });
+  }, { required: true });
 }
 
 export async function PATCH(req: NextRequest) {

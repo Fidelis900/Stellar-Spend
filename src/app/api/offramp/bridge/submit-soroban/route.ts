@@ -70,5 +70,5 @@ export async function POST(req: NextRequest) {
       const message = extractErrorMessage(err);
       return NextResponse.json({ error: message }, { status: 500 });
     }
-  });
+  }, { required: true });
 }
