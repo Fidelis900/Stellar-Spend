@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cache } from '@/lib/cache';
 import { ErrorHandler } from '@/lib/error-handler';
+import { logger } from '@/lib/logger';
 
 /**
  * GET /api/monitoring/cache
@@ -24,7 +25,7 @@ export async function GET() {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('[Cache Metrics] Error:', error);
+    logger.error('cache.metrics_failed', {}, error);
     return ErrorHandler.serverError(error);
   }
 }
@@ -44,7 +45,7 @@ export async function POST() {
       message: 'Cache warming initiated',
     });
   } catch (error) {
-    console.error('[Cache Warming] Error:', error);
+    logger.error('cache.warming_failed', {}, error);
     return ErrorHandler.serverError(error);
   }
 }
@@ -64,7 +65,7 @@ export async function DELETE() {
       message: 'Cache cleared successfully',
     });
   } catch (error) {
-    console.error('[Cache Clear] Error:', error);
+    logger.error('cache.clear_failed', {}, error);
     return ErrorHandler.serverError(error);
   }
 }
