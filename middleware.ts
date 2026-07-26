@@ -8,6 +8,12 @@ export function middleware(request: NextRequest): NextResponse {
     const start = Date.now();
     const loggingMiddleware = createLoggingMiddleware();
 
+    // Resolve the correlation ID once, up front, so the value logged here is
+    // the exact same value route handlers see via request.headers.get('x-request-id').
+    const requestId = request.headers.get('x-request-id') ?? crypto.randomUUID();
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-request-id', requestId);
+
     let response: NextResponse;
 
     // 1. Check geo restrictions first
@@ -20,8 +26,9 @@ export function middleware(request: NextRequest): NextResponse {
         if (authResponse) {
             response = authResponse;
         } else {
-            // 3. Pass through all other requests
-            response = NextResponse.next();
+            // 3. Pass through all other requests, forwarding the resolved
+            // request ID so the route handler can correlate its own logs.
+            response = NextResponse.next({ request: { headers: requestHeaders } });
         }
     }
 
@@ -33,7 +40,7 @@ export function middleware(request: NextRequest): NextResponse {
 
     // 6. Log and add request ID
     const durationMs = Date.now() - start;
-    response = loggingMiddleware(request, response, durationMs);
+    response = loggingMiddleware(request, response, durationMs, requestId);
 
     return response;
 }

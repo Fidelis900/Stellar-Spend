@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { replay, list, get } from '@/lib/webhook/dlq';
 import { attempt } from '@/lib/webhook/dispatcher';
 import { logger } from '@/lib/logger';
+import { ErrorHandler } from '@/lib/error-handler';
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,7 +10,7 @@ export async function POST(request: NextRequest) {
     const { entryId } = body;
 
     if (!entryId || typeof entryId !== 'string') {
-      return NextResponse.json({ error: 'entryId is required' }, { status: 400 });
+      return ErrorHandler.validation('entryId is required');
     }
 
     const record = await replay(entryId);
@@ -24,8 +25,7 @@ export async function POST(request: NextRequest) {
       errorType: result.errorType,
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Replay failed';
     logger.error('dlq.replay_failed', {}, err);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return ErrorHandler.serverError(err);
   }
 }

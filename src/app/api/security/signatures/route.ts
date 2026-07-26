@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { transactionSigningService } from "@/lib/transaction-signing";
 import { logger } from "@/lib/logger";
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,10 +10,7 @@ export async function POST(request: NextRequest) {
     const { transactionId, userAddress, signature, publicKey, algorithm } = body;
 
     if (!transactionId || !userAddress || !signature || !publicKey) {
-      return NextResponse.json(
-        { error: "transactionId, userAddress, signature, and publicKey are required" },
-        { status: 400 },
-      );
+      return ErrorHandler.validation("transactionId, userAddress, signature, and publicKey are required");
     }
 
     const txSignature = await transactionSigningService.signTransaction(
@@ -25,10 +24,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(txSignature, { status: 201 });
   } catch (error) {
     logger.error("Failed to sign transaction", { error });
-    return NextResponse.json(
-      { error: "Failed to sign transaction" },
-      { status: 500 },
-    );
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, "Failed to sign transaction"));
   }
 }
 
@@ -38,10 +34,7 @@ export async function GET(request: NextRequest) {
     const transactionId = searchParams.get("transactionId");
 
     if (!transactionId) {
-      return NextResponse.json(
-        { error: "transactionId query parameter required" },
-        { status: 400 },
-      );
+      return ErrorHandler.validation("transactionId query parameter required");
     }
 
     const signatures = await transactionSigningService.getTransactionSignatures(
@@ -51,9 +44,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ signatures });
   } catch (error) {
     logger.error("Failed to fetch signatures", { error });
-    return NextResponse.json(
-      { error: "Failed to fetch signatures" },
-      { status: 500 },
-    );
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, "Failed to fetch signatures"));
   }
 }

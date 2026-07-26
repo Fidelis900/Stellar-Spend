@@ -1,5 +1,6 @@
 import { logger } from '@/lib/logger';
 import { NextResponse, type NextRequest } from 'next/server';
+import { ErrorHandler } from '@/lib/error-handler';
 import {
   generateReconciliationReport,
   generateAlerts,
@@ -15,10 +16,7 @@ export async function POST(request: NextRequest) {
     const { records, includeDaily } = body;
 
     if (!Array.isArray(records) || records.length === 0) {
-      return NextResponse.json(
-        { error: 'records array is required and must not be empty' },
-        { status: 400 },
-      );
+      return ErrorHandler.validation('records array is required and must not be empty');
     }
 
     const report = await generateReconciliationReport(records as ReconciliationRecord[]);
@@ -39,11 +37,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response);
   } catch (error) {
     logger.error('Alert generation error:', {}, error);
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : 'Failed to generate alerts',
-      },
-      { status: 500 },
-    );
+    return ErrorHandler.serverError(error);
   }
 }

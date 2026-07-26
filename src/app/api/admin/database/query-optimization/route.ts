@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { queryOptimizer } from "@/lib/db/query-optimizer";
 import { logger } from "@/lib/logger";
+import { ErrorHandler } from "@/lib/error-handler";
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,10 +24,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(analysis);
   } catch (error) {
     logger.error("Failed to fetch query optimization data", { error });
-    return NextResponse.json(
-      { error: "Failed to fetch query optimization data" },
-      { status: 500 },
-    );
+    return ErrorHandler.serverError(error);
   }
 }
 
@@ -40,12 +38,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, message: "Metrics cleared" });
     }
 
-    return NextResponse.json({ error: "Unknown action" }, { status: 400 });
+    return ErrorHandler.validation("Unknown action");
   } catch (error) {
     logger.error("Failed to process query optimization request", { error });
-    return NextResponse.json(
-      { error: "Failed to process request" },
-      { status: 500 },
-    );
+    return ErrorHandler.serverError(error);
   }
 }

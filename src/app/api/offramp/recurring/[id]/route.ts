@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 export async function PUT(
   req: NextRequest,
@@ -11,7 +13,7 @@ export async function PUT(
 
     const validActions = ['pause', 'resume', 'update'];
     if (action && !validActions.includes(action)) {
-      return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+      return ErrorHandler.validation('Invalid action');
     }
 
     const patch: Record<string, unknown> = { id };
@@ -27,7 +29,7 @@ export async function PUT(
 
     return NextResponse.json({ updated: patch });
   } catch {
-    return NextResponse.json({ error: 'Failed to modify recurring schedule' }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to modify recurring schedule'));
   }
 }
 
@@ -38,10 +40,10 @@ export async function DELETE(
   try {
     const { id } = params;
     if (!id) {
-      return NextResponse.json({ error: 'Missing schedule id' }, { status: 400 });
+      return ErrorHandler.validation('Missing schedule id');
     }
     return NextResponse.json({ cancelled: id });
   } catch {
-    return NextResponse.json({ error: 'Failed to cancel recurring schedule' }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to cancel recurring schedule'));
   }
 }

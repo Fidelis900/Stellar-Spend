@@ -1,6 +1,8 @@
 import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { env } from '@/lib/env';
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 export const maxDuration = 10;
 
@@ -44,10 +46,7 @@ export async function POST(request: Request) {
     const { institution, accountIdentifier } = body;
 
     if (!institution || !accountIdentifier) {
-      return NextResponse.json(
-        { error: 'institution and accountIdentifier are required' },
-        { status: 400 }
-      );
+      return ErrorHandler.validation('institution and accountIdentifier are required');
     }
 
     const paycrest = new PaycrestAdapter(env.server.PAYCREST_API_KEY);
@@ -60,9 +59,9 @@ export async function POST(request: Request) {
     if (err instanceof Error && 'status' in err) {
       const httpError = err as PaycrestHttpError;
       const status = httpError.status >= 500 ? 502 : 400;
-      return NextResponse.json({ error: err.message }, { status });
+      return ErrorHandler.handle(err, status);
     }
 
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Internal server error'));
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auditLoggingService } from "@/lib/audit-logging";
 import { logger } from "@/lib/logger";
+import { ErrorHandler } from "@/lib/error-handler";
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,6 +15,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ actions, count: actions.length });
   } catch (error) {
     logger.error("Failed to fetch admin actions", { error });
-    return NextResponse.json({ error: "Failed to fetch admin actions" }, { status: 500 });
+    return ErrorHandler.serverError(error);
   }
 }

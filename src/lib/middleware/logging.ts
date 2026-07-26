@@ -3,8 +3,9 @@ import { recordApiTiming } from '../performance';
 import { logger } from '../logger';
 
 export function createLoggingMiddleware() {
-  return (request: NextRequest, response: NextResponse, durationMs: number): NextResponse => {
+  return (request: NextRequest, response: NextResponse, durationMs: number, requestId?: string): NextResponse => {
     const { pathname } = request.nextUrl;
+    requestId ??= request.headers.get('x-request-id') ?? crypto.randomUUID();
 
     recordApiTiming({
       route: pathname.replace(/\/[0-9a-f-]{8,}/gi, '/:id'),
@@ -14,7 +15,6 @@ export function createLoggingMiddleware() {
       timestamp: Date.now() - durationMs,
     });
 
-    const requestId = request.headers.get('x-request-id') ?? crypto.randomUUID();
     const log = logger.withContext({ requestId });
     const level = response.status >= 500 ? 'error' : response.status >= 400 ? 'warn' : 'info';
     log[level]('http.request', { method: request.method, path: pathname, status: response.status, durationMs });

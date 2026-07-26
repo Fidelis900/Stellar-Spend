@@ -4,6 +4,7 @@ import {
   ErrorContext,
   ErrorType,
   ERROR_STATUS_CODES,
+  ApiError,
   getEnvironmentConfig,
   isError,
   hasMessage
@@ -19,6 +20,19 @@ export class ErrorHandler {
    * Main error handling method that processes any error and returns a standardized response
    */
   static handle(error: unknown, statusCode?: number): NextResponse<StandardErrorResponse> {
+    // Preserve the exact type/status/details for errors raised via ApiError factories
+    if (error instanceof ApiError) {
+      const context: ErrorContext = {
+        originalError: error,
+        statusCode: error.statusCode,
+        errorType: error.errorType,
+        message: error.message,
+        details: error.details,
+      };
+      const response = this.formatResponse(context);
+      return NextResponse.json(response, { status: error.statusCode });
+    }
+
     // Handle timeout errors specifically
     if (error instanceof TimeoutError) {
       return this.timeout(error);
@@ -89,6 +103,58 @@ export class ErrorHandler {
 
     const response = this.formatResponse(context);
     return NextResponse.json(response, { status: context.statusCode });
+  }
+
+  /**
+   * Handle forbidden errors
+   */
+  static forbidden(message?: string): NextResponse<StandardErrorResponse> {
+    const errorMessage = message || 'Forbidden';
+    const context: ErrorContext = {
+      originalError: new Error(errorMessage),
+      statusCode: ERROR_STATUS_CODES[ErrorType.FORBIDDEN],
+      errorType: ErrorType.FORBIDDEN,
+      message: errorMessage
+    };
+
+    const response = this.formatResponse(context);
+    return NextResponse.json(response, { status: context.statusCode });
+  }
+
+  /**
+   * Handle conflict errors (duplicate resource, invalid state transition, etc.)
+   */
+  static conflict(message: string, details?: Record<string, unknown>): NextResponse<StandardErrorResponse> {
+    const context: ErrorContext = {
+      originalError: new Error(message),
+      statusCode: ERROR_STATUS_CODES[ErrorType.CONFLICT],
+      errorType: ErrorType.CONFLICT,
+      message,
+      details: getEnvironmentConfig().includeDetails ? details : undefined
+    };
+
+    const response = this.formatResponse(context);
+    return NextResponse.json(response, { status: context.statusCode });
+  }
+
+  /**
+   * Handle rate limit errors, optionally setting a Retry-After header
+   */
+  static rateLimit(message?: string, retryAfter?: number): NextResponse<StandardErrorResponse> {
+    const errorMessage = message || 'Rate limit exceeded';
+    const context: ErrorContext = {
+      originalError: new Error(errorMessage),
+      statusCode: ERROR_STATUS_CODES[ErrorType.RATE_LIMIT],
+      errorType: ErrorType.RATE_LIMIT,
+      message: errorMessage
+    };
+
+    const response = this.formatResponse(context);
+    const nextResponse = NextResponse.json(response, { status: context.statusCode });
+    if (retryAfter) {
+      nextResponse.headers.set('Retry-After', retryAfter.toString());
+    }
+    return nextResponse;
   }
 
   /**
@@ -177,6 +243,8 @@ export class ErrorHandler {
       if (statusCode === 401) return ErrorType.UNAUTHORIZED;
       if (statusCode === 403) return ErrorType.FORBIDDEN;
       if (statusCode === 404) return ErrorType.NOT_FOUND;
+      if (statusCode === 409) return ErrorType.CONFLICT;
+      if (statusCode === 429) return ErrorType.RATE_LIMIT;
       if (statusCode >= 500) return ErrorType.SERVER_ERROR;
     }
 

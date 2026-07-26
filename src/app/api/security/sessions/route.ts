@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sessionManagementService } from "@/lib/session-management";
 import { logger } from "@/lib/logger";
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 function getClientIP(request: NextRequest): string {
   const forwarded = request.headers.get("x-forwarded-for");
@@ -14,10 +16,7 @@ export async function POST(request: NextRequest) {
   try {
     const userAddress = request.headers.get("x-user-address");
     if (!userAddress) {
-      return NextResponse.json(
-        { error: "User address required" },
-        { status: 400 },
-      );
+      return ErrorHandler.validation("User address required");
     }
 
     const clientIP = getClientIP(request);
@@ -32,10 +31,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(session, { status: 201 });
   } catch (error) {
     logger.error("Failed to create session", { error });
-    return NextResponse.json(
-      { error: "Failed to create session" },
-      { status: 500 },
-    );
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, "Failed to create session"));
   }
 }
 
@@ -43,19 +39,13 @@ export async function GET(request: NextRequest) {
   try {
     const userAddress = request.headers.get("x-user-address");
     if (!userAddress) {
-      return NextResponse.json(
-        { error: "User address required" },
-        { status: 400 },
-      );
+      return ErrorHandler.validation("User address required");
     }
 
     const sessions = await sessionManagementService.getUserSessions(userAddress);
     return NextResponse.json({ sessions });
   } catch (error) {
     logger.error("Failed to fetch sessions", { error });
-    return NextResponse.json(
-      { error: "Failed to fetch sessions" },
-      { status: 500 },
-    );
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, "Failed to fetch sessions"));
   }
 }

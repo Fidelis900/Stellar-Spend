@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auditLoggingService } from "@/lib/audit-logging";
 import { logger } from "@/lib/logger";
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,10 +10,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ retentionDays });
   } catch (error) {
     logger.error("Failed to fetch retention policy", { error });
-    return NextResponse.json(
-      { error: "Failed to fetch retention policy" },
-      { status: 500 },
-    );
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, "Failed to fetch retention policy"));
   }
 }
 
@@ -19,20 +18,14 @@ export async function POST(request: NextRequest) {
   try {
     const adminAddress = request.headers.get("x-admin-address");
     if (!adminAddress) {
-      return NextResponse.json(
-        { error: "Admin address required" },
-        { status: 400 },
-      );
+      return ErrorHandler.validation("Admin address required");
     }
 
     const body = await request.json();
     const { retentionDays } = body;
 
     if (!retentionDays || retentionDays < 1) {
-      return NextResponse.json(
-        { error: "retentionDays must be at least 1" },
-        { status: 400 },
-      );
+      return ErrorHandler.validation("retentionDays must be at least 1");
     }
 
     await auditLoggingService.setRetentionPolicy(retentionDays);
@@ -45,9 +38,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, retentionDays });
   } catch (error) {
     logger.error("Failed to update retention policy", { error });
-    return NextResponse.json(
-      { error: "Failed to update retention policy" },
-      { status: 500 },
-    );
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, "Failed to update retention policy"));
   }
 }

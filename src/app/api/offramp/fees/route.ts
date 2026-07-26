@@ -1,6 +1,7 @@
 import { logger } from '@/lib/logger';
 import { NextResponse, type NextRequest } from 'next/server';
 import { getDetailedFeeBreakdown } from '@/lib/fee-calculation';
+import { ErrorHandler } from '@/lib/error-handler';
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,21 +9,15 @@ export async function POST(request: NextRequest) {
     const { amount, currency, feeMethod, receiveAmount } = body;
 
     if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
-      return NextResponse.json(
-        { error: 'Invalid amount: must be a positive number' },
-        { status: 400 }
-      );
+      return ErrorHandler.validation('Invalid amount: must be a positive number');
     }
 
     if (!currency || typeof currency !== 'string') {
-      return NextResponse.json({ error: 'currency is required' }, { status: 400 });
+      return ErrorHandler.validation('currency is required');
     }
 
     if (!feeMethod || !['stablecoin', 'native'].includes(feeMethod)) {
-      return NextResponse.json(
-        { error: 'feeMethod must be "stablecoin" or "native"' },
-        { status: 400 }
-      );
+      return ErrorHandler.validation('feeMethod must be "stablecoin" or "native"');
     }
 
     const feeBreakdown = await getDetailedFeeBreakdown({
@@ -35,11 +30,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(feeBreakdown);
   } catch (error) {
     logger.error('Fee calculation error:', {}, error);
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : 'Failed to calculate fees',
-      },
-      { status: 500 }
-    );
+    return ErrorHandler.serverError(error);
   }
 }

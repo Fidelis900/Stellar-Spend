@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 import {
   RecurringSchedule,
   RecurringFrequency,
@@ -13,11 +15,11 @@ export async function GET(req: NextRequest) {
   try {
     const userAddress = req.nextUrl.searchParams.get('userAddress');
     if (!userAddress) {
-      return NextResponse.json({ error: 'Missing userAddress' }, { status: 400 });
+      return ErrorHandler.validation('Missing userAddress');
     }
     return NextResponse.json({ userAddress, schedules: [] });
   } catch {
-    return NextResponse.json({ error: 'Failed to fetch recurring schedules' }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to fetch recurring schedules'));
   }
 }
 
@@ -38,15 +40,15 @@ export async function POST(req: NextRequest) {
       } = body;
 
       if (!userAddress || !label || !amount || !currency || !frequency || !beneficiary) {
-        return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        return ErrorHandler.validation('Missing required fields');
       }
 
       if (!VALID_FREQUENCIES.includes(frequency)) {
-        return NextResponse.json({ error: 'Invalid frequency' }, { status: 400 });
+        return ErrorHandler.validation('Invalid frequency');
       }
 
       if (!beneficiary.institution || !beneficiary.accountIdentifier || !beneficiary.accountName || !beneficiary.currency) {
-        return NextResponse.json({ error: 'Invalid beneficiary' }, { status: 400 });
+        return ErrorHandler.validation('Invalid beneficiary');
       }
 
       const now = Date.now();
@@ -70,7 +72,7 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({ schedule }, { status: 201 });
     } catch {
-      return NextResponse.json({ error: 'Failed to create recurring schedule' }, { status: 500 });
+      return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to create recurring schedule'));
     }
   }, { required: true });
 }

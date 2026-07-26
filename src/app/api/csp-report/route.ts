@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
+import { ErrorHandler } from "@/lib/error-handler";
 
 interface CSPReport {
   "csp-report": {
@@ -43,6 +44,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ success: true }, { status: 204 });
   } catch (error) {
     logger.error("Failed to process CSP report", { error });
-    return NextResponse.json({ error: "Failed to process report" }, { status: 400 });
+    return ErrorHandler.validation("Failed to process report");
   }
 }

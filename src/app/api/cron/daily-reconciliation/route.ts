@@ -3,6 +3,8 @@ import { runReconciliationJob, getReconciliationHistory } from '@/lib/reconcilia
 import { dal } from '@/lib/db/dal';
 import { logger } from '@/lib/logger';
 import type { ReconciliationRecord } from '@/lib/reconciliation';
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 async function fetchDailyRecords(): Promise<ReconciliationRecord[]> {
   const yesterday = Date.now() - 24 * 60 * 60 * 1000;
@@ -28,7 +30,7 @@ export async function POST(req: NextRequest) {
   try {
     const secret = req.headers.get('x-cron-secret');
     if (secret !== process.env.CRON_SECRET) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ErrorHandler.unauthorized('Unauthorized');
     }
 
     logger.info('cron.daily-reconciliation.start', {});
@@ -56,6 +58,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     logger.error('cron.daily-reconciliation.failed', {}, err);
-    return NextResponse.json({ error: 'Daily reconciliation failed' }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Daily reconciliation failed'));
   }
 }

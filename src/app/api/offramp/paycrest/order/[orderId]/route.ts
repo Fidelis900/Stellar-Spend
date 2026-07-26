@@ -1,6 +1,7 @@
 import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { env } from '@/lib/env';
+import { ErrorHandler } from '@/lib/error-handler';
 
 export const maxDuration = 10;
 
@@ -31,10 +32,7 @@ export async function GET(
     const { orderId } = params;
 
     if (!orderId || typeof orderId !== 'string') {
-      return NextResponse.json(
-        { error: 'orderId is required' },
-        { status: 400 }
-      );
+      return ErrorHandler.validation('orderId is required');
     }
 
     // Instantiate PaycrestAdapter
@@ -54,18 +52,11 @@ export async function GET(
 
     if (err instanceof PaycrestHttpError) {
       if (err.status === 404) {
-        return NextResponse.json(
-          { error: 'Order not found' },
-          { status: 404 }
-        );
+        return ErrorHandler.notFound("Order");
       }
-      return NextResponse.json(
-        { error: err.message },
-        { status: err.status }
-      );
+      return ErrorHandler.handle(err, err.status);
     }
 
-    const message = err instanceof Error ? err.message : 'Internal server error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return ErrorHandler.serverError(err);
   }
 }

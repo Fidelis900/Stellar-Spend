@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { ErrorHandler } from '@/lib/error-handler';
 import {
   validateSplit,
   computeSplitAmounts,
@@ -22,22 +23,19 @@ export async function GET(req: NextRequest) {
 
     if (action === 'reconcile' && splitId) {
       const reconciliation = reconcileSplit(splitId);
-      if (!reconciliation) return NextResponse.json({ error: 'Split not found' }, { status: 404 });
+      if (!reconciliation) return ErrorHandler.notFound("Split");
       return NextResponse.json({ reconciliation });
     }
 
     if (splitId) {
       const split = SplitStorage.getById(splitId);
-      if (!split) return NextResponse.json({ error: 'Split not found' }, { status: 404 });
+      if (!split) return ErrorHandler.notFound("Split");
       return NextResponse.json({ split });
     }
 
     return NextResponse.json({ splits: SplitStorage.getAll() });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
+    return ErrorHandler.serverError(error);
   }
 }
 
@@ -48,24 +46,21 @@ export async function POST(req: NextRequest) {
       const { totalAmount, currency, recipients } = await req.json();
 
       if (!totalAmount || !currency || !recipients) {
-        return NextResponse.json(
-          { error: 'Missing required fields: totalAmount, currency, recipients' },
-          { status: 400 }
-        );
+        return ErrorHandler.validation('Missing required fields: totalAmount, currency, recipients');
       }
 
       if (!Array.isArray(recipients) || recipients.length === 0) {
-        return NextResponse.json({ error: 'recipients must be a non-empty array' }, { status: 400 });
+        return ErrorHandler.validation('recipients must be a non-empty array');
       }
 
       const validationError = validateSplit(recipients as SplitRecipient[]);
       if (validationError) {
-        return NextResponse.json({ error: validationError }, { status: 400 });
+        return ErrorHandler.validation(validationError);
       }
 
       const fees = calculateSplitFees(totalAmount, recipients.length);
       if (fees.netAmount <= 0) {
-        return NextResponse.json({ error: 'Amount too small to cover split fees' }, { status: 400 });
+        return ErrorHandler.validation('Amount too small to cover split fees');
       }
 
       const splitId = SplitStorage.generateId();
@@ -90,10 +85,7 @@ export async function POST(req: NextRequest) {
         split,
       });
     } catch (error) {
-      return NextResponse.json(
-        { error: error instanceof Error ? error.message : 'Internal server error' },
-        { status: 500 }
-      );
+      return ErrorHandler.serverError(error);
     }
   }, { required: true });
 }
@@ -105,28 +97,22 @@ export async function PATCH(req: NextRequest) {
       const { splitId, recipientId, status, error: recipientError } = await req.json();
 
       if (!splitId || !recipientId || !status) {
-        return NextResponse.json(
-          { error: 'Missing required fields: splitId, recipientId, status' },
-          { status: 400 }
-        );
+        return ErrorHandler.validation('Missing required fields: splitId, recipientId, status');
       }
 
       if (!['completed', 'failed'].includes(status)) {
-        return NextResponse.json({ error: 'status must be "completed" or "failed"' }, { status: 400 });
+        return ErrorHandler.validation('status must be "completed" or "failed"');
       }
 
       const split = SplitStorage.getById(splitId);
-      if (!split) return NextResponse.json({ error: 'Split not found' }, { status: 404 });
+      if (!split) return ErrorHandler.notFound("Split");
 
       SplitStorage.updateResult(splitId, recipientId, { status, error: recipientError });
 
       const updated = SplitStorage.getById(splitId);
       return NextResponse.json({ success: true, split: updated });
     } catch (error) {
-      return NextResponse.json(
-        { error: error instanceof Error ? error.message : 'Internal server error' },
-        { status: 500 }
-      );
+      return ErrorHandler.serverError(error);
     }
   }, { required: true });
 }

@@ -168,28 +168,54 @@ components:
 
   # ───────── Reusable schemas ─────────
   schemas:
+    # Standard error contract returned by every API route (src/lib/error-handler.ts,
+    # src/lib/error-types.ts). Every 4xx/5xx JSON response body conforms to this shape —
+    # there is a single error contract used across the entire API surface.
     Error:
       type: object
       required: [error]
       properties:
         error:
           type: string
-          example: Human-readable error message
-
-    ValidationError:
-      type: object
-      required: [error, details]
-      properties:
-        error:
+          description: Machine-readable error code, stable across releases. Safe to branch client logic on.
+          enum:
+            - validation_error
+            - not_found
+            - unauthorized
+            - forbidden
+            - conflict
+            - rate_limit_exceeded
+            - server_error
+            - external_service_error
+          example: validation_error
+        message:
           type: string
-          example: Validation failed
+          description: Human-readable description of the error, safe to display to end users.
+          example: Invalid request parameters
         details:
           type: object
-          additionalProperties:
-            type: string
-          example:
-            amount: amount must be a positive number
-            "recipient.institution": recipient.institution is required
+          description: >
+            Additional machine-readable context (e.g. per-field validation failures).
+            Only populated outside production; omitted entirely when production hides internals.
+          additionalProperties: true
+
+    ValidationError:
+      description: Error response for validation_error, with per-field detail messages.
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - type: object
+          required: [error, details]
+          properties:
+            error:
+              type: string
+              enum: [validation_error]
+            details:
+              type: object
+              additionalProperties:
+                type: string
+              example:
+                amount: amount must be a positive number
+                "recipient.institution": recipient.institution is required
 
     HealthResponse:
       type: object
@@ -1703,6 +1729,295 @@ paths:
                 $ref: "#/components/schemas/Error"
         "401":
           description: Invalid code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # Not yet called by this repo's frontend (setup/verify cover enrollment) — kept
+  # documented so they aren't mistaken for dead code. See #786.
+  /api/auth/2fa/manage:
+    get:
+      tags: [auth]
+      summary: Get 2FA status for a user
+      operationId: get2FAStatus
+      parameters:
+        - name: x-user-id
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Current 2FA configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  enabled:
+                    type: boolean
+                  method:
+                    type: string
+                    nullable: true
+                    enum: [totp, sms, null]
+                  isEnforced:
+                    type: boolean
+                  backupCodesRemaining:
+                    type: integer
+                  lastVerifiedAt:
+                    type: integer
+                    nullable: true
+        "401":
+          description: Missing x-user-id header
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      tags: [auth]
+      summary: Enable or disable 2FA for a user
+      operationId: update2FAStatus
+      parameters:
+        - name: x-user-id
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action:
+                  type: string
+                  enum: [enable, disable]
+      responses:
+        "200":
+          description: 2FA status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  enabled:
+                    type: boolean
+        "400":
+          description: Invalid action, or 2FA not configured (call /setup first)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Missing x-user-id header
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/auth/2fa/backup-codes:
+    post:
+      tags: [auth]
+      summary: Regenerate backup codes for a user
+      operationId: regenerateBackupCodes
+      parameters:
+        - name: x-user-id
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: New backup codes generated (previous codes invalidated)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  backupCodes:
+                    type: array
+                    items:
+                      type: string
+        "400":
+          description: 2FA not configured for this user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Missing x-user-id header
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/auth/2fa/recovery:
+    post:
+      tags: [auth]
+      summary: Recover access after losing a 2FA device (two-step token flow)
+      description: >
+        Call with `userId` only to initiate — issues a short-lived recovery token sent
+        to the user's verified contact. Call again with `recoveryToken` + `newMethod`
+        to complete the reset and re-enroll with a new method.
+      operationId: recover2FA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: object
+                  required: [userId]
+                  properties:
+                    userId:
+                      type: string
+                - type: object
+                  required: [recoveryToken, newMethod]
+                  properties:
+                    recoveryToken:
+                      type: string
+                    newMethod:
+                      type: string
+                      enum: [totp, sms]
+      responses:
+        "200":
+          description: Recovery initiated, or completed with new 2FA method details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  expiresAt:
+                    type: integer
+                    description: Present when recovery was just initiated
+                  method:
+                    type: string
+                    description: Present when recovery was completed
+                  secret:
+                    type: string
+                    description: TOTP secret, present only when newMethod is totp
+                  backupCodes:
+                    type: array
+                    items:
+                      type: string
+        "400":
+          description: Invalid or expired recovery token, or malformed request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/auth/2fa/enforcement:
+    get:
+      tags: [auth]
+      summary: Get the org-wide 2FA enforcement policy (admin)
+      operationId: getEnforcementPolicy
+      parameters:
+        - name: x-admin-id
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Current enforcement policy
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "401":
+          description: Missing x-admin-id header
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      tags: [auth]
+      summary: Update the org-wide 2FA enforcement policy (admin)
+      operationId: updateEnforcementPolicy
+      parameters:
+        - name: x-admin-id
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Updated enforcement policy
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "401":
+          description: Missing x-admin-id header
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      tags: [auth]
+      summary: Enforce or unenforce 2FA for a specific user (admin)
+      operationId: setUserEnforcement
+      parameters:
+        - name: x-admin-id
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, enforce]
+              properties:
+                userId:
+                  type: string
+                enforce:
+                  type: boolean
+      responses:
+        "200":
+          description: Per-user enforcement updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                  isEnforced:
+                    type: boolean
+        "400":
+          description: Missing userId or enforce
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Missing x-admin-id header
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: 2FA not configured for this user
           content:
             application/json:
               schema:

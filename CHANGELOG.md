@@ -31,6 +31,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Dependency-injection service interfaces** — explicit interfaces for all 13
   application services and a `wrapper-services.ts` layer so function-based services
   integrate cleanly with the DI container. (#674)
+- **`openapi.yaml` coverage for `/api/auth/2fa/{manage,recovery,backup-codes,enforcement}`**
+  — audited `src/app/api/auth` for routes with no client (#786). These four aren't
+  stale/superseded endpoints (there's no old-vs-new pair to retire); they're real,
+  working 2FA account-management functionality shipped alongside `setup`/`verify`
+  in #504 but never wired to a frontend or documented. Left in place and documented
+  rather than deleted.
 
 ### Changed
 
@@ -45,6 +51,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   number patterns; expanded `REDACT_KEYS`). Raw `console.*` usage is removed and
   lint-enforced via `no-console: error`, with log level configurable through the
   `LOG_LEVEL` env var. (#676)
+- **Fixed request-id correlation** — root `middleware.ts` generated a correlation ID
+  and logged it for the top-level `http.request` line, but never wrote it back into
+  the request headers a route handler receives, so `logger.withContext({requestId})`
+  calls inside a route picked up a different (or no) ID than the one already logged
+  for that request. The resolved ID is now forwarded via
+  `NextResponse.next({request: {headers}})` so route-level logs actually correlate
+  with the request that produced them. (#785)
+- **Standardized API error response format** (`src/lib/error-handler.ts`,
+  `src/lib/error-types.ts`) — routes previously returned errors as bespoke
+  `NextResponse.json({error}/{message}/...)` shapes, or one of two different
+  half-adopted "standard error" systems. All ~150 routes under `src/app/api` now
+  return the same `{error, message?, details?}` envelope via a single `ErrorHandler`,
+  documented in `openapi.yaml`. Added a typed `ApiError` so a route can raise an
+  exact code/status/details instead of `ErrorHandler` guessing from message text.
+  (#783)
 
 ### Removed
 
@@ -52,3 +73,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `PR_DESCRIPTION_674.md`, `PR_DESCRIPTION_676.md`); their still-relevant content is
   preserved in this changelog. A `.gitignore` rule now prevents `PR_DESCRIPTION*.md`
   files from being committed to the repository root. (#755)
+- **Two unused, competing error-handling implementations** — `src/lib/errors/*`
+  (an `ApplicationError` class hierarchy + middleware) and
+  `src/lib/error-migration-helpers.ts`, both with zero call sites anywhere in
+  `src/`, fully superseded by the now-standardized `ErrorHandler`. (#783)
+- **`src/lib/middleware/request-logging.middleware.ts`** — a second, unused
+  per-handler request-logging wrapper duplicating what root `middleware.ts`
+  already does globally; zero call sites anywhere in `src/`. (#785)
+- **`migrations/001_initial_schema.sql` and `002_add_balance.sql`** — a dead
+  `users`/`transactions` schema (UUID ids, `DECIMAL` amounts) from an early
+  prototype, unreferenced anywhere in `src/`, superseded by
+  `001_create_transactions.sql`/`002_add_transaction_analytics_fields.sql` (the
+  `TEXT`-id, Stellar-native schema every route and repository actually uses). No
+  duplicate migration-number prefixes remain in `migrations/`. (#784)

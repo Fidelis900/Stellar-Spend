@@ -3,12 +3,14 @@ import { scanStalledTransactions, getTimeoutMetrics } from '@/lib/transaction-ti
 import { dal } from '@/lib/db/dal';
 import { logger } from '@/lib/logger';
 import { runReconciliationJob } from '@/lib/reconciliation';
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 export async function POST(req: NextRequest) {
   try {
     const secret = req.headers.get('x-cron-secret');
     if (secret !== process.env.CRON_SECRET) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ErrorHandler.unauthorized('Unauthorized');
     }
 
     logger.info('cron.scan-stalls.start', {});
@@ -40,6 +42,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     logger.error('cron.scan-stalls.failed', {}, err);
-    return NextResponse.json({ error: 'Stall scan failed' }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Stall scan failed'));
   }
 }

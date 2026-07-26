@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const merchant = await merchantService.getMerchantByUserId(userId);
-    if (!merchant) return NextResponse.json({ error: 'Merchant not found' }, { status: 404 });
+    if (!merchant) return ErrorHandler.notFound('Merchant');
     return NextResponse.json({ data: merchant });
   } catch (error) {
     return ErrorHandler.serverError(error);

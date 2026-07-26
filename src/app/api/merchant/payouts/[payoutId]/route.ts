@@ -11,7 +11,7 @@ export async function GET(
 
   try {
     const payout = await merchantService.getBulkPayoutStatus(payoutId);
-    if (!payout) return NextResponse.json({ error: 'Payout not found' }, { status: 404 });
+    if (!payout) return ErrorHandler.notFound('Payout');
     return NextResponse.json({ data: payout });
   } catch (error) {
     return ErrorHandler.serverError(error);

@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { globalContainer } from '@/lib/di';
 import { SERVICE_KEYS } from '@/lib/di/registry';
 import { QRCodeData } from '@/types/qrcode';
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,10 +12,7 @@ export async function POST(req: NextRequest) {
       await req.json();
 
     if (!transactionId || !data) {
-      return NextResponse.json(
-        { error: 'Transaction ID and data are required' },
-        { status: 400 }
-      );
+      return ErrorHandler.validation('Transaction ID and data are required');
     }
 
     const svc = await globalContainer.resolve(SERVICE_KEYS.QRCODE_SERVICE);
@@ -22,10 +21,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(qrCode, { status: 201 });
   } catch (error) {
     logger.error('Error creating QR code:', {}, error);
-    return NextResponse.json(
-      { error: 'Failed to create QR code' },
-      { status: 500 }
-    );
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to create QR code'));
   }
 }
 
@@ -35,21 +31,21 @@ export async function GET(req: NextRequest) {
     const format = (req.nextUrl.searchParams.get('format') || 'svg') as 'svg' | 'png';
 
     if (!transactionId) {
-      return NextResponse.json({ error: 'Transaction ID required' }, { status: 400 });
+      return ErrorHandler.validation('Transaction ID required');
     }
 
     const svc = await globalContainer.resolve(SERVICE_KEYS.QRCODE_SERVICE);
     const qrCode = await svc.getQRCode(transactionId);
 
     if (!qrCode) {
-      return NextResponse.json({ error: 'QR code not found' }, { status: 404 });
+      return ErrorHandler.notFound("QR code");
     }
 
     // If requesting SVG format, return as SVG
     if (format === 'svg') {
       const data = svc.parseQRData(qrCode.qrData);
       if (!data) {
-        return NextResponse.json({ error: 'Invalid QR data' }, { status: 400 });
+        return ErrorHandler.validation('Invalid QR data');
       }
 
       const svg = svc.generateSVGPattern(qrCode.qrData, 200);
@@ -61,9 +57,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(qrCode);
   } catch (error) {
     logger.error('Error fetching QR code:', {}, error);
-    return NextResponse.json(
-      { error: 'Failed to fetch QR code' },
-      { status: 500 }
-    );
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to fetch QR code'));
   }
 }

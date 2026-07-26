@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
       const result = await processRefund(transactionId, reason, partial);
       if (!result.success) {
-        return NextResponse.json({ error: result.error }, { status: 400 });
+        return ErrorHandler.validation(result.error ?? 'Refund failed');
       }
       return NextResponse.json({ data: result });
     } catch (err) {
@@ -42,7 +42,7 @@ export async function GET(request: Request) {
     }
     const tx = await dal.getById(transactionId);
     if (!tx) {
-      return NextResponse.json({ error: 'Transaction not found' }, { status: 404 });
+      return ErrorHandler.notFound('Transaction');
     }
     return NextResponse.json({ data: { transactionId, eligible: isRefundEligible(tx), status: tx.status, payoutStatus: tx.payoutStatus } });
   } catch (err) {

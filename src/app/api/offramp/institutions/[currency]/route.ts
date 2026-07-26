@@ -2,6 +2,8 @@ import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { env } from '@/lib/env';
 import { getCorridorInstitutions, getCorridorConfig } from '@/lib/corridor-config';
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 export const maxDuration = 10;
 
@@ -75,14 +77,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ currenc
     if (err instanceof Error && 'status' in err) {
       const httpError = err as PaycrestHttpError;
       if (httpError.status === 400 || httpError.status === 404) {
-        return NextResponse.json(
-          { error: `Unsupported currency: ${currency}` },
-          { status: 400 }
-        );
+        return ErrorHandler.validation(`Unsupported currency: ${currency}`);
       }
-      return NextResponse.json({ error: err.message }, { status: httpError.status });
+      return ErrorHandler.handle(err, httpError.status);
     }
 
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Internal server error'));
   }
 }

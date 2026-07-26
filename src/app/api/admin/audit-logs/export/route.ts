@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auditLoggingService } from "@/lib/audit-logging";
 import { logger } from "@/lib/logger";
+import { ErrorHandler } from "@/lib/error-handler";
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,6 +29,6 @@ export async function GET(request: NextRequest) {
     return new NextResponse(export_.data, { headers });
   } catch (error) {
     logger.error("Failed to export audit logs", { error });
-    return NextResponse.json({ error: "Failed to export audit logs" }, { status: 500 });
+    return ErrorHandler.serverError(error);
   }
 }

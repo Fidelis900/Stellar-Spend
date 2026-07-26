@@ -3,12 +3,19 @@ import { env } from '@/lib/env';
 import { paycrestOrderLimiter, getClientIp } from '@/lib/offramp/utils/rate-limiter';
 import { generateRequestId, createRequestLogger } from '@/lib/offramp/utils/logger';
 import { withIdempotency } from '@/lib/idempotency';
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 export const maxDuration = 20;
 
 import { PayoutOrderRequest } from '@/lib/offramp/types';
 
 import { PaycrestAdapter, PaycrestHttpError } from '@/lib/offramp/adapters/paycrest-adapter';
+
+function withRequestId<T>(response: NextResponse<T>, requestId: string): NextResponse<T> {
+  response.headers.set('X-Request-Id', requestId);
+  return response;
+}
 
 /**
  * POST /api/offramp/paycrest/order
@@ -51,16 +58,9 @@ export async function POST(req: NextRequest) {
       const rateLimitCheck = await paycrestOrderLimiter.check(clientIp);
       if (!rateLimitCheck.allowed) {
         logger.logError(429, 'Rate limit exceeded');
-        return NextResponse.json(
-          { error: 'Too many requests' },
-          {
-            status: 429,
-            headers: {
-              'Retry-After': String(rateLimitCheck.retryAfter),
-              'X-Request-Id': requestId,
-            },
-          }
-        );
+        const res = withRequestId(ErrorHandler.rateLimit('Too many requests', rateLimitCheck.retryAfter), requestId);
+        res.headers.set('Retry-After', String(rateLimitCheck.retryAfter));
+        return res;
       }
 
       const body = await req.json();
@@ -120,9 +120,9 @@ export async function POST(req: NextRequest) {
 
       if (Object.keys(errors).length > 0) {
         logger.logError(400, 'Validation failed');
-        return NextResponse.json(
-          { error: 'Validation failed', details: errors },
-          { status: 400, headers: { 'X-Request-Id': requestId } }
+        return withRequestId(
+          ErrorHandler.handle(new ApiError(ErrorType.VALIDATION, 'Validation failed', 400, errors)),
+          requestId
         );
       }
 
@@ -154,18 +154,11 @@ export async function POST(req: NextRequest) {
 
       if (err instanceof PaycrestHttpError) {
         logger.logError(err.status, err.message);
-        return NextResponse.json(
-          { error: err.message },
-          { status: err.status, headers: { 'X-Request-Id': requestId } }
-        );
+        return withRequestId(ErrorHandler.handle(err, err.status), requestId);
       }
 
-      const message = err instanceof Error ? err.message : 'Internal server error';
-      logger.logError(500, message);
-      return NextResponse.json(
-        { error: message },
-        { status: 500, headers: { 'X-Request-Id': requestId } }
-      );
+      logger.logError(500, err instanceof Error ? err.message : 'Internal server error');
+      return withRequestId(ErrorHandler.serverError(err), requestId);
     }
   }, { required: true });
 }

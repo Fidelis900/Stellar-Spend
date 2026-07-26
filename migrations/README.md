@@ -88,7 +88,7 @@ DROP INDEX IF EXISTS idx_example_created_at;
 DROP TABLE IF EXISTS example;
 ```
 
-[`002_add_balance.sql`](./002_add_balance.sql) is the reference example of a correctly formatted migration in this directory.
+No file in this directory is currently formatted this way (see [Known issues #2](#2-no-migration-in-this-directory-has---up----down-markers)) — use the template above, not an existing file, as your reference.
 
 ### Writing the `down` block
 
@@ -210,7 +210,7 @@ These are current, verifiable problems in this directory. They are documented he
 
 This is fixed as of `scripts/migrate.ts`'s `reconcileLegacyIds()`: the runner now keys `schema_migrations.id` off the filename slug with the numeric prefix stripped (e.g. `create_transaction_disputes`), not the number itself. On startup it re-keys any legacy row still using a bare-numeric id to the slug derived from that row's own `name` column, so renumbering these files does not desync already-applied tracking on any deployed database, whatever its actual applied state turns out to be. The colliding files (`010_add_ip_whitelisting.sql`, `010_add_query_indexes.sql`, `010_create_transaction_disputes.sql`; `017_create_onramp_transactions.sql`, `017_create_webhook_subscriptions.sql`; `021_add_webhook_schema_version.sql`, `021_db_optimization_701.sql`) were renumbered sequentially into `010`–`026` based on their actual git commit history order.
 
-`001` and `002` still each have two files (`001_create_transactions.sql`/`001_initial_schema.sql`, `002_add_balance.sql`/`002_add_transaction_analytics_fields.sql`) — same defect class, not renumbered here since they weren't in scope for #790. The id-stability fix above means they're no longer at risk of the runner-abort/skip failure modes described above, but the duplicate prefixes should still be cleaned up for readability.
+`001` and `002` each had two files (`001_create_transactions.sql`/`001_initial_schema.sql`, `002_add_balance.sql`/`002_add_transaction_analytics_fields.sql`) — same defect class, not renumbered when #790 shipped. As of #784, `001_initial_schema.sql` and `002_add_balance.sql` have been removed rather than renumbered: they described an unrelated, unreferenced `users`/`transactions` schema (UUID ids, `DECIMAL` amounts) from an early prototype that predates the Stellar-native schema (`TEXT` ids, `user_address`, beneficiary fields) every route and repository in `src/` actually uses. Nothing in the codebase queries a `users` table. `001_create_transactions.sql` and `002_add_transaction_analytics_fields.sql` are the sole, authoritative `001`/`002` migrations now — no duplicate prefixes remain anywhere in this directory.
 
 To check for a new collision:
 
@@ -218,13 +218,13 @@ To check for a new collision:
 ls migrations/*.sql | sed 's#.*/##' | cut -d_ -f1 | sort | uniq -d
 ```
 
-### 2. Most migrations have no `-- up` / `-- down` markers
+### 2. No migration in this directory has `-- up` / `-- down` markers
 
-Only `001_initial_schema.sql` and `002_add_balance.sql` contain the markers the runner splits on. The other 26 files parse to an empty `up` block and an empty `down` block.
+`001_initial_schema.sql` and `002_add_balance.sql` were the only two files that ever contained the markers the runner splits on; both were removed in #784 as dead schema (see above). Every remaining file parses to an empty `up` block and an empty `down` block.
 
 The consequence is the silent failure described in [File format](#file-format): the runner records these migrations as applied without their SQL reaching the database, and `down` is a no-op, so they cannot be rolled back.
 
-The schema those files describe is present in deployed environments, which means it was applied by some route other than this runner. Reconstructing the markers is mechanical for most files — the whole body becomes the `up` block — but the `down` blocks have to be written from scratch and verified individually.
+The schema these files describe is present in deployed environments, which means it was applied by some route other than this runner. Reconstructing the markers is mechanical for most files — the whole body becomes the `up` block — but the `down` blocks have to be written from scratch and verified individually.
 
 **New migrations must include the markers.** Do not follow the majority pattern in this directory.
 

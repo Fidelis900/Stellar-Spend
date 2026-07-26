@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { ErrorHandler } from '@/lib/error-handler';
+import { ApiError, ErrorType } from '@/lib/error-types';
 import {
   createBatch,
   addTransactionToBatch,
@@ -18,14 +20,14 @@ export async function POST(req: NextRequest) {
 
       if (action === 'cancel') {
         const { batchId } = body;
-        if (!batchId) return NextResponse.json({ error: 'Missing batchId' }, { status: 400 });
+        if (!batchId) return ErrorHandler.validation('Missing batchId');
         const result = await cancelBatch(batchId);
         return NextResponse.json({ batchId, status: 'cancelled', result: result.rows[0] });
       }
 
       if (action === 'execute') {
         const { batchId } = body;
-        if (!batchId) return NextResponse.json({ error: 'Missing batchId' }, { status: 400 });
+        if (!batchId) return ErrorHandler.validation('Missing batchId');
         const result = await executeBatch(batchId, async (payload) => {
           return `tx_${Date.now()}`;
         });
@@ -42,7 +44,7 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({ batchId: batch.id, status: 'created' });
     } catch (error) {
-      return NextResponse.json({ error: 'Failed to process batch request' }, { status: 500 });
+      return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to process batch request'));
     }
   }, { required: true });
 }
@@ -60,7 +62,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (!batchId) {
-      return NextResponse.json({ error: 'Missing batchId' }, { status: 400 });
+      return ErrorHandler.validation('Missing batchId');
     }
 
     if (view === 'progress') {
@@ -71,6 +73,6 @@ export async function GET(req: NextRequest) {
     const status = await getBatchStatus(batchId);
     return NextResponse.json(status);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to get batch status' }, { status: 500 });
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to get batch status'));
   }
 }

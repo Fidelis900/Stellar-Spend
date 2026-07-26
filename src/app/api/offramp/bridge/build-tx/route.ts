@@ -4,8 +4,14 @@ import { validateAmount, validateAddress } from '@/lib/offramp/utils/validation'
 import { extractErrorMessage } from '@/lib/offramp/utils/errors';
 import { buildTxLimiter, getClientIp } from '@/lib/offramp/utils/rate-limiter';
 import { generateRequestId, createRequestLogger } from '@/lib/offramp/utils/logger';
+import { ErrorHandler } from '@/lib/error-handler';
 
 export const maxDuration = 30;
+
+function withRequestId<T>(response: NextResponse<T>, requestId: string): NextResponse<T> {
+  response.headers.set('X-Request-Id', requestId);
+  return response;
+}
 
 /**
  * POST /api/offramp/bridge/build-tx
@@ -37,16 +43,9 @@ export async function POST(request: NextRequest) {
     const rateLimitCheck = await buildTxLimiter.check(clientIp);
     if (!rateLimitCheck.allowed) {
       logger.logError(429, 'Rate limit exceeded');
-      return NextResponse.json(
-        { error: 'Too many requests' },
-        {
-          status: 429,
-          headers: {
-            'Retry-After': String(rateLimitCheck.retryAfter),
-            'X-Request-Id': requestId,
-          },
-        }
-      );
+      const res = withRequestId(ErrorHandler.rateLimit('Too many requests', rateLimitCheck.retryAfter), requestId);
+      res.headers.set('Retry-After', String(rateLimitCheck.retryAfter));
+      return res;
     }
 
     const body = await request.json();
@@ -55,34 +54,22 @@ export async function POST(request: NextRequest) {
     // Validate inputs
     if (!validateAmount(amount)) {
       logger.logError(400, 'Invalid amount: must be a positive number');
-      return NextResponse.json(
-        { error: 'Invalid amount: must be a positive number' },
-        { status: 400, headers: { 'X-Request-Id': requestId } }
-      );
+      return withRequestId(ErrorHandler.validation('Invalid amount: must be a positive number'), requestId);
     }
 
     if (!validateAddress(fromAddress, 'stellar')) {
       logger.logError(400, 'Invalid Stellar address');
-      return NextResponse.json(
-        { error: 'Invalid Stellar address' },
-        { status: 400, headers: { 'X-Request-Id': requestId } }
-      );
+      return withRequestId(ErrorHandler.validation('Invalid Stellar address'), requestId);
     }
 
     if (!validateAddress(toAddress, 'base')) {
       logger.logError(400, 'Invalid Base address');
-      return NextResponse.json(
-        { error: 'Invalid Base address' },
-        { status: 400, headers: { 'X-Request-Id': requestId } }
-      );
+      return withRequestId(ErrorHandler.validation('Invalid Base address'), requestId);
     }
 
     if (!['native', 'stablecoin'].includes(feePaymentMethod)) {
       logger.logError(400, 'Invalid feePaymentMethod: must be "native" or "stablecoin"');
-      return NextResponse.json(
-        { error: 'Invalid feePaymentMethod: must be "native" or "stablecoin"' },
-        { status: 400, headers: { 'X-Request-Id': requestId } }
-      );
+      return withRequestId(ErrorHandler.validation('Invalid feePaymentMethod: must be "native" or "stablecoin"'), requestId);
     }
 
     // Initialize Allbridge SDK
@@ -113,10 +100,7 @@ export async function POST(request: NextRequest) {
 
     if (!stellarChain || !baseChain) {
       logger.logError(500, 'Failed to fetch chain details from Allbridge');
-      return NextResponse.json(
-        { error: 'Failed to fetch chain details from Allbridge' },
-        { status: 500, headers: { 'X-Request-Id': requestId } }
-      );
+      return withRequestId(ErrorHandler.handle(new Error('Failed to fetch chain details from Allbridge')), requestId);
     }
 
     // Find USDC tokens
@@ -125,10 +109,7 @@ export async function POST(request: NextRequest) {
 
     if (!sourceToken || !destinationToken) {
       logger.logError(500, 'USDC token not found on one or both chains');
-      return NextResponse.json(
-        { error: 'USDC token not found on one or both chains' },
-        { status: 500, headers: { 'X-Request-Id': requestId } }
-      );
+      return withRequestId(ErrorHandler.handle(new Error('USDC token not found on one or both chains')), requestId);
     }
 
     // Get fee options
@@ -184,42 +165,27 @@ export async function POST(request: NextRequest) {
     if (message.includes('resulting balance is not within the allowed range')) {
       const userFriendly = "Insufficient XLM balance for native gas fee. Your remaining XLM would fall below Stellar's minimum account reserve. Switch to USDC fee payment or add more XLM.";
       logger.logError(500, userFriendly);
-      return NextResponse.json(
-        { error: userFriendly },
-        { status: 500, headers: { 'X-Request-Id': requestId } }
-      );
+      return withRequestId(ErrorHandler.handle(new Error(userFriendly)), requestId);
     }
 
     if (message.includes('contract call failed') && message.includes('transfer')) {
       const userFriendly = "A token transfer in the bridge contract failed during simulation. This usually means insufficient balance for the amount + fees.";
       logger.logError(500, userFriendly);
-      return NextResponse.json(
-        { error: userFriendly },
-        { status: 500, headers: { 'X-Request-Id': requestId } }
-      );
+      return withRequestId(ErrorHandler.handle(new Error(userFriendly)), requestId);
     }
 
     // Generic simulation error handling
     if (message.includes('Simulation failed')) {
       logger.logError(500, message);
-      return NextResponse.json(
-        { error: message },
-        { status: 500, headers: { 'X-Request-Id': requestId } }
-      );
+      return withRequestId(ErrorHandler.handle(new Error(message)), requestId);
     }
 
     if (message.includes('Invalid')) {
       logger.logError(400, message);
-      return NextResponse.json(
-        { error: message },
-        { status: 400, headers: { 'X-Request-Id': requestId } }
-      );
+      return withRequestId(ErrorHandler.validation(message), requestId);
     }
 
     logger.logError(500, message);
-    return NextResponse.json(
-      { error: 'Failed to build transaction' },
-      { status: 500, headers: { 'X-Request-Id': requestId } }
-    );
+    return withRequestId(ErrorHandler.handle(new Error('Failed to build transaction')), requestId);
   }
 }

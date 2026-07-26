@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db/client";
 import { queryOptimizer } from "@/lib/db/query-optimizer";
 import { logger } from "@/lib/logger";
+import { ErrorHandler } from "@/lib/error-handler";
+import { ApiError, ErrorType } from "@/lib/error-types";
 
 export async function GET(request: NextRequest) {
   try {
@@ -41,13 +43,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(health);
   } catch (error) {
     logger.error("Database health check failed", { error });
-    return NextResponse.json(
-      {
-        status: "unhealthy",
-        timestamp: Date.now(),
-        error: "Database connection failed",
-      },
-      { status: 503 },
-    );
+    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, "Database connection failed", 503));
   }
 }

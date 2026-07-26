@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getTransactionQueue, getDeliveryRetryQueue } from '@/lib/priority-queue';
 import { list } from '@/lib/webhook/dlq';
 import { logger } from '@/lib/logger';
+import { ErrorHandler } from '@/lib/error-handler';
 
 export async function GET() {
   try {
@@ -22,6 +23,6 @@ export async function GET() {
     });
   } catch (err) {
     logger.error('metrics.fetch_failed', {}, err);
-    return NextResponse.json({ ok: false, error: 'Failed to fetch metrics' }, { status: 500 });
+    return ErrorHandler.serverError(err);
   }
 }
