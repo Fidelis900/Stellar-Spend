@@ -60,7 +60,15 @@ npm test              # Unit + integration tests
 
 ### Contract development (Soroban smart contracts)
 
-If you modify files in the `contracts/` directory, you must audit Rust dependencies for security vulnerabilities:
+If you modify files in the `contracts/` directory, you must:
+
+1. **Fix Clippy warnings** – ensure no linting issues:
+```bash
+cd contracts
+cargo clippy --workspace -- -D warnings
+```
+
+2. **Audit Rust dependencies** for security vulnerabilities:
 
 ```bash
 # Option 1: Use the provided audit script
@@ -73,6 +81,7 @@ cargo audit --deny warnings
 
 **Prerequisites for contract development:**
 - Rust toolchain (install from https://rustup.rs/)
+- `cargo-clippy` (included with rustup)
 - `cargo-audit` for vulnerability scanning (install with `cargo install cargo-audit`)
 
 **Set up local pre-commit hooks (optional but recommended):**
@@ -82,8 +91,9 @@ pre-commit install
 # Now cargo audit will run automatically before commits that touch Cargo.toml files
 ```
 
-**Common audit workflows:**
-- Run before pushing contract changes: `./scripts/audit-contracts.sh`
+**Common workflows before pushing contract changes:**
+- Run clippy: `cargo clippy --workspace -- -D warnings`
+- Audit for vulnerabilities: `./scripts/audit-contracts.sh`
 - Check for RUSTSEC advisories: `cargo audit --json` (for CI/CD integration)
 - Update vulnerable dependencies: `cargo update`
 

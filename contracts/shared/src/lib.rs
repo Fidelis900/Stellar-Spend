@@ -2,10 +2,12 @@
 //! Stellar-Spend smart contracts.
 //!
 //! # Modules
-//! - [`errors`] – canonical [`ContractError`] enum (stable numeric codes)
-//! - [`auth`]   – signer / threshold verification helpers
+//! - [`errors`]   – canonical [`ContractError`] enum (stable numeric codes)
+//! - [`auth`]     – signer / threshold verification helpers
+//! - [`token`]    – unified token transfer/balance wrapper with consistent error handling
 
 #![no_std]
 
 pub mod auth;
 pub mod errors;
+pub mod token;
