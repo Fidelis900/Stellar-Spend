@@ -1,105 +1,126 @@
-#[cfg(test)]
-mod tests {
-    use escrow::EscrowContract;
+//! End-to-end lifecycle tests for `escrow`, driven through the generated client.
+//!
+//! `src/tests.rs` covers per-entry-point behaviour and authorisation. This file covers
+//! whole flows across multiple entry points and multiple concurrent deposits.
 
-    #[test]
-    fn test_deposit_flow() {
-        // User deposits funds into escrow
-        // State: amount=100, released=false, refunded=false
-        let amount = 100i128;
-        let released = false;
-        let refunded = false;
+use escrow::{EscrowContract, EscrowContractClient, Error};
+use soroban_sdk::testutils::{Address as _, Ledger as _};
+use soroban_sdk::{Address, Env, String};
 
-        assert!(amount > 0);
-        assert!(!released && !refunded);
+const DEFAULT_TIMEOUT_LEDGERS: u32 = 604_800;
+
+struct Harness {
+    env: Env,
+    client: EscrowContractClient<'static>,
+}
+
+fn harness() -> Harness {
+    let env = Env::default();
+    env.mock_all_auths();
+    let contract_id = env.register_contract(None, EscrowContract);
+    let client = EscrowContractClient::new(&env, &contract_id);
+    client.init(&Address::generate(&env));
+    Harness { env, client }
+}
+
+impl Harness {
+    fn deposit(&self, amount: i128) -> String {
+        self.client.deposit(
+            &Address::generate(&self.env),
+            &amount,
+            &Address::generate(&self.env),
+            &Address::generate(&self.env),
+        )
     }
 
-    #[test]
-    fn test_release_flow() {
-        // Settlement authority releases funds to bridge
-        // State transitions: (unreleased, unrefunded) -> (released, unrefunded)
-        let mut released = false;
-        let refunded = false;
-
-        released = true;
-
-        assert!(released && !refunded);
+    fn advance(&self, by: u32) {
+        self.env.ledger().with_mut(|li| li.sequence_number += by);
     }
+}
 
-    #[test]
-    fn test_refund_flow_after_timeout() {
-        // After timeout, depositor can refund
-        // State transitions: (unreleased, unrefunded) -> (unreleased, refunded)
-        let released = false;
-        let mut refunded = false;
-        let current_ledger = 1000u32;
-        let timeout_ledger = 605800u32;
+#[test]
+fn happy_path_deposit_then_release() {
+    let h = harness();
+    let id = h.deposit(100i128);
 
-        if current_ledger >= timeout_ledger {
-            refunded = true;
-        }
+    assert_eq!(h.client.get_deposit(&id), (100i128, false, false));
+    assert!(!h.client.can_refund(&id));
 
-        assert!(!released && refunded);
-    }
+    let recipient = Address::generate(&h.env);
+    assert_eq!(h.client.release(&id, &recipient), 100i128);
+    assert_eq!(h.client.get_deposit(&id), (100i128, true, false));
+}
 
-    #[test]
-    fn test_cannot_release_and_refund() {
-        // Cannot perform both operations on same deposit
-        let released = true;
-        let refunded = false;
+#[test]
+fn timeout_path_deposit_then_refund() {
+    let h = harness();
+    let id = h.deposit(250i128);
 
-        let can_refund = !released && !refunded;
-        assert!(!can_refund);
-    }
+    assert!(!h.client.can_refund(&id), "not refundable before timeout");
+    h.advance(DEFAULT_TIMEOUT_LEDGERS);
+    assert!(
+        h.client.can_refund(&id),
+        "refundable once ledger reaches timeout_ledger"
+    );
 
-    #[test]
-    fn test_settlement_authority_protection() {
-        // Only settlement authority can release
-        // This is enforced by require_auth in contract
-        let is_settlement_auth = true;
-        assert!(is_settlement_auth, "Settlement auth required");
-    }
+    assert_eq!(h.client.refund(&id), 250i128);
+    assert_eq!(h.client.get_deposit(&id), (250i128, false, true));
+}
 
-    #[test]
-    fn test_depositor_refund_after_timeout() {
-        // Depositor can only refund after timeout period
-        let current_ledger = 1000u32;
-        let timeout_ledger = 605800u32;
+#[test]
+fn release_and_refund_are_mutually_exclusive() {
+    let h = harness();
+    let released_id = h.deposit(10i128);
+    let refunded_id = h.deposit(20i128);
+    let recipient = Address::generate(&h.env);
 
-        let can_refund = current_ledger >= timeout_ledger;
-        assert!(!can_refund, "Should not be able to refund before timeout");
+    h.client.release(&released_id, &recipient);
+    h.advance(DEFAULT_TIMEOUT_LEDGERS);
+    h.client.refund(&refunded_id);
 
-        let current_ledger_later = 606000u32;
-        let can_refund_later = current_ledger_later >= timeout_ledger;
-        assert!(can_refund_later, "Should be able to refund after timeout");
-    }
+    // Each deposit is terminal in its own way and neither can cross over.
+    assert_eq!(
+        h.client.try_refund(&released_id),
+        Err(Ok(Error::AlreadyReleased))
+    );
+    assert_eq!(
+        h.client.try_release(&refunded_id, &recipient),
+        Err(Ok(Error::AlreadyRefunded))
+    );
+}
 
-    #[test]
-    fn test_multiple_concurrent_deposits() {
-        // Multiple deposits can exist independently
-        let deposit1_id = "user1:bridge:1000";
-        let deposit2_id = "user2:bridge:1001";
+#[test]
+fn concurrent_deposits_settle_independently() {
+    let h = harness();
+    let ids: [String; 3] = [h.deposit(1i128), h.deposit(2i128), h.deposit(3i128)];
 
-        assert_ne!(deposit1_id, deposit2_id);
-    }
+    // All three IDs are distinct even though they share a ledger.
+    assert_ne!(ids[0], ids[1]);
+    assert_ne!(ids[1], ids[2]);
+    assert_ne!(ids[0], ids[2]);
 
-    #[test]
-    fn test_idempotent_refund() {
-        // Cannot refund twice
-        let mut refunded = false;
+    let recipient = Address::generate(&h.env);
+    h.client.release(&ids[1], &recipient);
 
-        refunded = true;
-        let can_refund_again = !refunded;
+    // Releasing the middle deposit leaves the others untouched.
+    assert_eq!(h.client.get_deposit(&ids[0]), (1i128, false, false));
+    assert_eq!(h.client.get_deposit(&ids[1]), (2i128, true, false));
+    assert_eq!(h.client.get_deposit(&ids[2]), (3i128, false, false));
 
-        assert!(!can_refund_again, "Cannot refund twice");
-    }
+    h.advance(DEFAULT_TIMEOUT_LEDGERS);
+    assert_eq!(h.client.refund(&ids[0]), 1i128);
+    assert!(!h.client.can_refund(&ids[1]), "released deposit stays settled");
+    assert!(h.client.can_refund(&ids[2]), "untouched deposit still refundable");
+}
 
-    #[test]
-    fn test_deposit_id_uniqueness() {
-        // Each deposit has unique ID based on depositor, bridge, and timestamp
-        let id1 = format!("{}:{}:{}", "user1", "bridge1", "1000");
-        let id2 = format!("{}:{}:{}", "user1", "bridge2", "1000");
+#[test]
+fn refund_survives_an_unavailable_settlement_authority() {
+    // The scenario ADR-008's refund guarantee exists for: the authority never releases,
+    // and the user exits with no cooperation and no authorisation entries.
+    let h = harness();
+    let id = h.deposit(500i128);
+    h.advance(DEFAULT_TIMEOUT_LEDGERS);
 
-        assert_ne!(id1, id2);
-    }
+    h.env.set_auths(&[]);
+    assert_eq!(h.client.refund(&id), 500i128);
 }
