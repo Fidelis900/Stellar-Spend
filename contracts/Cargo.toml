@@ -1,7 +1,8 @@
 [workspace]
-members = ["escrow", "fee-manager", "multisig-authority"]
+members = ["escrow", "fee-manager", "multisig-authority", "treasury", "shared"]
 resolver = "2"
 
 [profile.release]
 opt-level = "z"
 lto = true
+overflow-checks = true
