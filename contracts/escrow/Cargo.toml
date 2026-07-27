@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 soroban-sdk = "20"
+stellar-spend-shared = { path = "../shared" }
 
 [lib]
 crate-type = ["cdylib"]
@@ -17,3 +18,4 @@ path = "tests/integration.rs"
 opt-level = "z"
 lto = true
 strip = true
+overflow-checks = true
