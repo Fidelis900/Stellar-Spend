@@ -13,6 +13,7 @@
     "test:coverage": "vitest --run --coverage",
     "test:e2e": "playwright test",
     "test:mutation": "stryker run",
+    "audit:contracts": "bash ./scripts/audit-contracts.sh",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "test-storybook": "test-storybook",

@@ -1,0 +1,31 @@
+# Pre-commit hook configuration for Stellar-Spend
+# Run this setup locally to enable pre-commit checks:
+#   pip install pre-commit
+#   pre-commit install
+#
+# To test hooks manually:
+#   pre-commit run --all-files
+
+repos:
+  # Rust security audits for contract dependencies
+  - repo: local
+    hooks:
+      - id: cargo-audit
+        name: cargo-audit (Rust dependencies)
+        entry: bash -c 'if [ -d contracts ]; then cargo audit --deny warnings; fi'
+        language: system
+        files: ^contracts/(.*/)?(Cargo.toml|Cargo.lock)$
+        stages: [commit]
+        pass_filenames: false
+
+  # TypeScript/JavaScript linting is handled by the npm lint script
+  # Add it here if you want to enforce it at commit time:
+  # - repo: local
+  #   hooks:
+  #     - id: npm-lint
+  #       name: ESLint
+  #       entry: npm run lint
+  #       language: system
+  #       files: \.(ts|tsx|js)$
+  #       stages: [commit]
+  #       pass_filenames: false
