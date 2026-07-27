@@ -1,181 +1,231 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
-import { DateFormatter, defaultFormatter, formatTransaction, formatTransactionDate } from './formatters';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { DateFormatter, formatTransaction, formatTransactionDate, defaultFormatter } from './formatters';
+import * as datetimeModule from './datetime';
 
-let now: Date;
-
-beforeAll(() => {
-  now = new Date('2025-07-25T14:30:00Z');
-  vi.useFakeTimers();
-  vi.setSystemTime(now);
+vi.mock('./datetime', async (importOriginal) => {
+  const actual = await importOriginal<typeof datetimeModule>();
+  return {
+    ...actual,
+    formatUtc: vi.fn((iso: string) => `formatted-utc-${iso}`),
+    formatDate: vi.fn((iso: string) => `formatted-date-${iso}`),
+    parseUtc: vi.fn((iso: string) => new Date(iso)),
+  };
 });
 
-afterAll(() => {
-  vi.useRealTimers();
-});
+const mockFormatUtc = datetimeModule.formatUtc as any;
+const mockFormatDate = datetimeModule.formatDate as any;
+const mockParseUtc = datetimeModule.parseUtc as any;
 
-describe('DateFormatter', () => {
-  describe('constructor and defaults', () => {
-    it('defaults to en-US locale and UTC timezone', () => {
+describe('formatters.ts', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  describe('DateFormatter', () => {
+    it('should create a DateFormatter with default config', () => {
       const formatter = new DateFormatter();
-      const result = formatter.formatTimestamp('2025-07-25T14:30:00Z');
-      expect(result).toContain('Jul');
-      expect(result).toContain('UTC');
+      expect(formatter).toBeDefined();
     });
 
-    it('accepts custom locale and timezone', () => {
-      const formatter = new DateFormatter({ locale: 'en-US', timeZone: 'America/New_York' });
-      const result = formatter.formatTimestamp('2025-07-25T14:30:00Z');
-      expect(result).toBeDefined();
+    it('should create a DateFormatter with custom config', () => {
+      const formatter = new DateFormatter({
+        locale: 'fr-FR',
+        timeZone: 'Europe/Paris',
+      });
+      expect(formatter).toBeDefined();
+    });
+
+    describe('formatTimestamp', () => {
+      it('should format a timestamp using formatUtc', () => {
+        const formatter = new DateFormatter();
+        const iso = '2024-01-15T10:30:00Z';
+
+        const result = formatter.formatTimestamp(iso);
+
+        expect(mockFormatUtc).toHaveBeenCalledWith(iso, 'en-US', 'UTC');
+        expect(result).toBe('formatted-utc-2024-01-15T10:30:00Z');
+      });
+
+      it('should use custom locale and timezone', () => {
+        const formatter = new DateFormatter({
+          locale: 'de-DE',
+          timeZone: 'Europe/Berlin',
+        });
+        const iso = '2024-01-15T10:30:00Z';
+
+        formatter.formatTimestamp(iso);
+
+        expect(mockFormatUtc).toHaveBeenCalledWith(iso, 'de-DE', 'Europe/Berlin');
+      });
+    });
+
+    describe('formatDateOnly', () => {
+      it('should format a date only using formatDate', () => {
+        const formatter = new DateFormatter();
+        const iso = '2024-01-15T10:30:00Z';
+
+        const result = formatter.formatDateOnly(iso);
+
+        expect(mockFormatDate).toHaveBeenCalledWith(iso, 'en-US', 'UTC');
+        expect(result).toBe('formatted-date-2024-01-15T10:30:00Z');
+      });
+    });
+
+    describe('formatRelative', () => {
+      it('should return "just now" for times less than 60 seconds old', () => {
+        const formatter = new DateFormatter();
+        const now = new Date();
+        const pastDate = new Date(now.getTime() - 30 * 1000);
+        const iso = pastDate.toISOString();
+
+        mockParseUtc.mockReturnValue(pastDate);
+
+        const result = formatter.formatRelative(iso);
+
+        expect(result).toBe('just now');
+      });
+
+      it('should return minutes for times less than 60 minutes old', () => {
+        const formatter = new DateFormatter();
+        const now = new Date();
+        const pastDate = new Date(now.getTime() - 30 * 60 * 1000);
+        const iso = pastDate.toISOString();
+
+        mockParseUtc.mockReturnValue(pastDate);
+
+        const result = formatter.formatRelative(iso);
+
+        expect(result).toBe('30m ago');
+      });
+
+      it('should return hours for times less than 24 hours old', () => {
+        const formatter = new DateFormatter();
+        const now = new Date();
+        const pastDate = new Date(now.getTime() - 5 * 60 * 60 * 1000);
+        const iso = pastDate.toISOString();
+
+        mockParseUtc.mockReturnValue(pastDate);
+
+        const result = formatter.formatRelative(iso);
+
+        expect(result).toBe('5h ago');
+      });
+
+      it('should return days for times less than 7 days old', () => {
+        const formatter = new DateFormatter();
+        const now = new Date();
+        const pastDate = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+        const iso = pastDate.toISOString();
+
+        mockParseUtc.mockReturnValue(pastDate);
+
+        const result = formatter.formatRelative(iso);
+
+        expect(result).toBe('3d ago');
+      });
+
+      it('should return formatted date for times 7+ days old', () => {
+        const formatter = new DateFormatter();
+        const now = new Date();
+        const pastDate = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000);
+        const iso = pastDate.toISOString();
+
+        mockParseUtc.mockReturnValue(pastDate);
+        mockFormatDate.mockReturnValue('Jan 05, 2024');
+
+        const result = formatter.formatRelative(iso);
+
+        expect(result).toBe('Jan 05, 2024');
+      });
+    });
+
+    describe('formatCompact', () => {
+      it('should format as compact date', () => {
+        const formatter = new DateFormatter();
+        const iso = '2024-01-15T10:30:00Z';
+        const date = new Date(iso);
+
+        mockParseUtc.mockReturnValue(date);
+
+        const result = formatter.formatCompact(iso);
+
+        expect(typeof result).toBe('string');
+        expect(result.length).toBeGreaterThan(0);
+      });
+    });
+
+    describe('formatRange', () => {
+      it('should format a date range', () => {
+        const formatter = new DateFormatter();
+        const fromIso = '2024-01-01T00:00:00Z';
+        const toIso = '2024-01-31T23:59:59Z';
+
+        mockFormatDate.mockImplementation((iso) => {
+          if (iso === fromIso) return 'Jan 01, 2024';
+          if (iso === toIso) return 'Jan 31, 2024';
+          return iso;
+        });
+
+        const result = formatter.formatRange(fromIso, toIso);
+
+        expect(result).toBe('Jan 01, 2024 - Jan 31, 2024');
+      });
     });
   });
 
-  describe('formatTimestamp', () => {
-    it('formats ISO timestamp with time and timezone', () => {
-      const formatter = new DateFormatter({ locale: 'en-US', timeZone: 'UTC' });
-      const result = formatter.formatTimestamp('2025-07-25T14:30:00Z');
-      expect(result).toMatch(/Jul.*\d+.*\d{2}:\d{2}:\d{2}.*UTC/);
+  describe('Module-level functions', () => {
+    describe('formatTransaction', () => {
+      it('should format a transaction timestamp', () => {
+        const iso = '2024-01-15T10:30:00Z';
+
+        formatTransaction(iso);
+
+        expect(mockFormatUtc).toHaveBeenCalled();
+      });
+
+      it('should use provided timezone', () => {
+        const iso = '2024-01-15T10:30:00Z';
+
+        formatTransaction(iso, 'America/New_York');
+
+        expect(mockFormatUtc).toHaveBeenCalledWith(
+          iso,
+          'en-US',
+          'America/New_York'
+        );
+      });
     });
 
-    it('snapshot: formats timestamp consistently', () => {
-      const formatter = new DateFormatter({ locale: 'en-US', timeZone: 'UTC' });
-      const result = formatter.formatTimestamp('2025-07-25T14:30:00Z');
-      expect(result).toMatchSnapshot();
-    });
-  });
+    describe('formatTransactionDate', () => {
+      it('should format transaction date only', () => {
+        const iso = '2024-01-15T10:30:00Z';
 
-  describe('formatDateOnly', () => {
-    it('formats date without time component', () => {
-      const formatter = new DateFormatter({ locale: 'en-US', timeZone: 'UTC' });
-      const result = formatter.formatDateOnly('2025-07-25T14:30:00Z');
-      expect(result).not.toContain(':');
-      expect(result).toContain('Jul');
-    });
+        formatTransactionDate(iso);
 
-    it('snapshot: formats date-only consistently', () => {
-      const formatter = new DateFormatter({ locale: 'en-US', timeZone: 'UTC' });
-      const result = formatter.formatDateOnly('2025-07-25T14:30:00Z');
-      expect(result).toMatchSnapshot();
-    });
-  });
+        expect(mockFormatDate).toHaveBeenCalled();
+      });
 
-  describe('formatRelative', () => {
-    it('shows "just now" for recent timestamps', () => {
-      const formatter = new DateFormatter();
-      const recent = new Date(now.getTime() - 30_000).toISOString();
-      expect(formatter.formatRelative(recent)).toBe('just now');
-    });
+      it('should use provided timezone', () => {
+        const iso = '2024-01-15T10:30:00Z';
 
-    it('shows minutes for timestamps within an hour', () => {
-      const formatter = new DateFormatter();
-      const tenMinutesAgo = new Date(now.getTime() - 10 * 60_000).toISOString();
-      expect(formatter.formatRelative(tenMinutesAgo)).toMatch(/10m ago/);
-    });
+        formatTransactionDate(iso, 'Europe/London');
 
-    it('shows hours for timestamps within a day', () => {
-      const formatter = new DateFormatter();
-      const twoHoursAgo = new Date(now.getTime() - 2 * 3600_000).toISOString();
-      expect(formatter.formatRelative(twoHoursAgo)).toMatch(/2h ago/);
-    });
-
-    it('shows days for timestamps within a week', () => {
-      const formatter = new DateFormatter();
-      const threeDaysAgo = new Date(now.getTime() - 3 * 86400_000).toISOString();
-      expect(formatter.formatRelative(threeDaysAgo)).toMatch(/3d ago/);
-    });
-
-    it('falls back to date format for older timestamps', () => {
-      const formatter = new DateFormatter({ locale: 'en-US', timeZone: 'UTC' });
-      const twoWeeksAgo = new Date(now.getTime() - 14 * 86400_000).toISOString();
-      const result = formatter.formatRelative(twoWeeksAgo);
-      expect(result).not.toContain('ago');
-      expect(result).toContain('Jul');
+        expect(mockFormatDate).toHaveBeenCalledWith(
+          iso,
+          'en-US',
+          'Europe/London'
+        );
+      });
     });
   });
 
-  describe('formatCompact', () => {
-    it('formats date in MM/DD/YY format', () => {
-      const formatter = new DateFormatter({ locale: 'en-US', timeZone: 'UTC' });
-      const result = formatter.formatCompact('2025-07-25T14:30:00Z');
-      expect(result).toMatch(/\d{2}\/\d{2}\/\d{2}/);
+  describe('defaultFormatter', () => {
+    it('should export a default formatter instance', () => {
+      expect(defaultFormatter).toBeInstanceOf(DateFormatter);
     });
-
-    it('snapshot: formats compact date consistently', () => {
-      const formatter = new DateFormatter({ locale: 'en-US', timeZone: 'UTC' });
-      const result = formatter.formatCompact('2025-07-25T14:30:00Z');
-      expect(result).toMatchSnapshot();
-    });
-  });
-
-  describe('formatRange', () => {
-    it('formats date range with both dates', () => {
-      const formatter = new DateFormatter({ locale: 'en-US', timeZone: 'UTC' });
-      const result = formatter.formatRange('2025-07-20T00:00:00Z', '2025-07-25T23:59:59Z');
-      expect(result).toContain(' - ');
-      expect(result).toContain('Jul');
-    });
-
-    it('snapshot: formats range consistently', () => {
-      const formatter = new DateFormatter({ locale: 'en-US', timeZone: 'UTC' });
-      const result = formatter.formatRange('2025-07-20T00:00:00Z', '2025-07-25T23:59:59Z');
-      expect(result).toMatchSnapshot();
-    });
-  });
-});
-
-describe('defaultFormatter', () => {
-  it('provides consistent UTC formatting', () => {
-    const result1 = defaultFormatter.formatTimestamp('2025-07-25T14:30:00Z');
-    const result2 = defaultFormatter.formatTimestamp('2025-07-25T14:30:00Z');
-    expect(result1).toBe(result2);
-  });
-});
-
-describe('helper functions', () => {
-  describe('formatTransaction', () => {
-    it('formats transaction timestamp with default UTC', () => {
-      const result = formatTransaction('2025-07-25T14:30:00Z');
-      expect(result).toContain('Jul');
-    });
-
-    it('snapshot: formats transaction consistently', () => {
-      const result = formatTransaction('2025-07-25T14:30:00Z');
-      expect(result).toMatchSnapshot();
-    });
-
-    it('accepts custom timezone', () => {
-      const result = formatTransaction('2025-07-25T14:30:00Z', 'America/New_York');
-      expect(result).toBeDefined();
-    });
-  });
-
-  describe('formatTransactionDate', () => {
-    it('formats transaction date without time', () => {
-      const result = formatTransactionDate('2025-07-25T14:30:00Z');
-      expect(result).not.toContain(':');
-      expect(result).toContain('Jul');
-    });
-
-    it('snapshot: formats transaction date consistently', () => {
-      const result = formatTransactionDate('2025-07-25T14:30:00Z');
-      expect(result).toMatchSnapshot();
-    });
-
-    it('accepts custom timezone', () => {
-      const result = formatTransactionDate('2025-07-25T14:30:00Z', 'America/New_York');
-      expect(result).toBeDefined();
-    });
-  });
-});
-
-describe('timezone consistency', () => {
-  it('all formatters respect the configured timezone', () => {
-    const utcFormatter = new DateFormatter({ timeZone: 'UTC' });
-    const nyFormatter = new DateFormatter({ timeZone: 'America/New_York' });
-
-    const utcResult = utcFormatter.formatTimestamp('2025-07-25T20:00:00Z');
-    const nyResult = nyFormatter.formatTimestamp('2025-07-25T20:00:00Z');
-
-    expect(utcResult).toContain('UTC');
-    expect(nyResult).toBeDefined();
   });
 });

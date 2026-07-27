@@ -6,6 +6,7 @@ rust-version = "1.81"
 
 [dependencies]
 soroban-sdk = "20"
+stellar-spend-shared = { path = "../shared" }
 
 [features]
 # `#[contractimpl]` only emits the `ContractFunctionSet` impl that `register_contract`
@@ -28,5 +29,8 @@ crate-type = ["cdylib", "rlib"]
 name = "integration"
 path = "tests/integration.rs"
 
-# NOTE: no [profile.release] here — Cargo ignores profiles in non-root workspace
-# members and warns about them. The optimised WASM profile lives in contracts/Cargo.toml.
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true
+overflow-checks = true

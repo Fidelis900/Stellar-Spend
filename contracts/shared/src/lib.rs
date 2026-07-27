@@ -1,0 +1,11 @@
+//! `stellar-spend-shared` – common types and utilities reused across all
+//! Stellar-Spend smart contracts.
+//!
+//! # Modules
+//! - [`errors`] – canonical [`ContractError`] enum (stable numeric codes)
+//! - [`auth`]   – signer / threshold verification helpers
+
+#![no_std]
+
+pub mod auth;
+pub mod errors;

@@ -16,8 +16,9 @@ Thank you for your interest in contributing! This document covers everything you
 6. [Review Process & SLAs](#review-process--slas)
 7. [Code Style Guidelines](#code-style-guidelines)
 8. [Project Structure](#project-structure)
-9. [Getting Help](#getting-help)
-10. [Code of Conduct](#code-of-conduct)
+9. [Security & Audits](#security--audits)
+10. [Getting Help](#getting-help)
+11. [Code of Conduct](#code-of-conduct)
 
 ---
 
@@ -56,6 +57,35 @@ npm run format:check  # Prettier
 npx tsc --noEmit      # TypeScript
 npm test              # Unit + integration tests
 ```
+
+### Contract development (Soroban smart contracts)
+
+If you modify files in the `contracts/` directory, you must audit Rust dependencies for security vulnerabilities:
+
+```bash
+# Option 1: Use the provided audit script
+./scripts/audit-contracts.sh
+
+# Option 2: Run cargo-audit directly on a specific contract
+cd contracts/fee-manager
+cargo audit --deny warnings
+```
+
+**Prerequisites for contract development:**
+- Rust toolchain (install from https://rustup.rs/)
+- `cargo-audit` for vulnerability scanning (install with `cargo install cargo-audit`)
+
+**Set up local pre-commit hooks (optional but recommended):**
+```bash
+pip install pre-commit
+pre-commit install
+# Now cargo audit will run automatically before commits that touch Cargo.toml files
+```
+
+**Common audit workflows:**
+- Run before pushing contract changes: `./scripts/audit-contracts.sh`
+- Check for RUSTSEC advisories: `cargo audit --json` (for CI/CD integration)
+- Update vulnerable dependencies: `cargo update`
 
 ### Component development
 

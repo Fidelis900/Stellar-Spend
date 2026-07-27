@@ -1,7 +1,5 @@
 [workspace]
-# `treasury` was previously missing here, so a workspace-level `cargo test`/`cargo build`
-# never compiled it. ADR-012 §7 records this as a packaging gap, not a boundary.
-members = ["escrow", "fee-manager", "multisig-authority", "treasury"]
+members = ["escrow", "fee-manager", "multisig-authority", "treasury", "shared"]
 resolver = "2"
 
 # Cargo only honours [profile.*] at the workspace root — the per-member copies that
@@ -10,10 +8,4 @@ resolver = "2"
 opt-level = "z"
 codegen-units = 1
 lto = true
-strip = "symbols"
-debug = 0
-debug-assertions = false
-panic = "abort"
-# Deliberately ON for release WASM: a silent wrap in fee or balance arithmetic is far
-# worse than a trapped transaction. The treasury fuzz harness (#821) asserts this.
 overflow-checks = true
