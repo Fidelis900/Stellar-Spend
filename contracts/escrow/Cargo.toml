@@ -1,36 +1,19 @@
 [package]
 name = "escrow"
-version = "1.0.0"
-edition = "2021"
-rust-version = "1.81"
+version.workspace = true
+edition.workspace = true
 
 [dependencies]
-soroban-sdk = "20"
-stellar-spend-shared = { path = "../shared" }
-
-[features]
-# `#[contractimpl]` only emits the `ContractFunctionSet` impl that `register_contract`
-# needs when this feature is on. Unit tests in src/ get it via cfg(test); integration
-# tests in tests/ link the crate as a normal dependency and need the feature explicitly.
-testutils = ["soroban-sdk/testutils"]
+soroban-sdk = { workspace = true }
+stellar-spend-shared = { workspace = true }
 
 [dev-dependencies]
-# `testutils` provides Address::generate, Ledger::with_mut and the auth mocking the
-# unauthorized-call tests rely on.
-soroban-sdk = { version = "20", features = ["testutils"] }
+# Self-dependency with `testutils` on, so `tests/` can reach `escrow::test_utils`.
 escrow = { path = ".", features = ["testutils"] }
+soroban-sdk = { workspace = true, features = ["testutils"] }
+
+[features]
+testutils = ["soroban-sdk/testutils"]
 
 [lib]
-# `rlib` in addition to `cdylib` is what lets tests/ and the fuzz harness link this
-# crate; with `cdylib` alone `use escrow::…` from tests/ does not resolve.
 crate-type = ["cdylib", "rlib"]
-
-[[test]]
-name = "integration"
-path = "tests/integration.rs"
-
-[profile.release]
-opt-level = "z"
-lto = true
-strip = true
-overflow-checks = true

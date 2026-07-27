@@ -1,16 +1,13 @@
 [package]
 name = "stellar-spend-shared"
-version = "1.0.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
 
 [dependencies]
-soroban-sdk = "20"
+soroban-sdk = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
 
 [lib]
 crate-type = ["rlib"]
-
-[profile.release]
-opt-level = "z"
-lto = true
-strip = true
-overflow-checks = true
