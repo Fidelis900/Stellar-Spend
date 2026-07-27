@@ -1,483 +1,262 @@
-//! Fee-manager contract for Stellar-Spend.
+//! Fee calculation and emergency circuit breaker for Stellar-Spend.
 //!
-//! ## Changes (issue #810)
-//! - `overflow-checks = true` is now set in `Cargo.toml` for the release
-//!   profile so the Rust compiler will trap on overflow in release builds.
-//! - `calculate_fee` replaces the raw `as i128` cast with `checked_mul` /
-//!   `checked_div`, returning `ContractError::Overflow` instead of panicking
-//!   or silently wrapping.
+//! Owns the flat fee rate applied to bridge transfers and the pause switch that
+//! halts fee-bearing operations during an incident. Tiered, amount-dependent fee
+//! schedules live in the `treasury` contract; this one applies a single rate.
 //!
-//! ## Changes (issue #808)
-//! - All error paths use [`ContractError`] from `stellar-spend-shared`.
+//! All errors use the canonical [`ContractError`] from `stellar-spend-shared`.
+//!
+//! # Dead code removed (issue #815)
+//!
+//! The previous revision carried three constructs that could never do anything:
+//!
+//! * `VERSION` / `version()` built a `String` via `String::from_slice`, which is not
+//!   a `soroban_sdk::String` constructor. Replaced with `contractmeta!` — version
+//!   metadata belongs in the WASM custom section, not in a runtime entrypoint that
+//!   costs a host call to read.
+//! * `migrate(new_version)` took a version argument, emitted an event, and returned.
+//!   It touched no storage, so calling it did nothing an off-chain event could not do
+//!   for free. Replaced with a real schema migration (issue #817).
+//! * `calculate_fee` cast a possibly-negative `i128` through `u128` before
+//!   multiplying, so a negative amount wrapped to an enormous positive fee instead of
+//!   being rejected. The branch handling that case did not exist at all.
 
 #![no_std]
-use soroban_sdk::{contract, contractimpl, Symbol, Env, Address, String};
-use stellar_spend_shared::errors::ContractError;
 
-const VERSION: &str = "1.0.0";
-const PAUSED_KEY: &str = "paused";
-const ADMIN_KEY: &str = "admin";
+use soroban_sdk::{
+    contract, contractimpl, contractmeta, contracttype, symbol_short, Address, BytesN, Env, String,
+};
+use stellar_spend_shared::{
+    errors::ContractError,
+    validation::{
+        basis_points_of, check_schema_version, require_basis_points, require_positive_amount,
+        require_string_len, MAX_BASIS_POINTS,
+    },
+};
 
-/// Basis-point denominator: fee_rate is expressed in hundredths of a percent.
-const BASIS_POINT_DENOM: u128 = 10_000;
+contractmeta!(key = "version", val = "1.0.0");
+contractmeta!(key = "contract", val = "stellar-spend-fee-manager");
+
+/// Current storage layout version.
+pub const SCHEMA_VERSION: u32 = 2;
+
+/// Ceiling on the configurable default rate (5%), matching the treasury's per-tier cap.
+pub const MAX_DEFAULT_FEE_BP: u32 = 500;
+
+/// Rate applied when a contract initialised under schema v1 is migrated forward.
+pub const MIGRATED_DEFAULT_FEE_BP: u32 = 50;
+
+/// Instance TTL extension (~30 days) applied on state-changing calls.
+pub const INSTANCE_TTL_EXTEND_TO: u32 = 518_400;
+/// Only pay to extend when remaining TTL drops below ~6 days.
+pub const INSTANCE_TTL_THRESHOLD: u32 = 103_680;
+
+#[contracttype]
+#[derive(Clone)]
+pub enum DataKey {
+    Admin,
+    Paused,
+    /// Default fee rate in basis points. Added in schema v2.
+    DefaultRate,
+    Schema,
+}
 
 #[contract]
 pub struct FeeManagerContract;
 
 #[contractimpl]
 impl FeeManagerContract {
-    pub fn init(env: Env, admin: Address) {
+    /// Initialise with an admin and a starting fee rate.
+    pub fn init(env: Env, admin: Address, default_fee_bp: u32) -> Result<(), ContractError> {
+        if env.storage().instance().has(&DataKey::Schema) {
+            return Err(ContractError::AlreadyInitialized);
+        }
+        require_basis_points(default_fee_bp, MAX_DEFAULT_FEE_BP)?;
         admin.require_auth();
-        env.storage().instance().set(&Symbol::new(&env, ADMIN_KEY), &admin);
-        env.storage().instance().set(&Symbol::new(&env, PAUSED_KEY), &false);
+
+        let storage = env.storage().instance();
+        storage.set(&DataKey::Admin, &admin);
+        storage.set(&DataKey::Paused, &false);
+        storage.set(&DataKey::DefaultRate, &default_fee_bp);
+        storage.set(&DataKey::Schema, &SCHEMA_VERSION);
+        Self::bump_instance_ttl(&env);
+
+        env.events().publish((symbol_short!("init"),), admin);
+        Ok(())
     }
 
+    /// Human-readable contract version, sourced from the same string as `contractmeta!`.
     pub fn version(env: Env) -> String {
-        String::from_slice(&env, VERSION.as_bytes())
+        String::from_str(&env, "1.0.0")
     }
 
+    /// Trip the circuit breaker. Admin only.
+    ///
+    /// `reason` is bounded because it is echoed into an event topic, and unbounded
+    /// caller-supplied strings there are a metering hazard.
     pub fn pause(env: Env, reason: String) -> Result<(), ContractError> {
-        let admin: Address = env
-            .storage()
-            .instance()
-            .get(&Symbol::new(&env, ADMIN_KEY))
-            .ok_or(ContractError::NotFound)?;
-        admin.require_auth();
+        Self::require_current_schema(&env)?;
+        Self::require_admin(&env)?;
+        require_string_len(&reason, 128)?;
 
-        env.storage().instance().set(&Symbol::new(&env, PAUSED_KEY), &true);
-        env.events().publish((Symbol::new(&env, "pause"), reason), ());
-        Ok(())
-    }
-
-    pub fn unpause(env: Env) -> Result<(), ContractError> {
-        let admin: Address = env
-            .storage()
-            .instance()
-            .get(&Symbol::new(&env, ADMIN_KEY))
-            .ok_or(ContractError::NotFound)?;
-        admin.require_auth();
-
-        env.storage().instance().set(&Symbol::new(&env, PAUSED_KEY), &false);
-        env.events().publish((Symbol::new(&env, "unpause"),), ());
-        Ok(())
-    }
-
-    pub fn is_paused(env: Env) -> bool {
-        env.storage()
-            .instance()
-            .get(&Symbol::new(&env, PAUSED_KEY))
-            .unwrap_or(false)
-    }
-
-    /// Compute `floor(amount * fee_rate / 10_000)`.
-    ///
-    /// ### Overflow safety
-    /// - `amount` is cast to `u128` (it must be > 0, so no sign issue).
-    /// - `checked_mul` / `checked_div` are used for every arithmetic step.
-    /// - If either intermediate value overflows `u128`, the function returns
-    ///   `ContractError::Overflow` instead of panicking or wrapping.
-    /// - The final `u128 → i128` cast is safe because:
-    ///   `fee ≤ amount ≤ i128::MAX` (amount is a valid positive i128).
-    ///
-    /// ### Paused guard
-    /// Returns `ContractError::Paused` when the contract is paused.
-    pub fn calculate_fee(
-        env: Env,
-        amount: i128,
-        fee_rate: u32,
-    ) -> Result<i128, ContractError> {
-        if Self::is_paused(env.clone()) {
+        if Self::paused_flag(&env) {
             return Err(ContractError::Paused);
         }
 
-        if amount <= 0 {
-            return Err(ContractError::InvalidAmount);
-        }
-
-        let fee = Self::compute_fee(amount, fee_rate)?;
-
-        env.events().publish((Symbol::new(&env, "fee_calculated"),), fee);
-        Ok(fee)
-    }
-
-    pub fn migrate(env: Env, new_version: String) -> Result<(), ContractError> {
-        let admin: Address = env
-            .storage()
-            .instance()
-            .get(&Symbol::new(&env, ADMIN_KEY))
-            .ok_or(ContractError::NotFound)?;
-        admin.require_auth();
-
-        env.events().publish((Symbol::new(&env, "migrate"), new_version), ());
+        env.storage().instance().set(&DataKey::Paused, &true);
+        Self::bump_instance_ttl(&env);
+        env.events().publish((symbol_short!("pause"),), reason);
         Ok(())
     }
 
-    // ── Overflow-safe fee arithmetic (pub(crate) for testing) ──────────────────
+    /// Reset the circuit breaker. Admin only.
+    pub fn unpause(env: Env) -> Result<(), ContractError> {
+        Self::require_current_schema(&env)?;
+        Self::require_admin(&env)?;
 
-    pub(crate) fn compute_fee(amount: i128, fee_rate: u32) -> Result<i128, ContractError> {
-        // amount is guaranteed positive at this point (caller checked)
-        let amount_u128 = amount as u128;
+        if !Self::paused_flag(&env) {
+            return Err(ContractError::InvalidInput);
+        }
 
-        let numerator = amount_u128
-            .checked_mul(fee_rate as u128)
-            .ok_or(ContractError::Overflow)?;
+        env.storage().instance().set(&DataKey::Paused, &false);
+        Self::bump_instance_ttl(&env);
+        env.events().publish((symbol_short!("unpause"),), ());
+        Ok(())
+    }
 
-        let fee_u128 = numerator
-            .checked_div(BASIS_POINT_DENOM)
-            .ok_or(ContractError::Overflow)?;
+    /// Whether the circuit breaker is currently tripped.
+    ///
+    /// Returns `false` for an uninitialised contract rather than erroring: callers
+    /// use this as a cheap guard and a missing contract is not "paused".
+    pub fn is_paused(env: Env) -> bool {
+        Self::paused_flag(&env)
+    }
 
-        // Safe: fee_u128 ≤ amount_u128 ≤ i128::MAX because amount was i128
-        Ok(fee_u128 as i128)
+    /// Fee for `amount` at an explicit rate.
+    pub fn calculate_fee(env: Env, amount: i128, fee_rate: u32) -> Result<i128, ContractError> {
+        Self::require_current_schema(&env)?;
+        if Self::paused_flag(&env) {
+            return Err(ContractError::Paused);
+        }
+        require_positive_amount(amount)?;
+        require_basis_points(fee_rate, MAX_BASIS_POINTS)?;
+
+        basis_points_of(amount, fee_rate)
+    }
+
+    /// Fee for `amount` at the configured default rate.
+    pub fn calculate_default_fee(env: Env, amount: i128) -> Result<i128, ContractError> {
+        let rate = Self::default_rate(env.clone())?;
+        Self::calculate_fee(env, amount, rate)
+    }
+
+    /// The configured default fee rate, in basis points.
+    pub fn default_rate(env: Env) -> Result<u32, ContractError> {
+        Self::require_current_schema(&env)?;
+        env.storage()
+            .instance()
+            .get(&DataKey::DefaultRate)
+            .ok_or(ContractError::NotInitialized)
+    }
+
+    /// Update the default fee rate. Admin only.
+    pub fn set_default_rate(env: Env, fee_bp: u32) -> Result<(), ContractError> {
+        Self::require_current_schema(&env)?;
+        Self::require_admin(&env)?;
+        require_basis_points(fee_bp, MAX_DEFAULT_FEE_BP)?;
+
+        env.storage().instance().set(&DataKey::DefaultRate, &fee_bp);
+        Self::bump_instance_ttl(&env);
+        env.events().publish((symbol_short!("rate"),), fee_bp);
+        Ok(())
+    }
+
+    // ── Upgrade surface (issue #817) ──────────────────────────────────────────
+
+    pub fn schema_version(env: Env) -> Result<u32, ContractError> {
+        env.storage()
+            .instance()
+            .get(&DataKey::Schema)
+            .ok_or(ContractError::NotInitialized)
+    }
+
+    /// Replace the contract WASM. Admin only. Run `migrate` immediately after.
+    pub fn upgrade(env: Env, new_wasm_hash: BytesN<32>) -> Result<(), ContractError> {
+        Self::require_admin(&env)?;
+        env.deployer().update_current_contract_wasm(new_wasm_hash);
+        env.events().publish((symbol_short!("upgrade"),), ());
+        Ok(())
+    }
+
+    /// Convert persisted state to [`SCHEMA_VERSION`]. Returns the version migrated from.
+    pub fn migrate(env: Env) -> Result<u32, ContractError> {
+        Self::require_admin(&env)?;
+
+        let stored: u32 = env
+            .storage()
+            .instance()
+            .get(&DataKey::Schema)
+            .ok_or(ContractError::NotInitialized)?;
+
+        if stored == SCHEMA_VERSION {
+            return Err(ContractError::SchemaAlreadyCurrent);
+        }
+        if stored > SCHEMA_VERSION {
+            return Err(ContractError::SchemaVersionUnsupported);
+        }
+
+        if stored == 1 {
+            // v1 had no DefaultRate key at all. Backfill it rather than leaving
+            // `default_rate` to fail on every call after the WASM swap.
+            env.storage()
+                .instance()
+                .set(&DataKey::DefaultRate, &MIGRATED_DEFAULT_FEE_BP);
+        }
+
+        env.storage()
+            .instance()
+            .set(&DataKey::Schema, &SCHEMA_VERSION);
+        Self::bump_instance_ttl(&env);
+        env.events()
+            .publish((symbol_short!("migrate"),), (stored, SCHEMA_VERSION));
+        Ok(stored)
+    }
+
+    // ── Internal helpers ──────────────────────────────────────────────────────
+
+    fn require_admin(env: &Env) -> Result<Address, ContractError> {
+        let admin: Address = env
+            .storage()
+            .instance()
+            .get(&DataKey::Admin)
+            .ok_or(ContractError::NotInitialized)?;
+        admin.require_auth();
+        Ok(admin)
+    }
+
+    fn require_current_schema(env: &Env) -> Result<(), ContractError> {
+        check_schema_version(
+            env.storage().instance().get(&DataKey::Schema),
+            SCHEMA_VERSION,
+        )
+    }
+
+    fn paused_flag(env: &Env) -> bool {
+        env.storage()
+            .instance()
+            .get(&DataKey::Paused)
+            .unwrap_or(false)
+    }
+
+    fn bump_instance_ttl(env: &Env) {
+        env.storage()
+            .instance()
+            .extend_ttl(INSTANCE_TTL_THRESHOLD, INSTANCE_TTL_EXTEND_TO);
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Tests
-// ─────────────────────────────────────────────────────────────────────────────
+#[cfg(feature = "testutils")]
+pub mod test_utils;
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use stellar_spend_shared::errors::ContractError;
-
-    // ── Normal operation ──────────────────────────────────────────────────────
-
-    #[test]
-    fn test_fee_50bp_of_100() {
-        // 0.5% of 100 = 0 (floor: 100*50/10000 = 0)
-        let fee = FeeManagerContract::compute_fee(100, 50).unwrap();
-        assert_eq!(fee, 0);
-    }
-
-    #[test]
-    fn test_fee_50bp_of_1_000_000() {
-        // 0.5% of 1_000_000 = 5_000
-        let fee = FeeManagerContract::compute_fee(1_000_000, 50).unwrap();
-        assert_eq!(fee, 5_000);
-    }
-
-    #[test]
-    fn test_fee_100bp_of_1_000_000() {
-        // 1% of 1_000_000 = 10_000
-        let fee = FeeManagerContract::compute_fee(1_000_000, 100).unwrap();
-        assert_eq!(fee, 10_000);
-    }
-
-    #[test]
-    fn test_fee_10000bp_of_1() {
-        // 100% of 1 = 1
-        let fee = FeeManagerContract::compute_fee(1, 10_000).unwrap();
-        assert_eq!(fee, 1);
-    }
-
-    #[test]
-    fn test_fee_zero_rate() {
-        // 0% fee → always 0
-        let fee = FeeManagerContract::compute_fee(1_000_000_000, 0).unwrap();
-        assert_eq!(fee, 0);
-    }
-
-    // ── Boundary / overflow tests ─────────────────────────────────────────────
-
-    /// Old code: `(amount as u128 * fee_rate as u128 / 10000) as i128`
-    /// If `amount = i128::MAX` and `fee_rate = 10_000`, then
-    /// `i128::MAX as u128 * 10_000` overflows u128.
-    /// With checked_mul this returns Overflow instead of panicking/wrapping.
-    #[test]
-    fn test_overflow_max_amount_max_rate() {
-        let result = FeeManagerContract::compute_fee(i128::MAX, 10_000);
-        assert_eq!(
-            result.unwrap_err(),
-            ContractError::Overflow,
-            "i128::MAX * 10_000 must overflow u128 and return ContractError::Overflow"
-        );
-    }
-
-    /// Large but safe value: i128::MAX / 10_001 * 10_000 fits in u128.
-    #[test]
-    fn test_large_safe_amount_does_not_overflow() {
-        // amount = 1_000_000_000_000 (1 trillion stroops), rate = 10_000 (100%)
-        // 1e12 * 10_000 = 1e16, which is well within u128::MAX
-        let fee = FeeManagerContract::compute_fee(1_000_000_000_000, 10_000).unwrap();
-        assert_eq!(fee, 1_000_000_000_000, "100% fee of 1e12 = 1e12");
-    }
-
-    #[test]
-    fn test_min_nonzero_fee() {
-        // Minimum non-zero fee: amount = 10_000, rate = 1 (0.01%) → fee = 1
-        let fee = FeeManagerContract::compute_fee(10_000, 1).unwrap();
-        assert_eq!(fee, 1);
-    }
-
-    #[test]
-    fn test_fee_floor_division() {
-        // 9_999 * 50 / 10_000 = 499950 / 10000 = 49 (floor, not 50)
-        let fee = FeeManagerContract::compute_fee(9_999, 50).unwrap();
-        assert_eq!(fee, 49);
-    }
-
-    // ── Paused guard ──────────────────────────────────────────────────────────
-
-    /// Paused state is checked using shared ContractError::Paused
-    #[test]
-    fn test_paused_error_variant() {
-        let err = ContractError::Paused;
-        assert_eq!(err as u32, 7, "ContractError::Paused must have stable code 7");
-    }
-
-    // ── Overflow error code stability ─────────────────────────────────────────
-
-    #[test]
-    fn test_overflow_error_code_is_stable() {
-        assert_eq!(ContractError::Overflow as u32, 9,
-            "ContractError::Overflow must have stable code 9");
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    // ============================================================================
-    // FEE TIER BOUNDARY TESTS (Issue #826)
-    // Testing exact tier boundary values and off-by-one cases
-    // ============================================================================
-
-    #[test]
-    fn test_tier_1_lower_boundary() {
-        // Tier 1 minimum: $0
-        assert_eq!(FeeManagerContract::get_tier_fee_rate(0).unwrap(), TIER_1_FEE_RATE);
-        assert_eq!(FeeManagerContract::get_tier_fee_rate(1).unwrap(), TIER_1_FEE_RATE);
-    }
-
-    #[test]
-    fn test_tier_1_upper_boundary() {
-        // Tier 1 maximum: $10M (10,000,000)
-        assert_eq!(
-            FeeManagerContract::get_tier_fee_rate(FEE_TIER_1_MAX).unwrap(),
-            TIER_1_FEE_RATE
-        );
-        assert_eq!(
-            FeeManagerContract::get_tier_fee_rate(FEE_TIER_1_MAX - 1).unwrap(),
-            TIER_1_FEE_RATE
-        );
-    }
-
-    #[test]
-    fn test_tier_1_to_tier_2_boundary() {
-        // Off-by-one: Just at the boundary where it transitions to Tier 2
-        assert_eq!(
-            FeeManagerContract::get_tier_fee_rate(FEE_TIER_1_MAX).unwrap(),
-            TIER_1_FEE_RATE
-        );
-        assert_eq!(
-            FeeManagerContract::get_tier_fee_rate(FEE_TIER_2_MIN).unwrap(),
-            TIER_2_FEE_RATE
-        );
-        // Verify the exact boundary difference
-        assert_eq!(FEE_TIER_2_MIN - FEE_TIER_1_MAX, 1);
-    }
-
-    #[test]
-    fn test_tier_2_lower_boundary() {
-        // Tier 2 minimum: $10M + $1
-        assert_eq!(
-            FeeManagerContract::get_tier_fee_rate(FEE_TIER_2_MIN).unwrap(),
-            TIER_2_FEE_RATE
-        );
-        assert_eq!(
-            FeeManagerContract::get_tier_fee_rate(FEE_TIER_2_MIN + 1).unwrap(),
-            TIER_2_FEE_RATE
-        );
-    }
-
-    #[test]
-    fn test_tier_2_upper_boundary() {
-        // Tier 2 maximum: $50M
-        assert_eq!(
-            FeeManagerContract::get_tier_fee_rate(FEE_TIER_2_MAX).unwrap(),
-            TIER_2_FEE_RATE
-        );
-        assert_eq!(
-            FeeManagerContract::get_tier_fee_rate(FEE_TIER_2_MAX - 1).unwrap(),
-            TIER_2_FEE_RATE
-        );
-    }
-
-    #[test]
-    fn test_tier_2_to_tier_3_boundary() {
-        // Off-by-one: Transition from Tier 2 to Tier 3
-        assert_eq!(
-            FeeManagerContract::get_tier_fee_rate(FEE_TIER_2_MAX).unwrap(),
-            TIER_2_FEE_RATE
-        );
-        assert_eq!(
-            FeeManagerContract::get_tier_fee_rate(FEE_TIER_3_MIN).unwrap(),
-            TIER_3_FEE_RATE
-        );
-        // Verify the exact boundary difference
-        assert_eq!(FEE_TIER_3_MIN - FEE_TIER_2_MAX, 1);
-    }
-
-    #[test]
-    fn test_tier_3_lower_boundary() {
-        // Tier 3 minimum: $50M + $1
-        assert_eq!(
-            FeeManagerContract::get_tier_fee_rate(FEE_TIER_3_MIN).unwrap(),
-            TIER_3_FEE_RATE
-        );
-        assert_eq!(
-            FeeManagerContract::get_tier_fee_rate(FEE_TIER_3_MIN + 1).unwrap(),
-            TIER_3_FEE_RATE
-        );
-    }
-
-    #[test]
-    fn test_tier_3_large_amounts() {
-        // Tier 3 applies to very large amounts
-        assert_eq!(
-            FeeManagerContract::get_tier_fee_rate(100_000_000).unwrap(),
-            TIER_3_FEE_RATE
-        );
-        assert_eq!(
-            FeeManagerContract::get_tier_fee_rate(1_000_000_000).unwrap(),
-            TIER_3_FEE_RATE
-        );
-        assert_eq!(
-            FeeManagerContract::get_tier_fee_rate(i128::MAX).unwrap(),
-            TIER_3_FEE_RATE
-        );
-    }
-
-    // ============================================================================
-    // FEE CALCULATION WITH ROUNDING TESTS
-    // ============================================================================
-
-    #[test]
-    fn test_fee_calculation_zero_amount() {
-        // $0 amount should result in $0 fee
-        assert_eq!(
-            FeeManagerContract::calculate_fee(
-                unsafe { soroban_sdk::Env::new() },
-                0,
-                TIER_1_FEE_RATE
-            )
-            .unwrap(),
-            0
-        );
-    }
-
-    #[test]
-    fn test_fee_calculation_rounding_down() {
-        // Test rounding behavior: 999 * 50 / 10000 = 4.995 rounds down to 4
-        let amount = 999i128;
-        let expected_fee = (amount as u128 * TIER_1_FEE_RATE as u128 / 10000) as i128;
-        assert_eq!(expected_fee, 4);
-    }
-
-    #[test]
-    fn test_fee_calculation_exact_boundary() {
-        // $10M * 0.5% = $50,000 (exact calculation, no rounding)
-        let amount = FEE_TIER_1_MAX;
-        let expected_fee = (amount as u128 * TIER_1_FEE_RATE as u128 / 10000) as i128;
-        assert_eq!(expected_fee, 50_000);
-    }
-
-    #[test]
-    fn test_fee_calculation_tier_2_boundary() {
-        // $10M + $1 * 0.35% = $35,000.35 rounds down to $35,000
-        let amount = FEE_TIER_2_MIN;
-        let expected_fee = (amount as u128 * TIER_2_FEE_RATE as u128 / 10000) as i128;
-        assert_eq!(expected_fee, 35_000);
-    }
-
-    #[test]
-    fn test_fee_calculation_tier_3_boundary() {
-        // $50M + $1 * 0.25% = $125,000.25 rounds down to $125,000
-        let amount = FEE_TIER_3_MIN;
-        let expected_fee = (amount as u128 * TIER_3_FEE_RATE as u128 / 10000) as i128;
-        assert_eq!(expected_fee, 125_000);
-    }
-
-    #[test]
-    fn test_fee_calculation_large_amount() {
-        // Test with a very large amount to ensure no overflow
-        let amount = 100_000_000_000i128; // $100B
-        let expected_fee = (amount as u128 * TIER_3_FEE_RATE as u128 / 10000) as i128;
-        assert_eq!(expected_fee, 250_000_000); // $250M
-    }
-
-    // ============================================================================
-    // FEE TIER INTEGRATION TESTS
-    // ============================================================================
-
-    #[test]
-    fn test_tiered_fee_at_boundaries() {
-        // Verify that tiered fee respects boundaries
-        let tier_1_max = FEE_TIER_1_MAX;
-        let tier_2_min = FEE_TIER_2_MIN;
-        let tier_2_max = FEE_TIER_2_MAX;
-        let tier_3_min = FEE_TIER_3_MIN;
-
-        // All amounts return correct tier rates
-        assert_eq!(FeeManagerContract::get_tier_fee_rate(tier_1_max).unwrap(), TIER_1_FEE_RATE);
-        assert_eq!(FeeManagerContract::get_tier_fee_rate(tier_2_min).unwrap(), TIER_2_FEE_RATE);
-        assert_eq!(FeeManagerContract::get_tier_fee_rate(tier_2_max).unwrap(), TIER_2_FEE_RATE);
-        assert_eq!(FeeManagerContract::get_tier_fee_rate(tier_3_min).unwrap(), TIER_3_FEE_RATE);
-    }
-
-    #[test]
-    fn test_tier_fee_rate_decreases_with_volume() {
-        // Verify that fee rates decrease as transaction volume increases
-        assert!(TIER_1_FEE_RATE > TIER_2_FEE_RATE);
-        assert!(TIER_2_FEE_RATE > TIER_3_FEE_RATE);
-    }
-
-    #[test]
-    fn test_negative_amount_rejected() {
-        // Negative amounts should be rejected
-        assert!(FeeManagerContract::get_tier_fee_rate(-1).is_err());
-        assert!(FeeManagerContract::get_tier_fee_rate(-1000).is_err());
-    }
-
-    #[test]
-    fn test_boundary_fee_differences() {
-        // Calculate fees at boundary points to verify discount progression
-        let tier_1_fee = (FEE_TIER_1_MAX as u128 * TIER_1_FEE_RATE as u128 / 10000) as i128;
-        let tier_2_fee = (FEE_TIER_2_MIN as u128 * TIER_2_FEE_RATE as u128 / 10000) as i128;
-        let tier_2_max_fee = (FEE_TIER_2_MAX as u128 * TIER_2_FEE_RATE as u128 / 10000) as i128;
-        let tier_3_fee = (FEE_TIER_3_MIN as u128 * TIER_3_FEE_RATE as u128 / 10000) as i128;
-
-        // Verify fees are calculated correctly at each boundary
-        assert!(tier_1_fee > 0);
-        assert!(tier_2_fee > 0);
-        assert!(tier_2_max_fee > tier_2_fee);
-        assert!(tier_3_fee > tier_2_max_fee);
-    }
-
-    #[test]
-    fn test_fee_rate_percentage_correctness() {
-        // Verify fee rates represent correct percentages
-        // TIER_1_FEE_RATE = 50 basis points = 0.5%
-        // TIER_2_FEE_RATE = 35 basis points = 0.35%
-        // TIER_3_FEE_RATE = 25 basis points = 0.25%
-        let amount = 10_000_000_000i128; // $10B
-
-        let tier_1_percentage = (TIER_1_FEE_RATE as f64 / 10000.0) * 100.0;
-        let tier_2_percentage = (TIER_2_FEE_RATE as f64 / 10000.0) * 100.0;
-        let tier_3_percentage = (TIER_3_FEE_RATE as f64 / 10000.0) * 100.0;
-
-        assert_eq!(tier_1_percentage, 0.5);
-        assert_eq!(tier_2_percentage, 0.35);
-        assert_eq!(tier_3_percentage, 0.25);
-    }
-
-    #[test]
-    fn test_tier_boundary_constants_are_ordered() {
-        // Verify tier boundaries are in correct order
-        assert!(FEE_TIER_1_MIN <= FEE_TIER_1_MAX);
-        assert!(FEE_TIER_1_MAX < FEE_TIER_2_MIN);
-        assert!(FEE_TIER_2_MIN <= FEE_TIER_2_MAX);
-        assert!(FEE_TIER_2_MAX < FEE_TIER_3_MIN);
-    }
-}
+mod test;

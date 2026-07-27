@@ -1,11 +1,20 @@
 [workspace]
-members = ["escrow", "fee-manager", "multisig-authority", "treasury", "shared"]
+members = ["shared", "escrow", "fee-manager", "multisig-authority", "treasury"]
 resolver = "2"
 
-# Cargo only honours [profile.*] at the workspace root — the per-member copies that
-# used to live in each contract's Cargo.toml were silently ignored (and warned about).
+[workspace.package]
+version = "1.0.0"
+edition = "2021"
+
+[workspace.dependencies]
+soroban-sdk = "22"
+stellar-spend-shared = { path = "shared" }
+
+# Cargo only honours [profile.*] at the workspace root — per-member copies are
+# silently ignored (and warned about).
 [profile.release]
 opt-level = "z"
 codegen-units = 1
 lto = true
+strip = true
 overflow-checks = true

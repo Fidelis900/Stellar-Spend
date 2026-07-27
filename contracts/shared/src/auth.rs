@@ -23,11 +23,7 @@ use crate::errors::ContractError;
 /// # Panics
 /// Panics (via `ok_or`) only if the storage key is absent, which is a contract
 /// initialisation bug rather than a user error.
-pub fn assert_is_signer(
-    env: &Env,
-    addr: &Address,
-    signers_key: &str,
-) -> Result<(), ContractError> {
+pub fn assert_is_signer(env: &Env, addr: &Address, signers_key: &str) -> Result<(), ContractError> {
     let signers: Vec<Address> = env
         .storage()
         .instance()
@@ -43,11 +39,7 @@ pub fn assert_is_signer(
 
 /// Returns `Ok(())` if `addr` matches the single admin address stored under
 /// `admin_key`, otherwise `Err(ContractError::Unauthorized)`.
-pub fn assert_is_admin(
-    env: &Env,
-    addr: &Address,
-    admin_key: &str,
-) -> Result<(), ContractError> {
+pub fn assert_is_admin(env: &Env, addr: &Address, admin_key: &str) -> Result<(), ContractError> {
     let admin: Address = env
         .storage()
         .instance()

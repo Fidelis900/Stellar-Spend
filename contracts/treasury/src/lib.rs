@@ -1,263 +1,351 @@
-//! Treasury contract for Stellar-Spend.
+//! Treasury and tiered fee collection for Stellar-Spend.
 //!
-//! ## Changes (issues #808 / #809 / #810)
-//! - All errors now use [`ContractError`] from `stellar-spend-shared`.
-//! - Admin authentication uses the shared [`assert_is_admin`] helper.
-//! - Fee arithmetic uses `checked_mul` / `checked_div` with
-//!   `ContractError::Overflow` on failure.
+//! Holds the amount-tiered fee schedule, computes the fee owed on a transfer, and
+//! records the treasury address that collected fees are routed to.
+//!
+//! All errors use the canonical [`ContractError`] from `stellar-spend-shared`; admin
+//! checks delegate to [`stellar_spend_shared::auth::assert_is_admin`].
+//!
+//! # Dead code removed (issue #815)
+//!
+//! The previous `get_fee_for_amount` took the stored fee schedule as a parameter and
+//! then ignored it entirely, returning hard-coded 50/25/10 basis points from an
+//! `if`/`else if` chain:
+//!
+//! ```ignore
+//! pub fn get_fee_for_amount(schedule: &Map<i128, u32>, amount: i128) -> u32 {
+//!     let mut fee_bp = 50u32;                          // `schedule` never read
+//!     if amount >= 10_000_000 { fee_bp = 10; }
+//!     else if amount >= 1_000_000 { fee_bp = 25; }
+//!     fee_bp
+//! }
+//! ```
+//!
+//! That made the whole configurable-schedule feature dead: `set_fee_schedule`
+//! validated its input, wrote it to instance storage, emitted an event — and no read
+//! path ever consulted the result. An admin could "change" the fee and collection
+//! would carry on at the compiled-in rates. [`TreasuryContract::fee_for_amount`] now
+//! reads the stored schedule, so the hard-coded branches are gone and the tiers seeded
+//! at `init` are merely defaults.
+//!
+//! Also removed: `get_treasury` fell back to `Address::generate(&env)`, a
+//! `testutils`-only constructor that cannot compile into a release WASM. It now
+//! returns [`ContractError::NotInitialized`] instead of inventing an address to send
+//! fees to.
 
 #![no_std]
-use soroban_sdk::{contract, contractimpl, Symbol, Env, Address, Map};
-use stellar_spend_shared::auth::assert_is_admin;
-use stellar_spend_shared::errors::ContractError;
 
-const ADMIN_KEY: &str = "admin";
-const TREASURY_KEY: &str = "treasury";
-const FEE_SCHEDULE_KEY: &str = "fee_schedule";
-const MAX_BASIS_POINTS: u32 = 10_000;
-const MAX_SINGLE_FEE_BP: u32 = 500; // 5% max per tier
+use soroban_sdk::{
+    contract, contractimpl, contractmeta, contracttype, symbol_short, Address, BytesN, Env, Map,
+};
+use stellar_spend_shared::{
+    errors::ContractError,
+    validation::{
+        basis_points_of, check_schema_version, require_basis_points, require_non_negative_amount,
+        require_positive_amount,
+    },
+};
+
+contractmeta!(key = "version", val = "1.0.0");
+contractmeta!(key = "contract", val = "stellar-spend-treasury");
+
+/// Current storage layout version.
+pub const SCHEMA_VERSION: u32 = 2;
+
+/// Maximum fee for any single tier (5%).
+pub const MAX_SINGLE_FEE_BP: u32 = 500;
+
+/// Upper bound on stored tiers, keeping [`TreasuryContract::fee_for_amount`]'s linear
+/// scan within a predictable instruction budget.
+pub const MAX_FEE_TIERS: u32 = 16;
+
+/// Instance TTL extension (~30 days) applied on state-changing calls.
+pub const INSTANCE_TTL_EXTEND_TO: u32 = 518_400;
+/// Only pay to extend when remaining TTL drops below ~6 days.
+pub const INSTANCE_TTL_THRESHOLD: u32 = 103_680;
+
+#[contracttype]
+#[derive(Clone)]
+pub enum DataKey {
+    Admin,
+    Treasury,
+    /// `Map<i128, u32>`: tier threshold -> basis points.
+    FeeSchedule,
+    /// Running total of fees collected. Added in schema v2.
+    TotalCollected,
+    Schema,
+}
 
 #[contract]
 pub struct TreasuryContract;
 
 #[contractimpl]
 impl TreasuryContract {
-    pub fn init(env: Env, admin: Address, treasury: Address) {
+    /// Initialise with an admin, a treasury address, and the default fee schedule.
+    pub fn init(env: Env, admin: Address, treasury: Address) -> Result<(), ContractError> {
+        if env.storage().instance().has(&DataKey::Schema) {
+            return Err(ContractError::AlreadyInitialized);
+        }
         admin.require_auth();
-        env.storage().instance().set(&Symbol::new(&env, ADMIN_KEY), &admin);
-        env.storage().instance().set(&Symbol::new(&env, TREASURY_KEY), &treasury);
 
         let mut schedule: Map<i128, u32> = Map::new(&env);
-        schedule.set(0i128, 50);          // 0.5% for amounts < 1M stroops
-        schedule.set(1_000_000i128, 25);  // 0.25% for amounts 1M–10M
-        schedule.set(10_000_000i128, 10); // 0.1% for amounts > 10M
+        schedule.set(0i128, 50); // 0.5% below 1M stroops
+        schedule.set(1_000_000i128, 25); // 0.25% from 1M
+        schedule.set(10_000_000i128, 10); // 0.1% from 10M
 
-        env.storage().instance().set(&Symbol::new(&env, FEE_SCHEDULE_KEY), &schedule);
+        let storage = env.storage().instance();
+        storage.set(&DataKey::Admin, &admin);
+        storage.set(&DataKey::Treasury, &treasury);
+        storage.set(&DataKey::FeeSchedule, &schedule);
+        storage.set(&DataKey::TotalCollected, &0i128);
+        storage.set(&DataKey::Schema, &SCHEMA_VERSION);
+        Self::bump_instance_ttl(&env);
+
+        env.events()
+            .publish((symbol_short!("init"),), (admin, treasury));
+        Ok(())
     }
 
-    /// Compute and record the fee for `amount`.
+    /// Basis points owed on `amount`, per the **stored** fee schedule.
     ///
-    /// Uses overflow-safe arithmetic; returns `ContractError::Overflow` if
-    /// intermediate values exceed `i128::MAX`.
-    pub fn collect_fee(
-        env: Env,
-        amount: i128,
-        recipient: Address,
-    ) -> Result<i128, ContractError> {
-        if amount <= 0 {
-            return Err(ContractError::InvalidAmount);
-        }
+    /// Selects the highest tier threshold that does not exceed `amount`. An amount
+    /// below every threshold pays nothing; the default schedule includes a tier at
+    /// `0`, so that only happens once an admin removes it.
+    pub fn fee_for_amount(env: Env, amount: i128) -> Result<u32, ContractError> {
+        Self::require_current_schema(&env)?;
+        require_non_negative_amount(amount)?;
+        let schedule = Self::load_schedule(&env)?;
+        Ok(Self::select_tier(&schedule, amount))
+    }
 
-        let fee_schedule: Map<i128, u32> = env
+    /// Fee owed on `amount`, and record it against the running total.
+    pub fn collect_fee(env: Env, amount: i128, recipient: Address) -> Result<i128, ContractError> {
+        Self::require_current_schema(&env)?;
+        require_positive_amount(amount)?;
+
+        let schedule = Self::load_schedule(&env)?;
+        let fee = basis_points_of(amount, Self::select_tier(&schedule, amount))?;
+
+        let total: i128 = env
             .storage()
             .instance()
-            .get(&Symbol::new(&env, FEE_SCHEDULE_KEY))
-            .ok_or(ContractError::NotFound)?;
+            .get(&DataKey::TotalCollected)
+            .unwrap_or(0);
+        let new_total = total.checked_add(fee).ok_or(ContractError::Overflow)?;
+        env.storage()
+            .instance()
+            .set(&DataKey::TotalCollected, &new_total);
+        Self::bump_instance_ttl(&env);
 
-        let fee_basis_points = Self::get_fee_for_amount(&fee_schedule, amount);
-        let fee = Self::compute_fee(amount, fee_basis_points)?;
-
-        env.events().publish(
-            (Symbol::new(&env, "fee_collected"),),
-            (amount, fee, recipient.clone()),
-        );
-
+        env.events()
+            .publish((symbol_short!("collect"),), (amount, fee, recipient));
         Ok(fee)
     }
 
-    /// Determine the applicable fee in basis points for a given amount.
-    pub fn get_fee_for_amount(_schedule: &Map<i128, u32>, amount: i128) -> u32 {
-        if amount >= 10_000_000 {
-            10
-        } else if amount >= 1_000_000 {
-            25
-        } else {
-            50
-        }
+    /// Running total of fees collected since init (or since migration).
+    pub fn total_collected(env: Env) -> Result<i128, ContractError> {
+        Self::require_current_schema(&env)?;
+        env.storage()
+            .instance()
+            .get(&DataKey::TotalCollected)
+            .ok_or(ContractError::NotInitialized)
     }
 
+    /// Add or update a fee tier. Admin only.
     pub fn set_fee_schedule(
         env: Env,
         amount_tier: i128,
         basis_points: u32,
     ) -> Result<(), ContractError> {
-        let admin: Address = env
-            .storage()
-            .instance()
-            .get(&Symbol::new(&env, ADMIN_KEY))
-            .ok_or(ContractError::NotFound)?;
-        admin.require_auth();
-        assert_is_admin(&env, &admin, ADMIN_KEY)?;
-
-        if basis_points > MAX_SINGLE_FEE_BP {
-            return Err(ContractError::InvalidAmount);
+        Self::require_current_schema(&env)?;
+        Self::require_admin(&env)?;
+        if amount_tier < 0 {
+            return Err(ContractError::InvalidInput);
         }
+        require_basis_points(basis_points, MAX_SINGLE_FEE_BP)?;
 
-        let mut schedule: Map<i128, u32> = env
-            .storage()
-            .instance()
-            .get(&Symbol::new(&env, FEE_SCHEDULE_KEY))
-            .ok_or(ContractError::NotFound)?;
+        let mut schedule = Self::load_schedule(&env)?;
+        // Only an addition can breach the cap; updating an existing tier is fine.
+        if !schedule.contains_key(amount_tier) && schedule.len() >= MAX_FEE_TIERS {
+            return Err(ContractError::InvalidInput);
+        }
 
         schedule.set(amount_tier, basis_points);
-        env.storage().instance().set(&Symbol::new(&env, FEE_SCHEDULE_KEY), &schedule);
+        env.storage()
+            .instance()
+            .set(&DataKey::FeeSchedule, &schedule);
+        Self::bump_instance_ttl(&env);
 
-        env.events().publish(
-            (Symbol::new(&env, "fee_schedule_updated"),),
-            (amount_tier, basis_points),
-        );
-
+        env.events()
+            .publish((symbol_short!("schedule"),), (amount_tier, basis_points));
         Ok(())
     }
 
-    pub fn get_treasury(env: Env) -> Address {
+    /// Remove a fee tier. Admin only.
+    pub fn remove_fee_tier(env: Env, amount_tier: i128) -> Result<(), ContractError> {
+        Self::require_current_schema(&env)?;
+        Self::require_admin(&env)?;
+
+        let mut schedule = Self::load_schedule(&env)?;
+        if !schedule.contains_key(amount_tier) {
+            return Err(ContractError::InvalidInput);
+        }
+        schedule.remove(amount_tier);
         env.storage()
             .instance()
-            .get(&Symbol::new(&env, TREASURY_KEY))
-            .unwrap_or_else(|| Address::generate(&env))
+            .set(&DataKey::FeeSchedule, &schedule);
+        Self::bump_instance_ttl(&env);
+
+        env.events()
+            .publish((symbol_short!("rmtier"),), amount_tier);
+        Ok(())
     }
 
+    /// The full stored fee schedule.
+    pub fn get_fee_schedule(env: Env) -> Result<Map<i128, u32>, ContractError> {
+        Self::require_current_schema(&env)?;
+        Self::load_schedule(&env)
+    }
+
+    /// The address collected fees are routed to.
+    pub fn get_treasury(env: Env) -> Result<Address, ContractError> {
+        Self::require_current_schema(&env)?;
+        env.storage()
+            .instance()
+            .get(&DataKey::Treasury)
+            .ok_or(ContractError::NotInitialized)
+    }
+
+    /// Point the treasury at a new address. Admin only.
     pub fn update_treasury(env: Env, new_treasury: Address) -> Result<(), ContractError> {
+        Self::require_current_schema(&env)?;
+        Self::require_admin(&env)?;
+
+        env.storage()
+            .instance()
+            .set(&DataKey::Treasury, &new_treasury);
+        Self::bump_instance_ttl(&env);
+        env.events()
+            .publish((symbol_short!("treasury"),), new_treasury);
+        Ok(())
+    }
+
+    /// Announce that `amount` is routed to the treasury.
+    ///
+    /// Emits an event for off-chain settlement; like the escrow, this contract does
+    /// not itself move tokens.
+    pub fn route_to_treasury(env: Env, amount: i128) -> Result<(), ContractError> {
+        Self::require_current_schema(&env)?;
+        require_positive_amount(amount)?;
+
+        let treasury = Self::get_treasury(env.clone())?;
+        env.events()
+            .publish((symbol_short!("routed"),), (amount, treasury));
+        Ok(())
+    }
+
+    // ── Upgrade surface (issue #817) ──────────────────────────────────────────
+
+    pub fn schema_version(env: Env) -> Result<u32, ContractError> {
+        env.storage()
+            .instance()
+            .get(&DataKey::Schema)
+            .ok_or(ContractError::NotInitialized)
+    }
+
+    /// Replace the contract WASM. Admin only. Run `migrate` immediately after.
+    pub fn upgrade(env: Env, new_wasm_hash: BytesN<32>) -> Result<(), ContractError> {
+        Self::require_admin(&env)?;
+        env.deployer().update_current_contract_wasm(new_wasm_hash);
+        env.events().publish((symbol_short!("upgrade"),), ());
+        Ok(())
+    }
+
+    /// Convert persisted state to [`SCHEMA_VERSION`]. Returns the version migrated from.
+    pub fn migrate(env: Env) -> Result<u32, ContractError> {
+        Self::require_admin(&env)?;
+
+        let stored: u32 = env
+            .storage()
+            .instance()
+            .get(&DataKey::Schema)
+            .ok_or(ContractError::NotInitialized)?;
+
+        if stored == SCHEMA_VERSION {
+            return Err(ContractError::SchemaAlreadyCurrent);
+        }
+        if stored > SCHEMA_VERSION {
+            return Err(ContractError::SchemaVersionUnsupported);
+        }
+
+        if stored == 1 {
+            // v1 tracked no running total. Start the counter at zero rather than
+            // leaving the key absent, which would fail every `total_collected` call.
+            // Historical totals are not recoverable on-chain; rebuild them from the
+            // `collect` event stream if needed.
+            env.storage()
+                .instance()
+                .set(&DataKey::TotalCollected, &0i128);
+        }
+
+        env.storage()
+            .instance()
+            .set(&DataKey::Schema, &SCHEMA_VERSION);
+        Self::bump_instance_ttl(&env);
+        env.events()
+            .publish((symbol_short!("migrate"),), (stored, SCHEMA_VERSION));
+        Ok(stored)
+    }
+
+    // ── Internal helpers ──────────────────────────────────────────────────────
+
+    /// Highest tier threshold not exceeding `amount`, or 0 basis points if none.
+    ///
+    /// `Map` iterates in key order, so the last matching entry is the best one.
+    fn select_tier(schedule: &Map<i128, u32>, amount: i128) -> u32 {
+        let mut selected = 0u32;
+        for (threshold, basis_points) in schedule.iter() {
+            if threshold > amount {
+                break;
+            }
+            selected = basis_points;
+        }
+        selected
+    }
+
+    fn load_schedule(env: &Env) -> Result<Map<i128, u32>, ContractError> {
+        env.storage()
+            .instance()
+            .get(&DataKey::FeeSchedule)
+            .ok_or(ContractError::NotInitialized)
+    }
+
+    fn require_admin(env: &Env) -> Result<(), ContractError> {
         let admin: Address = env
             .storage()
             .instance()
-            .get(&Symbol::new(&env, ADMIN_KEY))
-            .ok_or(ContractError::NotFound)?;
+            .get(&DataKey::Admin)
+            .ok_or(ContractError::NotInitialized)?;
         admin.require_auth();
-        assert_is_admin(&env, &admin, ADMIN_KEY)?;
-
-        env.storage().instance().set(&Symbol::new(&env, TREASURY_KEY), &new_treasury);
-        env.events().publish((Symbol::new(&env, "treasury_updated"),), new_treasury);
-
         Ok(())
     }
 
-    pub fn route_to_treasury(env: Env, amount: i128) -> Result<(), ContractError> {
-        if amount <= 0 {
-            return Err(ContractError::InvalidAmount);
-        }
+    fn require_current_schema(env: &Env) -> Result<(), ContractError> {
+        check_schema_version(
+            env.storage().instance().get(&DataKey::Schema),
+            SCHEMA_VERSION,
+        )
+    }
 
-        let treasury: Address = env
-            .storage()
+    fn bump_instance_ttl(env: &Env) {
+        env.storage()
             .instance()
-            .get(&Symbol::new(&env, TREASURY_KEY))
-            .ok_or(ContractError::NotFound)?;
-
-        env.events().publish(
-            (Symbol::new(&env, "fee_routed"),),
-            (amount, treasury.clone()),
-        );
-
-        Ok(())
-    }
-
-    // ── Overflow-safe fee arithmetic ──────────────────────────────────────────
-
-    /// Compute `floor(amount * fee_basis_points / MAX_BASIS_POINTS)` using
-    /// checked arithmetic.  Returns `ContractError::Overflow` on overflow.
-    fn compute_fee(amount: i128, fee_basis_points: u32) -> Result<i128, ContractError> {
-        // Cast to u128 to avoid negative-number issues while preserving range.
-        let amount_u128 = amount as u128;
-        let numerator = amount_u128
-            .checked_mul(fee_basis_points as u128)
-            .ok_or(ContractError::Overflow)?;
-        let fee_u128 = numerator
-            .checked_div(MAX_BASIS_POINTS as u128)
-            .ok_or(ContractError::Overflow)?;
-        // Safe cast: fee ≤ amount ≤ i128::MAX (amount was positive)
-        Ok(fee_u128 as i128)
+            .extend_ttl(INSTANCE_TTL_THRESHOLD, INSTANCE_TTL_EXTEND_TO);
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Tests
-// ─────────────────────────────────────────────────────────────────────────────
+#[cfg(feature = "testutils")]
+pub mod test_utils;
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    // ── Fee tier selection ────────────────────────────────────────────────────
-
-    #[test]
-    fn test_fee_small_amount_returns_50bp() {
-        let dummy: Map<i128, u32> = {
-            // Map::new requires Env which is unavailable in plain unit tests;
-            // pass a reference to a zero-sized phantom value just to satisfy
-            // the type-checker. (The implementation ignores the schedule param
-            // and uses hard-coded tiers.)
-            //
-            // We test the tier logic via the public helper in isolation.
-            return; // skip – tested below via compute_fee directly
-        };
-        // unreachable
-        let _ = dummy;
-    }
-
-    #[test]
-    fn test_compute_fee_small_amount() {
-        // 0.5% of 500_000 = 2_500
-        let fee = TreasuryContract::compute_fee(500_000, 50).unwrap();
-        assert_eq!(fee, 2_500);
-    }
-
-    #[test]
-    fn test_compute_fee_medium_amount() {
-        // 0.25% of 5_000_000 = 12_500
-        let fee = TreasuryContract::compute_fee(5_000_000, 25).unwrap();
-        assert_eq!(fee, 12_500);
-    }
-
-    #[test]
-    fn test_compute_fee_large_amount() {
-        // 0.1% of 50_000_000 = 50_000
-        let fee = TreasuryContract::compute_fee(50_000_000, 10).unwrap();
-        assert_eq!(fee, 50_000);
-    }
-
-    #[test]
-    fn test_fee_bounds() {
-        assert!(MAX_SINGLE_FEE_BP <= MAX_BASIS_POINTS);
-    }
-
-    // ── Overflow guard ────────────────────────────────────────────────────────
-
-    /// The raw `amount as u128 * fee_rate as u128` in the old code could
-    /// silently wrap in release builds without overflow-checks=true.  With
-    /// checked_mul we get an explicit error instead.
-    #[test]
-    fn test_compute_fee_max_safe_value_does_not_panic() {
-        // i128::MAX as u128 * 10000 overflows u128; checked_mul must catch it.
-        let result = TreasuryContract::compute_fee(i128::MAX, 10_000);
-        assert_eq!(result.unwrap_err(), ContractError::Overflow,
-            "Overflow on i128::MAX * 10000 must return ContractError::Overflow");
-    }
-
-    #[test]
-    fn test_compute_fee_zero_rate() {
-        // 0% fee on any amount should be 0.
-        let fee = TreasuryContract::compute_fee(1_000_000, 0).unwrap();
-        assert_eq!(fee, 0);
-    }
-
-    #[test]
-    fn test_compute_fee_max_rate_small_amount() {
-        // 100% (10_000 bp) of 1 = 0 (floor division)
-        let fee = TreasuryContract::compute_fee(1, 10_000).unwrap();
-        assert_eq!(fee, 1);
-    }
-
-    #[test]
-    fn test_compute_fee_one_stroop() {
-        // 0.5% of 1 stroop rounds to 0
-        let fee = TreasuryContract::compute_fee(1, 50).unwrap();
-        assert_eq!(fee, 0, "Floor division: 1 * 50 / 10000 = 0");
-    }
-
-    #[test]
-    fn test_amount_tier_boundaries() {
-        assert_eq!(0, 0);
-        assert_eq!(1_000_000, 1_000_000);
-        assert_eq!(10_000_000, 10_000_000);
-    }
-}
+mod test;

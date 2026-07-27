@@ -51,4 +51,33 @@ pub enum ContractError {
     /// An arithmetic operation would overflow or underflow.
     /// Code: 9
     Overflow = 9,
+
+    /// A cross-contract call (token transfer/balance/approve/allowance) failed.
+    /// Code: 10
+    ContractFault = 10,
+
+    /// `init` called on a contract that already holds state.
+    /// Code: 11
+    AlreadyInitialized = 11,
+
+    /// An entrypoint was called before `init` populated instance storage.
+    /// Code: 12
+    NotInitialized = 12,
+
+    /// State was written by an older schema version; `migrate` must run first.
+    /// Code: 13
+    MigrationRequired = 13,
+
+    /// Stored schema version is newer than this build understands.
+    /// Code: 14
+    SchemaVersionUnsupported = 14,
+
+    /// `migrate` called when the stored schema already matches the current version.
+    /// Code: 15
+    SchemaAlreadyCurrent = 15,
+
+    /// A caller-supplied value (string length, tier count, duplicate entry…)
+    /// failed a validation rule not covered by a more specific code above.
+    /// Code: 16
+    InvalidInput = 16,
 }
