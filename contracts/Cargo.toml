@@ -2,7 +2,10 @@
 members = ["escrow", "fee-manager", "multisig-authority", "treasury", "shared"]
 resolver = "2"
 
+# Cargo only honours [profile.*] at the workspace root — the per-member copies that
+# used to live in each contract's Cargo.toml were silently ignored (and warned about).
 [profile.release]
 opt-level = "z"
+codegen-units = 1
 lto = true
 overflow-checks = true

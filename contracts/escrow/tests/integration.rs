@@ -27,10 +27,12 @@ mod tests {
         let mut released = false;
         let refunded = false;
 
-        released = true;
+const DEFAULT_TIMEOUT_LEDGERS: u32 = 604_800;
 
-        assert!(released && !refunded);
-    }
+struct Harness {
+    env: Env,
+    client: EscrowContractClient<'static>,
+}
 
     #[test]
     fn test_refund_flow_after_timeout() {
@@ -39,12 +41,20 @@ mod tests {
         let current_ledger = 606000u32;
         let timeout_ledger = 605800u32;
 
-        if current_ledger >= timeout_ledger {
-            refunded = true;
-        }
-
-        assert!(!released && refunded);
+impl Harness {
+    fn deposit(&self, amount: i128) -> String {
+        self.client.deposit(
+            &Address::generate(&self.env),
+            &amount,
+            &Address::generate(&self.env),
+            &Address::generate(&self.env),
+        )
     }
+
+    fn advance(&self, by: u32) {
+        self.env.ledger().with_mut(|li| li.sequence_number += by);
+    }
+}
 
     #[test]
     fn test_refund_blocked_before_timeout() {
@@ -75,18 +85,28 @@ mod tests {
         let deposit1_id = "user1:bridge:1000";
         let deposit2_id = "user2:bridge:1001";
 
-        assert_ne!(deposit1_id, deposit2_id);
-    }
+#[test]
+fn concurrent_deposits_settle_independently() {
+    let h = harness();
+    let ids: [String; 3] = [h.deposit(1i128), h.deposit(2i128), h.deposit(3i128)];
 
     #[test]
     fn test_idempotent_refund() {
         let mut refunded = false;
 
-        refunded = true;
-        let can_refund_again = !refunded;
+    let recipient = Address::generate(&h.env);
+    h.client.release(&ids[1], &recipient);
 
-        assert!(!can_refund_again, "Cannot refund twice");
-    }
+    // Releasing the middle deposit leaves the others untouched.
+    assert_eq!(h.client.get_deposit(&ids[0]), (1i128, false, false));
+    assert_eq!(h.client.get_deposit(&ids[1]), (2i128, true, false));
+    assert_eq!(h.client.get_deposit(&ids[2]), (3i128, false, false));
+
+    h.advance(DEFAULT_TIMEOUT_LEDGERS);
+    assert_eq!(h.client.refund(&ids[0]), 1i128);
+    assert!(!h.client.can_refund(&ids[1]), "released deposit stays settled");
+    assert!(h.client.can_refund(&ids[2]), "untouched deposit still refundable");
+}
 
     #[test]
     fn test_deposit_id_uniqueness() {

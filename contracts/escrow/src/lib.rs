@@ -31,6 +31,7 @@ const LOCK_KEY: &str = "lock";
 
 // ── Deposit record ─────────────────────────────────────────────────────────────
 
+#[contracttype]
 #[derive(Clone)]
 pub struct EscrowDeposit {
     pub depositor: Address,
@@ -53,7 +54,9 @@ impl EscrowContract {
 
     pub fn init(env: Env, settlement_authority: Address) {
         settlement_authority.require_auth();
-        env.storage().instance()
+
+        env.storage()
+            .instance()
             .set(&Symbol::new(&env, SETTLEMENT_AUTH_KEY), &settlement_authority);
         env.storage().instance()
             .set(&Symbol::new(&env, TIMEOUT_KEY), &(604800u32)); // 7 days default
@@ -84,9 +87,11 @@ impl EscrowContract {
         depositor.require_auth();
 
         let current_ledger = env.ledger().sequence();
-        let timeout = env.storage().instance()
+        let timeout = env
+            .storage()
+            .instance()
             .get::<_, u32>(&Symbol::new(&env, TIMEOUT_KEY))
-            .unwrap_or(604800);
+            .unwrap_or(DEFAULT_TIMEOUT_LEDGERS);
 
         let deposit_id = soroban_sdk::format!(
             &env,
@@ -106,13 +111,17 @@ impl EscrowContract {
             amount,
             bridge_address: bridge_address.clone(),
             timestamp: env.ledger().timestamp(),
-            timeout_ledger: current_ledger + timeout,
+            // Saturating: a large configured timeout must not wrap to a past ledger,
+            // which would make the deposit refundable immediately.
+            timeout_ledger: current_ledger.saturating_add(timeout),
             released: false,
             refunded: false,
         };
 
         deposits.set(deposit_id.clone(), deposit);
-        env.storage().instance().set(&Symbol::new(&env, DEPOSITS_KEY), &deposits);
+        env.storage()
+            .instance()
+            .set(&Symbol::new(&env, DEPOSITS_KEY), &deposits);
 
         // ── INTERACT ────────────────────────────────────────────────────────
         env.events().publish(
@@ -170,7 +179,9 @@ impl EscrowContract {
         let amount = deposit.amount;
         deposit.released = true;
         deposits.set(deposit_id.clone(), deposit);
-        env.storage().instance().set(&Symbol::new(&env, DEPOSITS_KEY), &deposits);
+        env.storage()
+            .instance()
+            .set(&Symbol::new(&env, DEPOSITS_KEY), &deposits);
 
         // Release the reentrancy lock *before* any external call (events are
         // read-only but we unlock early as best-practice).
@@ -281,9 +292,12 @@ impl EscrowContract {
             return Err(ContractError::InvalidAmount);
         }
 
-        env.storage().instance().set(&Symbol::new(&env, TIMEOUT_KEY), &timeout_ledgers);
+        env.storage()
+            .instance()
+            .set(&Symbol::new(&env, TIMEOUT_KEY), &timeout_ledgers);
 
-        env.events().publish((Symbol::new(&env, "timeout_updated"),), timeout_ledgers);
+        env.events()
+            .publish((Symbol::new(&env, "timeout_updated"),), timeout_ledgers);
 
         Ok(())
     }
@@ -351,8 +365,11 @@ mod tests {
         let released = true;
         let refunded = false;
 
-        let can_refund = !released && !refunded;
-        assert!(!can_refund, "Cannot refund after release");
+    fn deposits(env: &Env) -> Map<String, EscrowDeposit> {
+        env.storage()
+            .instance()
+            .get(&Symbol::new(env, DEPOSITS_KEY))
+            .unwrap_or_else(|| Map::new(env))
     }
 
     #[test]
@@ -374,13 +391,17 @@ mod tests {
         assert!(timeout_ledger > current_ledger);
     }
 
-    #[test]
-    fn test_timeout_bounds() {
-        let min_timeout = 1u32;
-        let max_timeout = 10_000_000u32;
-
-        assert!(min_timeout > 0);
-        assert!(max_timeout < u32::MAX);
+    /// `no_std` hex encoder — `format!` is unavailable without an allocator.
+    fn hex_encode(env: &Env, bytes: &[u8; 32]) -> String {
+        const HEX: &[u8; 16] = b"0123456789abcdef";
+        let mut out = [0u8; 64];
+        let mut i = 0;
+        while i < 32 {
+            out[i * 2] = HEX[(bytes[i] >> 4) as usize];
+            out[i * 2 + 1] = HEX[(bytes[i] & 0x0f) as usize];
+            i += 1;
+        }
+        String::from_bytes(env, &out)
     }
 
     // ── Reentrancy guard logic ────────────────────────────────────────────────
@@ -506,3 +527,6 @@ mod tests {
         assert_ne!(ContractError::Expired as u32, ContractError::InvalidAmount as u32);
     }
 }
+
+#[cfg(test)]
+mod tests;
