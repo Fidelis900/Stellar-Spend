@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useState } from "react";
-import type { Transaction } from "@/lib/transaction-storage";
-import { TransactionStorage } from "@/lib/transaction-storage";
+import { useCallback, useEffect, useState } from 'react';
+import type { Transaction } from '@/lib/transaction-storage';
+import { TransactionStorage } from '@/lib/transaction-storage';
 
 export interface UseTransactionHistoryResult {
   transactions: Transaction[];
@@ -24,9 +24,7 @@ export interface UseTransactionHistoryResult {
  *
  * Fetch failures fall back to local storage so the user still sees cached data.
  */
-export function useTransactionHistory(
-  walletAddress?: string,
-): UseTransactionHistoryResult {
+export function useTransactionHistory(walletAddress?: string): UseTransactionHistoryResult {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,10 +46,10 @@ export function useTransactionHistory(
         if (!res.ok) {
           return res.json().then(
             (body) => {
-              throw new Error(body?.error ?? "Failed to load transactions");
+              throw new Error(body?.error ?? 'Failed to load transactions');
             },
             () => {
-              throw new Error("Failed to load transactions");
+              throw new Error('Failed to load transactions');
             },
           );
         }
@@ -73,7 +71,7 @@ export function useTransactionHistory(
             ? null
             : err instanceof Error
               ? err.message
-              : "Failed to load transactions",
+              : 'Failed to load transactions',
         );
       })
       .finally(() => {
@@ -85,47 +83,37 @@ export function useTransactionHistory(
     };
   }, [walletAddress]);
 
-  const saveNote = useCallback(
-    async (id: string, note: string): Promise<string | null> => {
-      const trimmed = note.slice(0, 500);
-      let previous: string | undefined;
-      setTransactions((prev) => {
-        previous = prev.find((tx) => tx.id === id)?.note;
-        return prev.map((tx) => (tx.id === id ? { ...tx, note: trimmed } : tx));
+  const saveNote = useCallback(async (id: string, note: string): Promise<string | null> => {
+    const trimmed = note.slice(0, 500);
+    let previous: string | undefined;
+    setTransactions((prev) => {
+      previous = prev.find((tx) => tx.id === id)?.note;
+      return prev.map((tx) => (tx.id === id ? { ...tx, note: trimmed } : tx));
+    });
+    const rollbackLocal = TransactionStorage.applyOptimistic(id, { note: trimmed });
+
+    try {
+      const res = await fetch(`/api/transactions/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ note: trimmed }),
       });
-      const rollbackLocal = TransactionStorage.applyOptimistic(id, { note: trimmed });
-
-      try {
-        const res = await fetch(`/api/transactions/${encodeURIComponent(id)}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ note: trimmed }),
-        });
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          throw new Error(body?.error ?? `Save failed (${res.status})`);
-        }
-        return null;
-      } catch (err) {
-        setTransactions((prev) =>
-          prev.map((tx) => (tx.id === id ? { ...tx, note: previous } : tx)),
-        );
-        rollbackLocal();
-        return err instanceof Error ? err.message : "Failed to save note";
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error ?? `Save failed (${res.status})`);
       }
-    },
-    [],
-  );
+      return null;
+    } catch (err) {
+      setTransactions((prev) => prev.map((tx) => (tx.id === id ? { ...tx, note: previous } : tx)));
+      rollbackLocal();
+      return err instanceof Error ? err.message : 'Failed to save note';
+    }
+  }, []);
 
-  const updateTransaction = useCallback(
-    (id: string, updates: Partial<Transaction>) => {
-      setTransactions((prev) =>
-        prev.map((tx) => (tx.id === id ? { ...tx, ...updates } : tx)),
-      );
-      TransactionStorage.update(id, updates);
-    },
-    [],
-  );
+  const updateTransaction = useCallback((id: string, updates: Partial<Transaction>) => {
+    setTransactions((prev) => prev.map((tx) => (tx.id === id ? { ...tx, ...updates } : tx)));
+    TransactionStorage.update(id, updates);
+  }, []);
 
   return { transactions, isLoading, error, saveNote, updateTransaction };
 }

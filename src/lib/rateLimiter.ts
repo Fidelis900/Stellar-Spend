@@ -74,7 +74,7 @@ export const RATE_LIMIT_REGISTRY: Record<string, RateLimitConfig> = {
   'bridge-status': { maxRequests: 60, windowMs: 60_000 },
 
   // ── Quote / rate routes ───────────────────────────────────────────────────
-  'quote': { maxRequests: 30, windowMs: 60_000, premiumBypass: true },
+  quote: { maxRequests: 30, windowMs: 60_000, premiumBypass: true },
   'fx-rate': { maxRequests: 20, windowMs: 10_000 },
 
   // ── Payout / offramp routes ───────────────────────────────────────────────
@@ -87,7 +87,7 @@ export const RATE_LIMIT_REGISTRY: Record<string, RateLimitConfig> = {
   'transactions-write': { maxRequests: 20, windowMs: 60_000 },
 
   // ── Global fallback ───────────────────────────────────────────────────────
-  'global': { maxRequests: 100, windowMs: 60_000, premiumBypass: true },
+  global: { maxRequests: 100, windowMs: 60_000, premiumBypass: true },
 };
 
 // ── SlidingWindowRateLimiter ──────────────────────────────────────────────────
@@ -108,10 +108,7 @@ export class SlidingWindowRateLimiter {
    * @param key       - Per-user/IP identifier (e.g. IP address or user ID)
    * @param options   - Optional flags (isPremium for bypass)
    */
-  async check(
-    key: string,
-    options?: { isPremium?: boolean },
-  ): Promise<RateLimitResult> {
+  async check(key: string, options?: { isPremium?: boolean }): Promise<RateLimitResult> {
     if (options?.isPremium && this.config.premiumBypass) {
       return {
         allowed: true,

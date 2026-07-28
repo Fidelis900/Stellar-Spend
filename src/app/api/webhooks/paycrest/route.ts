@@ -35,7 +35,12 @@ async function handleWebhook(request: NextRequest): Promise<NextResponse> {
   const nonce = request.headers.get('X-Paycrest-Nonce');
 
   if (!signature || !timestamp || !nonce) {
-    logger.warn('webhook.missing_headers', { requestId, hasSignature: !!signature, hasTimestamp: !!timestamp, hasNonce: !!nonce });
+    logger.warn('webhook.missing_headers', {
+      requestId,
+      hasSignature: !!signature,
+      hasTimestamp: !!timestamp,
+      hasNonce: !!nonce,
+    });
     reqLogger.logError(401, 'Missing required webhook headers');
     return ErrorHandler.unauthorized('Missing required security headers');
   }

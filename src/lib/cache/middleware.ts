@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getCacheClient } from "./client";
+import { NextRequest, NextResponse } from 'next/server';
+import { getCacheClient } from './client';
 
 export interface CacheOptions {
   ttl: number; // TTL in seconds
@@ -22,28 +22,28 @@ export async function withCaching(
     const response = new NextResponse(cached, {
       status: 200,
       headers: {
-        "Content-Type": "application/json",
-        "Cache-Control": `public, max-age=${options.ttl}, stale-while-revalidate=${options.staleWhileRevalidate || options.ttl}`,
-        "X-Cache": "HIT",
+        'Content-Type': 'application/json',
+        'Cache-Control': `public, max-age=${options.ttl}, stale-while-revalidate=${options.staleWhileRevalidate || options.ttl}`,
+        'X-Cache': 'HIT',
       },
     });
     return response;
   }
 
   // Fetch fresh data
-  const response = await handler(new NextRequest(new URL("http://localhost")));
-  const contentType = response.headers.get("content-type");
+  const response = await handler(new NextRequest(new URL('http://localhost')));
+  const contentType = response.headers.get('content-type');
 
-  if (response.ok && contentType?.includes("application/json")) {
+  if (response.ok && contentType?.includes('application/json')) {
     const body = await response.text();
     await client.set(options.key, body, options.ttl);
 
     return new NextResponse(body, {
       status: response.status,
       headers: {
-        "Content-Type": contentType,
-        "Cache-Control": `public, max-age=${options.ttl}, stale-while-revalidate=${options.staleWhileRevalidate || options.ttl}`,
-        "X-Cache": "MISS",
+        'Content-Type': contentType,
+        'Cache-Control': `public, max-age=${options.ttl}, stale-while-revalidate=${options.staleWhileRevalidate || options.ttl}`,
+        'X-Cache': 'MISS',
       },
     });
   }
@@ -60,7 +60,7 @@ export function setCacheHeaders(
   staleWhileRevalidate?: number,
 ): NextResponse {
   response.headers.set(
-    "Cache-Control",
+    'Cache-Control',
     `public, max-age=${ttl}, stale-while-revalidate=${staleWhileRevalidate || ttl}`,
   );
   return response;

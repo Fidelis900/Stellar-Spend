@@ -93,7 +93,9 @@ describe('POST /api/webhooks/paycrest (integration)', () => {
   beforeEach(() => {
     vi.mocked(dal.getByPayoutOrderId).mockReset().mockResolvedValue(null);
     vi.mocked(dal.update).mockReset().mockResolvedValue(undefined);
-    vi.mocked(dal.getById).mockReset().mockResolvedValue(FAKE_TRANSACTION as any);
+    vi.mocked(dal.getById)
+      .mockReset()
+      .mockResolvedValue(FAKE_TRANSACTION as any);
     vi.mocked(enqueue).mockReset().mockResolvedValue(undefined);
     vi.mocked(notifyTransactionStatusUpdate).mockReset().mockResolvedValue(undefined);
     consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -128,7 +130,10 @@ describe('POST /api/webhooks/paycrest (integration)', () => {
   });
 
   it('detects and rejects replay attacks (same nonce)', async () => {
-    const body = JSON.stringify({ event: 'payment_order.settled', data: { id: 'order-replay-int' } });
+    const body = JSON.stringify({
+      event: 'payment_order.settled',
+      data: { id: 'order-replay-int' },
+    });
     const sig = await hmacHex(body, 'test-webhook-secret');
     const ts = String(Date.now());
     const nonce = 'int-replay-nonce';
@@ -140,44 +145,68 @@ describe('POST /api/webhooks/paycrest (integration)', () => {
 
   it('updates transaction to completed on payment_order.settled', async () => {
     vi.mocked(dal.getByPayoutOrderId).mockResolvedValue(FAKE_TRANSACTION as any);
-    const body = JSON.stringify({ event: 'payment_order.settled', data: { id: 'order-settled-1' } });
+    const body = JSON.stringify({
+      event: 'payment_order.settled',
+      data: { id: 'order-settled-1' },
+    });
     const sig = await hmacHex(body, 'test-webhook-secret');
     await POST(makeRequest(body, sig, String(Date.now()), 'int-nonce-3'));
-    expect(dal.update).toHaveBeenCalledWith('tx-1', { status: 'completed', payoutStatus: 'settled' });
+    expect(dal.update).toHaveBeenCalledWith('tx-1', {
+      status: 'completed',
+      payoutStatus: 'settled',
+    });
   });
 
   it('updates transaction to failed on payment_order.refunded', async () => {
     vi.mocked(dal.getByPayoutOrderId).mockResolvedValue(FAKE_TRANSACTION as any);
-    const body = JSON.stringify({ event: 'payment_order.refunded', data: { id: 'order-refunded-1' } });
+    const body = JSON.stringify({
+      event: 'payment_order.refunded',
+      data: { id: 'order-refunded-1' },
+    });
     const sig = await hmacHex(body, 'test-webhook-secret');
     await POST(makeRequest(body, sig, String(Date.now()), 'int-nonce-4'));
-    expect(dal.update).toHaveBeenCalledWith('tx-1', expect.objectContaining({
-      status: 'failed',
-      payoutStatus: 'refunded',
-    }));
+    expect(dal.update).toHaveBeenCalledWith(
+      'tx-1',
+      expect.objectContaining({
+        status: 'failed',
+        payoutStatus: 'refunded',
+      }),
+    );
   });
 
   it('updates transaction to failed on payment_order.expired', async () => {
     vi.mocked(dal.getByPayoutOrderId).mockResolvedValue(FAKE_TRANSACTION as any);
-    const body = JSON.stringify({ event: 'payment_order.expired', data: { id: 'order-expired-1' } });
+    const body = JSON.stringify({
+      event: 'payment_order.expired',
+      data: { id: 'order-expired-1' },
+    });
     const sig = await hmacHex(body, 'test-webhook-secret');
     await POST(makeRequest(body, sig, String(Date.now()), 'int-nonce-5'));
-    expect(dal.update).toHaveBeenCalledWith('tx-1', expect.objectContaining({
-      status: 'failed',
-      payoutStatus: 'expired',
-    }));
+    expect(dal.update).toHaveBeenCalledWith(
+      'tx-1',
+      expect.objectContaining({
+        status: 'failed',
+        payoutStatus: 'expired',
+      }),
+    );
   });
 
   it('updates payoutStatus to pending on payment_order.pending', async () => {
     vi.mocked(dal.getByPayoutOrderId).mockResolvedValue(FAKE_TRANSACTION as any);
-    const body = JSON.stringify({ event: 'payment_order.pending', data: { id: 'order-pending-1' } });
+    const body = JSON.stringify({
+      event: 'payment_order.pending',
+      data: { id: 'order-pending-1' },
+    });
     const sig = await hmacHex(body, 'test-webhook-secret');
     await POST(makeRequest(body, sig, String(Date.now()), 'int-nonce-6'));
     expect(dal.update).toHaveBeenCalledWith('tx-1', { payoutStatus: 'pending' });
   });
 
   it('returns 200 without updating when no transaction found for orderId', async () => {
-    const body = JSON.stringify({ event: 'payment_order.settled', data: { id: 'order-unknown-1' } });
+    const body = JSON.stringify({
+      event: 'payment_order.settled',
+      data: { id: 'order-unknown-1' },
+    });
     const sig = await hmacHex(body, 'test-webhook-secret');
     const res = await POST(makeRequest(body, sig, String(Date.now()), 'int-nonce-7'));
     expect(res.status).toBe(200);

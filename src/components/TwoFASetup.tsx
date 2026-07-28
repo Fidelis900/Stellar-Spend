@@ -87,9 +87,7 @@ export function TwoFASetup({ userId, onSuccess, onCancel }: TwoFASetupProps) {
 
         {step === 'method' && (
           <div className="space-y-3">
-            <p className="text-sm text-[#999999] mb-4">
-              Choose your preferred 2FA method
-            </p>
+            <p className="text-sm text-[#999999] mb-4">Choose your preferred 2FA method</p>
             <button
               onClick={() => handleMethodSelect('totp')}
               disabled={isLoading}
@@ -97,7 +95,7 @@ export function TwoFASetup({ userId, onSuccess, onCancel }: TwoFASetupProps) {
                 'w-full p-4 border text-left transition-colors',
                 method === 'totp'
                   ? 'border-[#c9a962] bg-[#c9a962]/10'
-                  : 'border-[#333333] hover:border-[#555555]'
+                  : 'border-[#333333] hover:border-[#555555]',
               )}
             >
               <div className="font-semibold text-white">Authenticator App (TOTP)</div>
@@ -113,13 +111,11 @@ export function TwoFASetup({ userId, onSuccess, onCancel }: TwoFASetupProps) {
                 'w-full p-4 border text-left transition-colors',
                 method === 'sms'
                   ? 'border-[#c9a962] bg-[#c9a962]/10'
-                  : 'border-[#333333] hover:border-[#555555]'
+                  : 'border-[#333333] hover:border-[#555555]',
               )}
             >
               <div className="font-semibold text-white">SMS</div>
-              <div className="text-xs text-[#999999] mt-1">
-                Receive codes via text message
-              </div>
+              <div className="text-xs text-[#999999] mt-1">Receive codes via text message</div>
             </button>
 
             {error && (
@@ -142,7 +138,7 @@ export function TwoFASetup({ userId, onSuccess, onCancel }: TwoFASetupProps) {
                   'flex-1 px-4 py-2 text-xs font-semibold transition-colors',
                   isLoading
                     ? 'bg-[#666666] text-[#999999] cursor-not-allowed'
-                    : 'bg-[#c9a962] text-[#0a0a0a] hover:bg-[#d4b574]'
+                    : 'bg-[#c9a962] text-[#0a0a0a] hover:bg-[#d4b574]',
                 )}
               >
                 {isLoading ? 'Setting up...' : 'Continue'}
@@ -159,13 +155,9 @@ export function TwoFASetup({ userId, onSuccess, onCancel }: TwoFASetupProps) {
                   Scan this QR code with your authenticator app:
                 </p>
                 <div className="bg-white p-4 flex items-center justify-center mb-4">
-                  <div className="text-xs text-[#0a0a0a]">
-                    [QR Code: {setupData.uri}]
-                  </div>
+                  <div className="text-xs text-[#0a0a0a]">[QR Code: {setupData.uri}]</div>
                 </div>
-                <p className="text-xs text-[#999999] mb-2">
-                  Or enter this secret manually:
-                </p>
+                <p className="text-xs text-[#999999] mb-2">Or enter this secret manually:</p>
                 <code className="block bg-[#0a0a0a] border border-[#333333] p-2 text-xs text-[#c9a962] break-all mb-4">
                   {setupData.secret}
                 </code>
@@ -174,9 +166,7 @@ export function TwoFASetup({ userId, onSuccess, onCancel }: TwoFASetupProps) {
 
             {method === 'sms' && (
               <div>
-                <label className="block text-xs text-[#999999] mb-2">
-                  Phone Number
-                </label>
+                <label className="block text-xs text-[#999999] mb-2">Phone Number</label>
                 <input
                   type="tel"
                   value={phoneNumber}
@@ -188,9 +178,7 @@ export function TwoFASetup({ userId, onSuccess, onCancel }: TwoFASetupProps) {
             )}
 
             <div>
-              <label className="block text-xs text-[#999999] mb-2">
-                Enter verification code
-              </label>
+              <label className="block text-xs text-[#999999] mb-2">Enter verification code</label>
               <input
                 type="text"
                 value={verificationCode}
@@ -221,7 +209,7 @@ export function TwoFASetup({ userId, onSuccess, onCancel }: TwoFASetupProps) {
                   'flex-1 px-4 py-2 text-xs font-semibold transition-colors',
                   isLoading
                     ? 'bg-[#666666] text-[#999999] cursor-not-allowed'
-                    : 'bg-[#c9a962] text-[#0a0a0a] hover:bg-[#d4b574]'
+                    : 'bg-[#c9a962] text-[#0a0a0a] hover:bg-[#d4b574]',
                 )}
               >
                 {isLoading ? 'Verifying...' : 'Verify & Enable'}

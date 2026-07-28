@@ -34,8 +34,8 @@ export class QRCodeService {
 
     // Fixed corner finder patterns (QR standard)
     const corners = new Set([
-      0, 1, 2, 3, 4, 5, 6, 9, 15, 18, 24, 27, 33, 36, 42, 45, 46, 47, 48, 49, 50, 51, 54, 60,
-      63, 69, 72, 73, 74, 75, 76, 77, 78,
+      0, 1, 2, 3, 4, 5, 6, 9, 15, 18, 24, 27, 33, 36, 42, 45, 46, 47, 48, 49, 50, 51, 54, 60, 63,
+      69, 72, 73, 74, 75, 76, 77, 78,
     ]);
 
     let svg = `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">`;
@@ -61,7 +61,7 @@ export class QRCodeService {
   async createQRCode(
     transactionId: string,
     data: QRCodeData,
-    options: QRCodeOptions = {}
+    options: QRCodeOptions = {},
   ): Promise<GeneratedQRCode> {
     const id = `qr_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
     const qrData = this.generateQRData(data, options);
@@ -93,7 +93,7 @@ export class QRCodeService {
   generateDownloadableQR(
     data: QRCodeData,
     format: 'svg' | 'png' = 'svg',
-    size: number = 200
+    size: number = 200,
   ): string {
     if (format === 'svg') {
       const qrData = this.generateQRData(data);
@@ -124,4 +124,3 @@ export class QRCodeService {
     }
   }
 }
-

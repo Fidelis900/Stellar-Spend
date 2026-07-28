@@ -1,7 +1,11 @@
 'use client';
 
 import { useCallback } from 'react';
-import { usePollingManager, DurationExceededError, ConsecutiveErrorsExceededError } from '@/lib/polling/polling-manager';
+import {
+  usePollingManager,
+  DurationExceededError,
+  ConsecutiveErrorsExceededError,
+} from '@/lib/polling/polling-manager';
 import type { StatusResponse } from '@/lib/polling/polling-manager';
 import type { PollingConfig } from '@/lib/polling/backoff';
 
@@ -35,7 +39,7 @@ export function useGenericPolling<T extends string, D = unknown>({
     async (
       endpoint: string,
       options: PollStatusOptions,
-      parseResponse: (data: D) => T
+      parseResponse: (data: D) => T,
     ): Promise<void> => {
       const fetchFn = async (id: string, signal: AbortSignal): Promise<StatusResponse> => {
         const res = await fetch(endpoint, {
@@ -75,14 +79,16 @@ export function useGenericPolling<T extends string, D = unknown>({
           throw error;
         }
         if (err instanceof ConsecutiveErrorsExceededError) {
-          const error = new Error('Too many consecutive network errors. Please check your connection.');
+          const error = new Error(
+            'Too many consecutive network errors. Please check your connection.',
+          );
           onError?.(error);
           throw error;
         }
         throw err;
       }
     },
-    [start, terminalStates, onTerminalState, onError, updateStorage]
+    [start, terminalStates, onTerminalState, onError, updateStorage],
   );
 
   return { pollStatus };

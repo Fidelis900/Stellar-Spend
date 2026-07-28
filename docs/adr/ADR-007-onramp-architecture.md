@@ -16,6 +16,7 @@ Stellar-Spend's initial scope was exclusively an **off-ramp** (USDC → fiat). T
 - Reconciliation against the same ledger used by the off-ramp
 
 Key design questions:
+
 1. Should on-ramp and off-ramp share code, or be separate modules?
 2. How do we support multiple on-ramp providers without tight coupling?
 3. How does on-ramp settlement interact with the Soroban escrow contract?
@@ -66,6 +67,7 @@ Provider webhook → POST /api/onramp/webhooks/provider
 ```
 
 The `OnrampAdapter` interface defines:
+
 - `getQuote(params): Promise<OnrampQuote>`
 - `createOrder(params): Promise<OnrampOrder>`
 - `getOrderStatus(orderId): Promise<OnrampOrderStatus>`
@@ -73,6 +75,7 @@ The `OnrampAdapter` interface defines:
 - `getCapabilities(): ProviderCapabilities`
 
 On-ramp and off-ramp share:
+
 - The ledger (`src/lib/ledger/`) for double-entry accounting
 - The reconciliation job
 - The notification service
@@ -83,17 +86,20 @@ On-ramp and off-ramp share:
 ## Consequences
 
 **Positive:**
+
 - New on-ramp providers require only a new adapter file — no route changes.
 - Health checks and corridor routing are provider-agnostic.
 - Shared ledger ensures consistent accounting across ramp directions.
 - On-ramp adapters are independently testable with mock implementations.
 
 **Negative / Trade-offs:**
+
 - The `OnrampAdapter` interface must remain stable; adding mandatory methods is a breaking change for all registered providers.
 - The Base → Stellar bridge path (reverse Allbridge) is longer than the forward path; timing guarantees differ.
 - Fiat-in settlement latency (card processing, bank transfer) is outside our control and harder to track than the off-ramp's USDC-in flow.
 
 **Conventions:**
+
 - Adapters live in `src/lib/onramp/adapters/`
 - The `MoonpayAdapter` is the reference implementation
 - All webhook endpoints verify provider signatures before processing
@@ -101,4 +107,4 @@ On-ramp and off-ramp share:
 
 ---
 
-*Related: [[ADR-003-adapter-pattern-external-services]], [[ADR-008-soroban-escrow-trust-model]]*
+_Related: [[ADR-003-adapter-pattern-external-services]], [[ADR-008-soroban-escrow-trust-model]]_

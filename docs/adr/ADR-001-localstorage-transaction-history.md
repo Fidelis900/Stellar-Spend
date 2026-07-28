@@ -16,9 +16,10 @@ Options considered:
 2. **Browser localStorage** — client-side persistence, no auth required, zero infrastructure cost.
 3. **Hybrid** — critical order IDs in the database, display data in localStorage.
 
-The application already uses a PostgreSQL database for operational records (idempotency keys, API keys, audit logs). The concern was whether *transaction display history* and *beneficiary bookmarks* needed the same durability guarantees.
+The application already uses a PostgreSQL database for operational records (idempotency keys, API keys, audit logs). The concern was whether _transaction display history_ and _beneficiary bookmarks_ needed the same durability guarantees.
 
 Key constraints:
+
 - No user account system exists; wallets are identified by public key only.
 - The Stellar wallet (Freighter / Lobstr) already acts as the user's identity.
 - Cross-device sync was not a stated requirement at the time of this decision.
@@ -30,19 +31,21 @@ Key constraints:
 
 Transaction history records and saved beneficiaries are stored in the browser's **localStorage**, keyed by wallet address. Sensitive beneficiary fields (account number, bank code) are AES-256-CBC encrypted before storage (`BeneficiaryStorage` in `src/lib/beneficiary-storage.ts`).
 
-The server database stores *operational* data — idempotency keys, API keys, audit logs, notification preferences — that must survive server restarts and support server-side queries.
+The server database stores _operational_ data — idempotency keys, API keys, audit logs, notification preferences — that must survive server restarts and support server-side queries.
 
 ---
 
 ## Consequences
 
 **Positive:**
+
 - Zero infrastructure cost for storing display-only data.
 - No user authentication layer required to view past transactions.
 - Users retain full data sovereignty; clearing the browser clears their history.
 - Development velocity — localStorage is immediately available without migrations.
 
 **Negative / Trade-offs:**
+
 - Transaction history is **device-local**: switching browsers or devices means history is lost.
 - No server-side search, filtering, or aggregation over a user's full history.
 - localStorage has a ~5 MB browser limit; very active users could hit this over time.
@@ -53,4 +56,4 @@ If cross-device sync or server-side analytics become requirements, a lightweight
 
 ---
 
-*Related: [[ADR-006-idempotency-implementation]], [[ADR-003-adapter-pattern-external-services]]*
+_Related: [[ADR-006-idempotency-implementation]], [[ADR-003-adapter-pattern-external-services]]_

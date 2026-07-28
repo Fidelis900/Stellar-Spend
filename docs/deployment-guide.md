@@ -42,45 +42,45 @@ All configuration is driven by environment variables. The app validates all requ
 
 Must **never** use the `NEXT_PUBLIC_` prefix. Leaking these server-side keys is a security incident.
 
-| Variable | Description |
-|----------|-------------|
-| `PAYCREST_API_KEY` | Paycrest sender API key |
-| `PAYCREST_WEBHOOK_SECRET` | HMAC secret for webhook signature verification |
-| `BASE_PRIVATE_KEY` | Private key of the Base wallet signing payout txs (`0x` + 64 hex chars) |
-| `BASE_RETURN_ADDRESS` | Public Base address for refunds and treasury routing |
-| `BASE_RPC_URL` | Base mainnet RPC endpoint |
-| `STELLAR_SOROBAN_RPC_URL` | Soroban RPC endpoint for server-side tx building |
-| `STELLAR_HORIZON_URL` | Horizon endpoint (use `https://horizon.stellar.org` for mainnet) |
+| Variable                  | Description                                                             |
+| ------------------------- | ----------------------------------------------------------------------- |
+| `PAYCREST_API_KEY`        | Paycrest sender API key                                                 |
+| `PAYCREST_WEBHOOK_SECRET` | HMAC secret for webhook signature verification                          |
+| `BASE_PRIVATE_KEY`        | Private key of the Base wallet signing payout txs (`0x` + 64 hex chars) |
+| `BASE_RETURN_ADDRESS`     | Public Base address for refunds and treasury routing                    |
+| `BASE_RPC_URL`            | Base mainnet RPC endpoint                                               |
+| `STELLAR_SOROBAN_RPC_URL` | Soroban RPC endpoint for server-side tx building                        |
+| `STELLAR_HORIZON_URL`     | Horizon endpoint (use `https://horizon.stellar.org` for mainnet)        |
 
 ### Required — Public (Browser-Safe)
 
-| Variable | Description |
-|----------|-------------|
-| `NEXT_PUBLIC_STELLAR_SOROBAN_RPC_URL` | Soroban RPC for browser-side calls |
-| `NEXT_PUBLIC_BASE_RETURN_ADDRESS` | Base return address exposed to the browser |
-| `NEXT_PUBLIC_STELLAR_USDC_ISSUER` | Stellar USDC issuer account (from Circle/Stellar docs) |
+| Variable                              | Description                                            |
+| ------------------------------------- | ------------------------------------------------------ |
+| `NEXT_PUBLIC_STELLAR_SOROBAN_RPC_URL` | Soroban RPC for browser-side calls                     |
+| `NEXT_PUBLIC_BASE_RETURN_ADDRESS`     | Base return address exposed to the browser             |
+| `NEXT_PUBLIC_STELLAR_USDC_ISSUER`     | Stellar USDC issuer account (from Circle/Stellar docs) |
 
 ### Optional
 
-| Variable | Description |
-|----------|-------------|
-| `SENTRY_DSN` | Sentry DSN for server-side error tracking |
-| `NEXT_PUBLIC_SENTRY_DSN` | Sentry DSN for browser error tracking |
-| `SENTRY_ORG` | Sentry org slug (required for source map uploads) |
-| `SENTRY_PROJECT` | Sentry project slug (required for source map uploads) |
-| `SENTRY_AUTH_TOKEN` | Sentry auth token for CI source map uploads |
-| `ALLOWED_ORIGINS` | Comma-separated CORS allowed origins — **always set in production** |
-| `API_KEY_ADMIN_TOKEN` | Admin token for the API key management endpoints |
-| `ANALYZE` | Set to `true` to generate a bundle analysis report during build |
+| Variable                 | Description                                                         |
+| ------------------------ | ------------------------------------------------------------------- |
+| `SENTRY_DSN`             | Sentry DSN for server-side error tracking                           |
+| `NEXT_PUBLIC_SENTRY_DSN` | Sentry DSN for browser error tracking                               |
+| `SENTRY_ORG`             | Sentry org slug (required for source map uploads)                   |
+| `SENTRY_PROJECT`         | Sentry project slug (required for source map uploads)               |
+| `SENTRY_AUTH_TOKEN`      | Sentry auth token for CI source map uploads                         |
+| `ALLOWED_ORIGINS`        | Comma-separated CORS allowed origins — **always set in production** |
+| `API_KEY_ADMIN_TOKEN`    | Admin token for the API key management endpoints                    |
+| `ANALYZE`                | Set to `true` to generate a bundle analysis report during build     |
 
 ### Environment-specific configurations
 
-| Variable | Staging | Production |
-|----------|---------|------------|
-| `STELLAR_HORIZON_URL` | `https://horizon-testnet.stellar.org` | `https://horizon.stellar.org` |
-| `NEXT_PUBLIC_STELLAR_SOROBAN_RPC_URL` | Testnet endpoint | Mainnet endpoint |
-| `ALLOWED_ORIGINS` | `https://staging.your-domain.com` | `https://app.your-domain.com` |
-| `SENTRY_DSN` | Staging Sentry project DSN | Production Sentry project DSN |
+| Variable                              | Staging                               | Production                    |
+| ------------------------------------- | ------------------------------------- | ----------------------------- |
+| `STELLAR_HORIZON_URL`                 | `https://horizon-testnet.stellar.org` | `https://horizon.stellar.org` |
+| `NEXT_PUBLIC_STELLAR_SOROBAN_RPC_URL` | Testnet endpoint                      | Mainnet endpoint              |
+| `ALLOWED_ORIGINS`                     | `https://staging.your-domain.com`     | `https://app.your-domain.com` |
+| `SENTRY_DSN`                          | Staging Sentry project DSN            | Production Sentry project DSN |
 
 ---
 
@@ -107,30 +107,31 @@ vercel --prod
 ### Automated Deployment via GitHub Actions
 
 The repository's `.github/workflows/deploy.yml` triggers on every push to `main`. The pipeline:
+
 1. Runs lint, type-check, unit tests, and build
 2. Runs E2E tests
 3. Deploys to Vercel if all checks pass
 
 Required GitHub Actions secrets:
 
-| Secret | Source |
-|--------|--------|
-| `VERCEL_TOKEN` | Vercel → Account Settings → Tokens |
-| `VERCEL_ORG_ID` | `.vercel/project.json` after `vercel link` |
+| Secret              | Source                                     |
+| ------------------- | ------------------------------------------ |
+| `VERCEL_TOKEN`      | Vercel → Account Settings → Tokens         |
+| `VERCEL_ORG_ID`     | `.vercel/project.json` after `vercel link` |
 | `VERCEL_PROJECT_ID` | `.vercel/project.json` after `vercel link` |
-| `SENTRY_AUTH_TOKEN` | Sentry → Settings → Auth Tokens |
+| `SENTRY_AUTH_TOKEN` | Sentry → Settings → Auth Tokens            |
 
 ### Function duration limits (`vercel.json`)
 
 Long-running API routes have extended timeouts configured:
 
-| Route | Max Duration |
-|-------|-------------|
-| `api/offramp/quote` | 30 s |
-| `api/offramp/execute-payout` | 60 s |
-| `api/offramp/bridge/build-tx` | 30 s |
-| `api/offramp/bridge/status/*` | 30 s |
-| `api/offramp/status/*` | 30 s |
+| Route                         | Max Duration |
+| ----------------------------- | ------------ |
+| `api/offramp/quote`           | 30 s         |
+| `api/offramp/execute-payout`  | 60 s         |
+| `api/offramp/bridge/build-tx` | 30 s         |
+| `api/offramp/bridge/status/*` | 30 s         |
+| `api/offramp/status/*`        | 30 s         |
 
 ### Preview deployments
 
@@ -141,10 +142,10 @@ Every pull request gets an automatic preview deployment. Use preview URLs to QA 
 1. Vercel project → Settings → Domains → Add domain
 2. Add the required DNS records at your registrar:
 
-| Type | Name | Value |
-|------|------|-------|
-| `A` | `@` (apex) | `76.76.21.21` |
-| `CNAME` | `www` | `cname.vercel-dns.com` |
+| Type    | Name              | Value                  |
+| ------- | ----------------- | ---------------------- |
+| `A`     | `@` (apex)        | `76.76.21.21`          |
+| `CNAME` | `www`             | `cname.vercel-dns.com` |
 | `CNAME` | `app` (subdomain) | `cname.vercel-dns.com` |
 
 3. Update `ALLOWED_ORIGINS` to include the new domain.
@@ -213,11 +214,11 @@ Always review the plan output carefully before applying to production. Terraform
 
 ### Key Terraform variables
 
-| Variable | Description |
-|----------|-------------|
-| `environment` | `staging` or `production` |
-| `vpc_cidr` | CIDR block for the VPC |
-| `public_subnet_cidrs` | List of public subnet CIDRs (one per AZ) |
+| Variable               | Description                               |
+| ---------------------- | ----------------------------------------- |
+| `environment`          | `staging` or `production`                 |
+| `vpc_cidr`             | CIDR block for the VPC                    |
+| `public_subnet_cidrs`  | List of public subnet CIDRs (one per AZ)  |
 | `private_subnet_cidrs` | List of private subnet CIDRs (one per AZ) |
 
 ### Destroying an environment
@@ -244,13 +245,13 @@ Load Balancer / Nginx
 
 ### Deployment files
 
-| File | Purpose |
-|------|---------|
-| `docker-compose.blue.yml` | Blue environment on port 3000 |
-| `docker-compose.green.yml` | Green environment on port 3001 |
-| `scripts/blue-green-deploy.sh` | Deploy to the inactive slot |
-| `scripts/rollback.sh` | Switch back to the previous slot |
-| `.active-env` | Tracks the currently live slot (auto-managed) |
+| File                           | Purpose                                       |
+| ------------------------------ | --------------------------------------------- |
+| `docker-compose.blue.yml`      | Blue environment on port 3000                 |
+| `docker-compose.green.yml`     | Green environment on port 3001                |
+| `scripts/blue-green-deploy.sh` | Deploy to the inactive slot                   |
+| `scripts/rollback.sh`          | Switch back to the previous slot              |
+| `.active-env`                  | Tracks the currently live slot (auto-managed) |
 
 ### Deploying a new version
 
@@ -263,6 +264,7 @@ chmod +x scripts/blue-green-deploy.sh scripts/rollback.sh
 ```
 
 The script:
+
 1. Builds the new Docker image
 2. Starts the inactive environment
 3. Runs health checks against `/api/health` (10 retries × 5 s)
@@ -276,11 +278,13 @@ If health checks fail the new environment is torn down — live traffic is never
 After updating `.active-env`, update your load balancer to point to the new port:
 
 **Nginx:**
+
 ```nginx
 upstream stellar_spend {
     server localhost:3000;   # change to 3001 for green
 }
 ```
+
 ```bash
 nginx -s reload
 ```
@@ -454,11 +458,11 @@ Confirm `"status":"ok"` and monitor Sentry for a drop in error rate within 5 min
 
 ### Recovery Time Objective (RTO) and Recovery Point Objective (RPO)
 
-| Tier | Scenario | Target RTO | Target RPO |
-|------|----------|-----------|-----------|
-| P1 | Full service outage | < 15 min | < 1 min (Vercel instant rollback) |
-| P2 | Degraded performance | < 30 min | < 5 min |
-| P3 | Non-critical feature broken | < 4 h | N/A |
+| Tier | Scenario                    | Target RTO | Target RPO                        |
+| ---- | --------------------------- | ---------- | --------------------------------- |
+| P1   | Full service outage         | < 15 min   | < 1 min (Vercel instant rollback) |
+| P2   | Degraded performance        | < 30 min   | < 5 min                           |
+| P3   | Non-critical feature broken | < 4 h      | N/A                               |
 
 ### Scenario: Vercel deployment is healthy but API returns 5xx
 
@@ -517,6 +521,7 @@ Next update: [Time of next status update]
 ### Post-incident review
 
 After every P1 or P2 incident, file a post-mortem within 48 hours covering:
+
 - Timeline of events
 - Root cause
 - Impact scope

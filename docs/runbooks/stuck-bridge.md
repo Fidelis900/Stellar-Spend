@@ -1,16 +1,20 @@
 # RB-001: Stuck Bridge Transaction
 
 ## Severity
+
 P1
 
 ## Triggering Alerts
+
 - `ALERT_BRIDGE_STUCK` — bridge status has been `pending` for > 20 minutes
 - `ALERT_TX_TIMEOUT` — transaction timeout job flagged a transaction as stuck
 
 ## Impact
+
 User funds are locked in-flight between Stellar and Base. No fiat settlement can proceed until the bridge releases funds. Affects individual users; does not block other transactions unless Allbridge is entirely down (see RB-002).
 
 ## Prerequisites
+
 - Access to AWS CloudWatch (log insights)
 - Access to Allbridge Explorer: https://explorer.allbridge.io
 - Read-only DB access (replica)
@@ -21,6 +25,7 @@ User funds are locked in-flight between Stellar and Base. No fiat settlement can
 ## Detection
 
 Typical discovery paths:
+
 1. CloudWatch alarm `ALERT_BRIDGE_STUCK` pages on-call.
 2. User reports via support that funds have not arrived.
 3. Health check at `GET /api/health` returns degraded bridge status.
@@ -133,12 +138,12 @@ The Paycrest order exists but is not settling.
 
 ## Escalation
 
-| Time elapsed | Action |
-|-------------|--------|
-| 0–15 min | On-call engineer diagnoses |
-| 15 min | Escalate to infra lead on Slack `#ops-alerts` |
-| 30 min | Page secondary on-call; notify engineering manager |
-| 1 h | Funds at risk → escalate to CTO and legal |
+| Time elapsed | Action                                             |
+| ------------ | -------------------------------------------------- |
+| 0–15 min     | On-call engineer diagnoses                         |
+| 15 min       | Escalate to infra lead on Slack `#ops-alerts`      |
+| 30 min       | Page secondary on-call; notify engineering manager |
+| 1 h          | Funds at risk → escalate to CTO and legal          |
 
 ---
 
@@ -149,5 +154,6 @@ File a PIR within 24 hours using the template in [runbooks/index.md](./index.md#
 Track recurring bridge issues in the `ALERT_BRIDGE_STUCK` alert history to identify whether Allbridge reliability requires an SLA review.
 
 ## Related Runbooks
+
 - [RB-002: Provider Outage](./provider-outage.md)
 - [RB-004: High Error Rate](./high-error-rate.md)

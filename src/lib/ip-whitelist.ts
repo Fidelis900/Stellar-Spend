@@ -1,5 +1,5 @@
-import { pool } from "./db/client";
-import { logger } from "./logger";
+import { pool } from './db/client';
+import { logger } from './logger';
 
 export interface IPWhitelistEntry {
   id: string;
@@ -17,8 +17,8 @@ export interface IPViolation {
   id: string;
   userAddress: string;
   ipAddress: string;
-  violationType: "unauthorized_access" | "range_violation" | "disabled_entry";
-  severity: "low" | "medium" | "high";
+  violationType: 'unauthorized_access' | 'range_violation' | 'disabled_entry';
+  severity: 'low' | 'medium' | 'high';
   details?: string;
   createdAt: number;
 }
@@ -149,7 +149,7 @@ export class IPWhitelistService {
   }
 
   private ipToNumber(ip: string): number {
-    const parts = ip.split(".").map(Number);
+    const parts = ip.split('.').map(Number);
     return parts[0] * 16777216 + parts[1] * 65536 + parts[2] * 256 + parts[3];
   }
 
@@ -177,8 +177,8 @@ export class IPWhitelistService {
   async logViolation(
     userAddress: string,
     ipAddress: string,
-    violationType: IPViolation["violationType"],
-    severity: IPViolation["severity"],
+    violationType: IPViolation['violationType'],
+    severity: IPViolation['severity'],
     details?: string,
   ): Promise<IPViolation> {
     const id = `violation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

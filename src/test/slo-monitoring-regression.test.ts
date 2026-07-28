@@ -118,7 +118,9 @@ vi.mock('@/lib/cache/warming', () => ({
 
 vi.mock('@/lib/error-handler', () => ({
   ErrorHandler: {
-    serverError: vi.fn((err) => new Response(JSON.stringify({ error: String(err) }), { status: 500 })),
+    serverError: vi.fn(
+      (err) => new Response(JSON.stringify({ error: String(err) }), { status: 500 }),
+    ),
     validation: vi.fn((msg) => new Response(JSON.stringify({ error: msg }), { status: 400 })),
   },
 }));
@@ -137,7 +139,11 @@ global.fetch = vi.fn(async () => new Response('{}', { status: 200 })) as unknown
 import { GET as sloStatusGET } from '@/app/api/slo/status/route';
 import { GET as monDashGET } from '@/app/api/monitoring/dashboard/route';
 import { POST as monVitalsPOST } from '@/app/api/monitoring/vitals/route';
-import { GET as monCacheGET, POST as monCachePOST, DELETE as monCacheDELETE } from '@/app/api/monitoring/cache/route';
+import {
+  GET as monCacheGET,
+  POST as monCachePOST,
+  DELETE as monCacheDELETE,
+} from '@/app/api/monitoring/cache/route';
 
 // ---------------------------------------------------------------------------
 // Helpers

@@ -32,10 +32,10 @@ export class AllbridgeClient {
     sourceChain: string,
     destinationChain: string,
     token: string,
-    amount: string
+    amount: string,
   ): Promise<BridgeQuote> {
     return this.sorobanHttp.get(
-      `/quote?sourceChain=${sourceChain}&destinationChain=${destinationChain}&token=${token}&amount=${amount}`
+      `/quote?sourceChain=${sourceChain}&destinationChain=${destinationChain}&token=${token}&amount=${amount}`,
     );
   }
 

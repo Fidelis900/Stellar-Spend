@@ -1,9 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "entry": [
-    "src/app/**/*.{ts,tsx}",
-    "src/lib/index.ts"
-  ],
+  "entry": ["src/app/**/*.{ts,tsx}", "src/lib/index.ts"],
   "project": ["src/**/*.{ts,tsx}"],
   "ignore": [
     "src/stories/**",
@@ -11,7 +8,5 @@
     "src/**/*.test.{ts,tsx}",
     "src/**/*.stories.{ts,tsx}"
   ],
-  "ignoreDependencies": [
-    "@storybook/*"
-  ]
+  "ignoreDependencies": ["@storybook/*"]
 }

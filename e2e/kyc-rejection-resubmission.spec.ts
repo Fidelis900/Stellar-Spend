@@ -37,7 +37,10 @@ async function stubFreighterWallet(page: Page, walletAddress: string): Promise<v
       getPublicKey: async () => address,
       signTransaction: async (xdr: string) => xdr,
       getNetwork: async () => 'PUBLIC',
-      getNetworkDetails: async () => ({ network: 'PUBLIC', networkPassphrase: 'Public Global Stellar Network ; September 2015' }),
+      getNetworkDetails: async () => ({
+        network: 'PUBLIC',
+        networkPassphrase: 'Public Global Stellar Network ; September 2015',
+      }),
     };
   }, walletAddress);
 }
@@ -100,13 +103,25 @@ async function routeKycApi(
 /** Routes common non-KYC API calls so they don't 502 during tests. */
 async function routeCommonApis(page: Page): Promise<void> {
   await page.route('**/api/health**', async (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }) }),
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }),
+    }),
   );
   await page.route('**/api/offramp/currencies**', async (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [{ code: 'NGN', name: 'Nigerian Naira', symbol: '₦' }] }) }),
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ data: [{ code: 'NGN', name: 'Nigerian Naira', symbol: '₦' }] }),
+    }),
   );
   await page.route('**/api/offramp/rate**', async (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ rate: 1598 }) }),
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ rate: 1598 }),
+    }),
   );
 }
 
@@ -151,7 +166,7 @@ test.describe('KYC Rejection & Resubmission Flow', () => {
     const errors: string[] = [];
     page.on('pageerror', (err) => errors.push(err.message));
     await page.waitForTimeout(300);
-    expect(errors.filter(e => !e.includes('Non-Error'))).toHaveLength(0);
+    expect(errors.filter((e) => !e.includes('Non-Error'))).toHaveLength(0);
   });
 
   // ── Scenario 2: User submits KYC → pending ───────────────────────────────
@@ -171,7 +186,10 @@ test.describe('KYC Rejection & Resubmission Flow', () => {
           body: JSON.stringify(KYC_API_RESPONSES.getUnverified),
         });
       } else if (method === 'POST') {
-        submissionPayload = await route.request().postDataJSON().catch(() => null);
+        submissionPayload = await route
+          .request()
+          .postDataJSON()
+          .catch(() => null);
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -328,9 +346,10 @@ test.describe('KYC Rejection & Resubmission Flow', () => {
 
       if (method === 'GET') {
         // First GET → rejected; subsequent GETs after resubmit → pending
-        const responseBody = callCount <= 1
-          ? KYC_API_RESPONSES.getRejected('documentUnreadable')
-          : KYC_API_RESPONSES.submitSuccess;
+        const responseBody =
+          callCount <= 1
+            ? KYC_API_RESPONSES.getRejected('documentUnreadable')
+            : KYC_API_RESPONSES.submitSuccess;
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -386,7 +405,9 @@ test.describe('KYC Rejection & Resubmission Flow', () => {
         await expect(pendingText).toBeVisible();
         // Must NOT still show rejected
         const rejectedText = page.getByText(KYC_UI_LABELS.statusRejected);
-        const isRejectedVisible = await rejectedText.isVisible({ timeout: 1000 }).catch(() => false);
+        const isRejectedVisible = await rejectedText
+          .isVisible({ timeout: 1000 })
+          .catch(() => false);
         expect(isRejectedVisible).toBe(false);
       }
     }
@@ -439,7 +460,9 @@ test.describe('KYC Rejection & Resubmission Flow', () => {
 
   // ── Scenario 7: Error message content matches API payload ────────────────
 
-  test('rejection UI message content matches the exact API rejection reason payload', async ({ page }) => {
+  test('rejection UI message content matches the exact API rejection reason payload', async ({
+    page,
+  }) => {
     await stubFreighterWallet(page, KYC_USERS.rejected.walletAddress);
 
     const EXPECTED_REASON = KYC_REJECTION_REASONS.nameMismatch.reason;
@@ -466,7 +489,7 @@ test.describe('KYC Rejection & Resubmission Flow', () => {
     // If the rejection reason is rendered, its text must match the API value
     const reasonEl = page.getByText(EXPECTED_REASON, { exact: false });
     if (await reasonEl.isVisible({ timeout: 3000 }).catch(() => false)) {
-      const textContent = await reasonEl.textContent() ?? '';
+      const textContent = (await reasonEl.textContent()) ?? '';
       expect(textContent).toContain(EXPECTED_REASON);
       // Must not contain a different reason
       expect(textContent).not.toContain(KYC_REJECTION_REASONS.documentUnreadable.reason);

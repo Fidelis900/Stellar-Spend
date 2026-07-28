@@ -20,7 +20,7 @@ export function extractClassesFromCss(css: string): string[] {
     // Unescape class names that have been escaped for CSS
     const unescaped = className
       .replace(/\\:/g, ':')
-      .replace(/\\//g, '/')
+      .replace(/\\/ / g, '/')
       .replace(/\\-/g, '-');
     classes.push(unescaped);
   }

@@ -1,16 +1,11 @@
 import { setupServer } from 'msw/node';
-import {
-  paycrestHandlers,
-  allbridgeHandlers,
-  stellarHandlers,
-  offrampHandlers,
-} from './handlers';
+import { paycrestHandlers, allbridgeHandlers, stellarHandlers, offrampHandlers } from './handlers';
 
 export const server = setupServer(
   ...paycrestHandlers,
   ...allbridgeHandlers,
   ...stellarHandlers,
-  ...offrampHandlers
+  ...offrampHandlers,
 );
 
 // Enable API mocking before all tests

@@ -5,7 +5,9 @@ export type NotificationDeliveryStatus = 'sent' | 'failed' | 'skipped';
 export type TransactionNotificationEvent = 'pending' | 'completed' | 'failed';
 
 /** Which channels are enabled per event type for a given user */
-export type ChannelEventRouting = Partial<Record<TransactionNotificationEvent, NotificationChannel[]>>;
+export type ChannelEventRouting = Partial<
+  Record<TransactionNotificationEvent, NotificationChannel[]>
+>;
 
 export interface NotificationPreferences {
   userAddress: string;
@@ -67,9 +69,5 @@ export interface DeliveryResult {
 /** A channel adapter delivers a single notification and returns a DeliveryResult */
 export interface ChannelAdapter {
   readonly channel: NotificationChannel;
-  send(
-    destination: string,
-    subject: string,
-    message: string
-  ): Promise<DeliveryResult>;
+  send(destination: string, subject: string, message: string): Promise<DeliveryResult>;
 }

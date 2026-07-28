@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useEffect } from "react";
-import { SyncStorage } from "@/lib/sync-storage";
-import type { SyncSettings } from "@/lib/sync-storage";
+import { useState, useCallback, useEffect } from 'react';
+import { SyncStorage } from '@/lib/sync-storage';
+import type { SyncSettings } from '@/lib/sync-storage';
 
 export interface UseSyncSettingsReturn {
   settings: SyncSettings;
@@ -33,7 +33,7 @@ export function useSyncSettings(userAddress?: string): UseSyncSettingsReturn {
   const toggleSync = useCallback(
     async (enabled: boolean): Promise<boolean> => {
       if (!userAddress) {
-        setError("User address is required");
+        setError('User address is required');
         return false;
       }
 
@@ -42,10 +42,10 @@ export function useSyncSettings(userAddress?: string): UseSyncSettingsReturn {
 
       try {
         // Update server settings
-        const response = await fetch("/api/v1/sync/settings", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
+        const response = await fetch('/api/v1/sync/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({
             wallet: userAddress,
             syncEnabled: enabled,
@@ -53,7 +53,7 @@ export function useSyncSettings(userAddress?: string): UseSyncSettingsReturn {
         });
 
         if (!response.ok) {
-          throw new Error("Failed to update sync settings on server");
+          throw new Error('Failed to update sync settings on server');
         }
 
         // Update local settings
@@ -62,21 +62,19 @@ export function useSyncSettings(userAddress?: string): UseSyncSettingsReturn {
 
         return true;
       } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : "Unknown error";
+        const errorMsg = err instanceof Error ? err.message : 'Unknown error';
         setError(errorMsg);
         return false;
       } finally {
         setLoading(false);
       }
     },
-    [userAddress]
+    [userAddress],
   );
 
   const queue = SyncStorage.getQueue();
   const formattedLastSync =
-    settings.lastSyncAt > 0
-      ? new Date(settings.lastSyncAt).toLocaleString()
-      : "Never";
+    settings.lastSyncAt > 0 ? new Date(settings.lastSyncAt).toLocaleString() : 'Never';
 
   return {
     settings,

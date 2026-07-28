@@ -12,6 +12,9 @@ export function createValidationError(field: string, message: string): Validatio
   return { field, message };
 }
 
-export function createValidationResult(valid: boolean, errors: ValidationError[] = []): ValidationResult {
+export function createValidationResult(
+  valid: boolean,
+  errors: ValidationError[] = [],
+): ValidationResult {
   return { valid, errors };
 }

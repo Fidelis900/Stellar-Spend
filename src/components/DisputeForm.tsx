@@ -67,7 +67,10 @@ export function DisputeForm({ transactionId, onSubmit, onCancel }: DisputeFormPr
   return (
     <form onSubmit={handleSubmit} className="space-y-5 animate-in fade-in duration-300">
       <div className="space-y-1.5">
-        <label htmlFor="dispute-reason" className="block text-[10px] tracking-widest uppercase text-[#777777] font-bold">
+        <label
+          htmlFor="dispute-reason"
+          className="block text-[10px] tracking-widest uppercase text-[#777777] font-bold"
+        >
           {t('dispute.reason')} *
         </label>
         <select
@@ -90,7 +93,10 @@ export function DisputeForm({ transactionId, onSubmit, onCancel }: DisputeFormPr
       </div>
 
       <div className="space-y-1.5">
-        <label htmlFor="dispute-description" className="block text-[10px] tracking-widest uppercase text-[#777777] font-bold">
+        <label
+          htmlFor="dispute-description"
+          className="block text-[10px] tracking-widest uppercase text-[#777777] font-bold"
+        >
           {t('dispute.description')}
         </label>
         <textarea
@@ -105,7 +111,10 @@ export function DisputeForm({ transactionId, onSubmit, onCancel }: DisputeFormPr
 
       {/* Document Upload */}
       <div className="space-y-1.5">
-        <span id="dispute-document-label" className="block text-[10px] tracking-widest uppercase text-[#777777] font-bold">
+        <span
+          id="dispute-document-label"
+          className="block text-[10px] tracking-widest uppercase text-[#777777] font-bold"
+        >
           {t('insurance.upload_document')}
         </span>
         <input
@@ -132,23 +141,33 @@ export function DisputeForm({ transactionId, onSubmit, onCancel }: DisputeFormPr
             }
           }}
           className={cn(
-            "border-2 border-dashed border-[#333333] p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#c9a962] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a962] transition-colors bg-[#0a0a0a]",
-            filePreview && "border-[#c9a962] bg-[#c9a962]/5"
+            'border-2 border-dashed border-[#333333] p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#c9a962] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a962] transition-colors bg-[#0a0a0a]',
+            filePreview && 'border-[#c9a962] bg-[#c9a962]/5',
           )}
         >
           {filePreview ? (
             <div className="flex flex-col items-center gap-2">
               {selectedFile?.type.startsWith('image/') ? (
-                <img src={filePreview} alt="Preview" className="h-20 w-auto object-contain border border-[#333333]" />
+                <img
+                  src={filePreview}
+                  alt="Preview"
+                  className="h-20 w-auto object-contain border border-[#333333]"
+                />
               ) : (
-                <div className="w-12 h-12 bg-[#222222] flex items-center justify-center text-xs">PDF</div>
+                <div className="w-12 h-12 bg-[#222222] flex items-center justify-center text-xs">
+                  PDF
+                </div>
               )}
-              <span className="text-[10px] text-white truncate max-w-[200px] font-mono">{selectedFile?.name}</span>
+              <span className="text-[10px] text-white truncate max-w-[200px] font-mono">
+                {selectedFile?.name}
+              </span>
             </div>
           ) : (
             <>
               <span className="text-xl opacity-30">↑</span>
-              <span className="text-[10px] text-[#555555] uppercase tracking-widest">JPG, PNG or PDF (max 5MB)</span>
+              <span className="text-[10px] text-[#555555] uppercase tracking-widest">
+                JPG, PNG or PDF (max 5MB)
+              </span>
             </>
           )}
         </div>
@@ -158,9 +177,7 @@ export function DisputeForm({ transactionId, onSubmit, onCancel }: DisputeFormPr
       </div>
 
       <div className="p-3 bg-blue-900/10 border border-blue-500/20 rounded">
-        <p className="text-[10px] text-blue-400 italic">
-          {t('dispute.sla_notice')}
-        </p>
+        <p className="text-[10px] text-blue-400 italic">{t('dispute.sla_notice')}</p>
       </div>
 
       {error && (
@@ -195,4 +212,3 @@ export function DisputeForm({ transactionId, onSubmit, onCancel }: DisputeFormPr
     </form>
   );
 }
-

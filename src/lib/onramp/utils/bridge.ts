@@ -16,7 +16,7 @@ export interface BridgeOnrampResponse {
 }
 
 export async function bridgeFromBaseToStellar(
-  request: BridgeOnrampRequest
+  request: BridgeOnrampRequest,
 ): Promise<BridgeOnrampResponse> {
   const sorobanRpc = env.server.STELLAR_SOROBAN_RPC_URL;
   if (!sorobanRpc) {
@@ -29,6 +29,8 @@ export async function bridgeFromBaseToStellar(
   };
 }
 
-export async function pollBridgeStatus(txHash: string): Promise<{ status: string; txHash?: string }> {
+export async function pollBridgeStatus(
+  txHash: string,
+): Promise<{ status: string; txHash?: string }> {
   return { status: 'pending', txHash };
 }

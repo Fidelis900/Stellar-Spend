@@ -26,7 +26,7 @@ let _counter = 0;
 
 export function makeTransaction(
   overrides: Partial<Transaction> = {},
-  rng: Rng = getDefaultRng()
+  rng: Rng = getDefaultRng(),
 ): Transaction {
   const n = ++_counter;
   const ts = 1_700_000_000_000 + n * 1000; // deterministic, monotonic
@@ -70,18 +70,21 @@ export function completedTransaction(overrides: Partial<Transaction> = {}, rng?:
       finalizedAt: Date.now(),
       ...overrides,
     },
-    rng_
+    rng_,
   );
 }
 
 export function failedTransaction(overrides: Partial<Transaction> = {}, rng?: Rng): Transaction {
   return makeTransaction(
     { status: 'failed' as TransactionStatus, error: 'Bridge transfer failed', ...overrides },
-    rng
+    rng,
   );
 }
 
-export function transactionWithBridge(overrides: Partial<Transaction> = {}, rng?: Rng): Transaction {
+export function transactionWithBridge(
+  overrides: Partial<Transaction> = {},
+  rng?: Rng,
+): Transaction {
   const rng_ = rng ?? getDefaultRng();
   return makeTransaction(
     {
@@ -89,7 +92,7 @@ export function transactionWithBridge(overrides: Partial<Transaction> = {}, rng?
       stellarTxHash: makeStellarTxHash(rng_),
       ...overrides,
     },
-    rng_
+    rng_,
   );
 }
 
@@ -99,7 +102,7 @@ export function transactionWithBridge(overrides: Partial<Transaction> = {}, rng?
 export function makeTransactions(
   count: number,
   overrides: Partial<Transaction> = {},
-  rng?: Rng
+  rng?: Rng,
 ): Transaction[] {
   return Array.from({ length: count }, () => makeTransaction(overrides, rng));
 }

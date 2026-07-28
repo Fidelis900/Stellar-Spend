@@ -25,14 +25,14 @@ export function SharePreview({ preview }: SharePreviewProps) {
 
         <div>
           <p className="text-sm text-gray-600">Status</p>
-          <p className={`font-semibold capitalize ${statusColors[preview.status] || 'text-gray-600'}`}>
+          <p
+            className={`font-semibold capitalize ${statusColors[preview.status] || 'text-gray-600'}`}
+          >
             {preview.status}
           </p>
         </div>
 
-        <div className="text-xs text-gray-500">
-          {new Date(preview.timestamp).toLocaleString()}
-        </div>
+        <div className="text-xs text-gray-500">{new Date(preview.timestamp).toLocaleString()}</div>
 
         <div className="pt-4 border-t border-blue-200">
           <p className="text-xs text-gray-600">Powered by Stellar-Spend</p>

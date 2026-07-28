@@ -1,18 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
-import { vulnerabilityManager } from "@/lib/vulnerability-management";
-import { logger } from "@/lib/logger";
+import { NextRequest, NextResponse } from 'next/server';
+import { vulnerabilityManager } from '@/lib/vulnerability-management';
+import { logger } from '@/lib/logger';
 import { ErrorHandler } from '@/lib/error-handler';
 import { ApiError, ErrorType } from '@/lib/error-types';
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const severity = searchParams.get("severity") as
-      | "critical"
-      | "high"
-      | "medium"
-      | "low"
-      | null;
+    const severity = searchParams.get('severity') as 'critical' | 'high' | 'medium' | 'low' | null;
 
     let vulnerabilities;
     if (severity) {
@@ -29,8 +24,10 @@ export async function GET(request: NextRequest) {
       hasCritical: vulnerabilityManager.hasCriticalVulnerabilities(),
     });
   } catch (error) {
-    logger.error("Failed to fetch vulnerability report", { error });
-    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, "Failed to fetch vulnerability report"));
+    logger.error('Failed to fetch vulnerability report', { error });
+    return ErrorHandler.handle(
+      new ApiError(ErrorType.SERVER_ERROR, 'Failed to fetch vulnerability report'),
+    );
   }
 }
 
@@ -40,7 +37,7 @@ export async function POST(request: NextRequest) {
     const { title, severity, package: pkg, version, fixedVersion, description, cve } = body;
 
     if (!title || !severity || !pkg || !version) {
-      return ErrorHandler.validation("Missing required fields");
+      return ErrorHandler.validation('Missing required fields');
     }
 
     const vulnerability = vulnerabilityManager.registerVulnerability({
@@ -55,7 +52,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ vulnerability }, { status: 201 });
   } catch (error) {
-    logger.error("Failed to register vulnerability", { error });
-    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, "Failed to register vulnerability"));
+    logger.error('Failed to register vulnerability', { error });
+    return ErrorHandler.handle(
+      new ApiError(ErrorType.SERVER_ERROR, 'Failed to register vulnerability'),
+    );
   }
 }

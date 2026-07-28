@@ -79,8 +79,7 @@ Manages command palette state and recent command tracking.
 **Usage**:
 
 ```typescript
-const { isOpen, open, close, toggle, recentCommands, onCommandExecute } =
-  useCommandPalette();
+const { isOpen, open, close, toggle, recentCommands, onCommandExecute } = useCommandPalette();
 ```
 
 #### Command Registry
@@ -111,9 +110,9 @@ interface CommandAction {
 1. **Import dependencies**:
 
 ```typescript
-import { CommandPalette } from "@/components/CommandPalette";
-import { useCommandPalette } from "@/hooks/useCommandPalette";
-import { buildAppCommands } from "@/lib/command-registry";
+import { CommandPalette } from '@/components/CommandPalette';
+import { useCommandPalette } from '@/hooks/useCommandPalette';
+import { buildAppCommands } from '@/lib/command-registry';
 ```
 
 2. **Set up in your layout/page**:
@@ -159,12 +158,12 @@ Extend the command list with application-specific commands:
 ```typescript
 const customCommands: CommandAction[] = [
   {
-    id: "export-data",
-    label: "Export Transaction Data",
-    description: "Download your transaction history as CSV",
-    keywords: ["export", "download", "csv", "data"],
-    icon: "📥",
-    section: "Actions",
+    id: 'export-data',
+    label: 'Export Transaction Data',
+    description: 'Download your transaction history as CSV',
+    keywords: ['export', 'download', 'csv', 'data'],
+    icon: '📥',
+    section: 'Actions',
     action: () => {
       // Export logic
     },
@@ -179,14 +178,14 @@ const allCommands = [...commands, ...customCommands];
 The command palette integrates with the existing `useKeyboardShortcuts` hook:
 
 ```typescript
-import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 // Existing shortcuts work alongside command palette
 useKeyboardShortcuts([
   {
-    key: "n",
+    key: 'n',
     ctrl: true,
-    description: "New transaction",
+    description: 'New transaction',
     action: () => startNewTransaction(),
   },
   // ... other shortcuts

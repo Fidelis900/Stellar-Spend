@@ -16,8 +16,8 @@ export default function Hero() {
               Stellar-Spend
             </h1>
             <p className="max-w-xl text-sm leading-7 text-muted sm:text-base">
-              Convert your Stellar stablecoins (USDC, USDT) to fiat currencies seamlessly 
-              through Allbridge and Paycrest integrations.
+              Convert your Stellar stablecoins (USDC, USDT) to fiat currencies seamlessly through
+              Allbridge and Paycrest integrations.
             </p>
           </div>
         </div>

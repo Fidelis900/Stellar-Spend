@@ -28,10 +28,10 @@ export interface SyncOptions {
  */
 export async function syncTransactionHistory(
   localTransactions: Transaction[],
-  options: SyncOptions
+  options: SyncOptions,
 ): Promise<SyncResponse | null> {
   const settings = SyncStorage.getSettings();
-  
+
   if (!settings.syncEnabled) {
     logger.info('Sync is disabled');
     return null;
@@ -40,7 +40,7 @@ export async function syncTransactionHistory(
   try {
     // Step 1: Fetch server history
     const serverTransactions = await fetchServerHistory(options.userAddress);
-    
+
     if (!serverTransactions) {
       logger.error('Failed to fetch server history');
       return null;
@@ -50,14 +50,15 @@ export async function syncTransactionHistory(
     const mergeResult = mergeTransactionHistories(
       localTransactions,
       serverTransactions,
-      settings.conflictResolutionStrategy
+      settings.conflictResolutionStrategy,
     );
 
     // Step 3: Upload merged/local-only transactions
     const queue = SyncStorage.getQueue();
-    const toUpload = localTransactions.filter(tx =>
-      queue.some(q => q.transactionId === tx.id) ||
-      mergeResult.merged.some(m => m.id === tx.id && m.id === tx.id)
+    const toUpload = localTransactions.filter(
+      (tx) =>
+        queue.some((q) => q.transactionId === tx.id) ||
+        mergeResult.merged.some((m) => m.id === tx.id && m.id === tx.id),
     );
 
     if (toUpload.length > 0) {
@@ -70,7 +71,7 @@ export async function syncTransactionHistory(
 
     // Step 4: Update local metadata
     const metadata = SyncStorage.getAllMetadata();
-    mergeResult.merged.forEach(tx => {
+    mergeResult.merged.forEach((tx) => {
       const existing = metadata[tx.id];
       SyncStorage.setMetadata(tx.id, {
         transactionId: tx.id,
@@ -83,7 +84,7 @@ export async function syncTransactionHistory(
     });
 
     // Step 5: Mark conflicts
-    mergeResult.conflicts.forEach(conflict => {
+    mergeResult.conflicts.forEach((conflict) => {
       const existing = metadata[conflict.transactionId];
       SyncStorage.setMetadata(conflict.transactionId, {
         transactionId: conflict.transactionId,
@@ -102,7 +103,7 @@ export async function syncTransactionHistory(
     return {
       success: true,
       synced: mergeResult.merged,
-      conflicts: mergeResult.conflicts.map(c => ({
+      conflicts: mergeResult.conflicts.map((c) => ({
         transactionId: c.transactionId,
         reason: c.reason,
       })),
@@ -145,7 +146,7 @@ async function fetchServerHistory(userAddress: string): Promise<Transaction[] | 
  */
 async function uploadTransactions(
   transactions: Transaction[],
-  userAddress: string
+  userAddress: string,
 ): Promise<boolean> {
   try {
     const response = await fetch(`/api/v1/sync/history`, {
@@ -184,7 +185,7 @@ export function getSyncStatus(): {
 } {
   const settings = SyncStorage.getSettings();
   const metadata = SyncStorage.getAllMetadata();
-  const conflictCount = Object.values(metadata).filter(m => m.conflict).length;
+  const conflictCount = Object.values(metadata).filter((m) => m.conflict).length;
 
   return {
     enabled: settings.syncEnabled,

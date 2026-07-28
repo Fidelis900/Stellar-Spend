@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState } from 'react';
 
 export interface Shortcut {
   key: string;
@@ -16,18 +16,21 @@ export interface Shortcut {
 
 export type ShortcutOverrides = Record<string, { key: string; ctrl?: boolean; shift?: boolean }>;
 
-const STORAGE_KEY = "stellar_spend_shortcut_overrides";
+const STORAGE_KEY = 'stellar_spend_shortcut_overrides';
 
 function loadOverrides(): ShortcutOverrides {
-  if (typeof window === "undefined") return {};
+  if (typeof window === 'undefined') return {};
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}");
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}');
   } catch {
     return {};
   }
 }
 
-export function saveShortcutOverride(id: string, override: { key: string; ctrl?: boolean; shift?: boolean }) {
+export function saveShortcutOverride(
+  id: string,
+  override: { key: string; ctrl?: boolean; shift?: boolean },
+) {
   const overrides = loadOverrides();
   overrides[id] = override;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides));
@@ -48,10 +51,10 @@ export function useKeyboardShortcuts(shortcuts: Shortcut[], enabled = true) {
       if (!enabled) return;
 
       const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if ((e.target as HTMLElement)?.isContentEditable) return;
 
-      const isMac = navigator.platform.toUpperCase().includes("MAC");
+      const isMac = navigator.platform.toUpperCase().includes('MAC');
       const ctrlOrCmd = isMac ? e.metaKey : e.ctrlKey;
       const overrides = loadOverrides();
 
@@ -73,13 +76,13 @@ export function useKeyboardShortcuts(shortcuts: Shortcut[], enabled = true) {
         }
       }
     },
-    [enabled, shortcuts]
+    [enabled, shortcuts],
   );
 
   useEffect(() => {
     if (!enabled) return;
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [enabled, handleKeyDown]);
 }
 
@@ -87,8 +90,8 @@ export function useKeyboardShortcuts(shortcuts: Shortcut[], enabled = true) {
  * Returns a data attribute object to attach shortcut hints to elements.
  * Usage: <button {...shortcutHint('Ctrl+N')}>New</button>
  */
-export function shortcutHint(label: string): { "data-shortcut-hint": string; title: string } {
-  return { "data-shortcut-hint": label, title: label };
+export function shortcutHint(label: string): { 'data-shortcut-hint': string; title: string } {
+  return { 'data-shortcut-hint': label, title: label };
 }
 
 /**
@@ -112,44 +115,44 @@ export function useAppShortcuts({
 }): Shortcut[] {
   const shortcuts: Shortcut[] = [
     {
-      key: "n",
+      key: 'n',
       ctrl: true,
-      description: "New transaction",
-      hint: "Ctrl+N",
+      description: 'New transaction',
+      hint: 'Ctrl+N',
       action: () => onNewTransaction?.(),
     },
     {
-      key: "k",
+      key: 'k',
       ctrl: true,
-      description: "Search transactions",
-      hint: "Ctrl+K",
+      description: 'Search transactions',
+      hint: 'Ctrl+K',
       action: () => onSearch?.(),
     },
     {
-      key: "h",
+      key: 'h',
       ctrl: true,
-      description: "Go to Home",
-      hint: "Ctrl+H",
+      description: 'Go to Home',
+      hint: 'Ctrl+H',
       action: () => onNavigateHome?.(),
     },
     {
-      key: "j",
+      key: 'j',
       ctrl: true,
-      description: "Go to History",
-      hint: "Ctrl+J",
+      description: 'Go to History',
+      hint: 'Ctrl+J',
       action: () => onNavigateHistory?.(),
     },
     {
-      key: "d",
+      key: 'd',
       ctrl: true,
-      description: "Toggle dark/light theme",
-      hint: "Ctrl+D",
+      description: 'Toggle dark/light theme',
+      hint: 'Ctrl+D',
       action: () => onToggleTheme?.(),
     },
     {
-      key: "?",
-      description: "Show keyboard shortcuts",
-      hint: "?",
+      key: '?',
+      description: 'Show keyboard shortcuts',
+      hint: '?',
       action: () => onHelp?.(),
     },
   ];

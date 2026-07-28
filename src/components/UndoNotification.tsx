@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import type { UndoableAction } from "@/hooks/useUndo";
+import { useEffect, useState } from 'react';
+import type { UndoableAction } from '@/hooks/useUndo';
 
 interface UndoNotificationProps {
   action: UndoableAction | null;

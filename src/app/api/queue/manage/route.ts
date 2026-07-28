@@ -40,11 +40,20 @@ export async function POST(req: NextRequest) {
   if (action === 'override') {
     const priorityValue = Number(priority);
     if (!Object.values(TransactionPriority).includes(priorityValue)) {
-      return ErrorHandler.validation(`Invalid priority. Valid values: ${Object.values(TransactionPriority).filter(v => typeof v === 'number').join(', ')}`);
+      return ErrorHandler.validation(
+        `Invalid priority. Valid values: ${Object.values(TransactionPriority)
+          .filter((v) => typeof v === 'number')
+          .join(', ')}`,
+      );
     }
     const updated = queue.overridePriority(id, priorityValue as TransactionPriority);
     if (!updated) return ErrorHandler.notFound('Transaction in queue');
-    return NextResponse.json({ ok: true, action: 'priority_overridden', id, priority: priorityValue });
+    return NextResponse.json({
+      ok: true,
+      action: 'priority_overridden',
+      id,
+      priority: priorityValue,
+    });
   }
 
   return ErrorHandler.validation('Invalid action. Use "override" or "remove"');

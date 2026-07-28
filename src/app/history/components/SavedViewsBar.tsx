@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { FILTER_PRESETS, type SavedView } from "@/lib/saved-views";
+import { FILTER_PRESETS, type SavedView } from '@/lib/saved-views';
 
 interface SavedViewsBarProps {
   savedViews: SavedView[];
@@ -11,7 +11,7 @@ interface SavedViewsBarProps {
 }
 
 const chipClass =
-  "text-[10px] tracking-widest uppercase px-2 py-1 border border-[#333333] text-[#999999] hover:border-[#c9a962] hover:text-[#c9a962] transition-colors duration-150";
+  'text-[10px] tracking-widest uppercase px-2 py-1 border border-[#333333] text-[#999999] hover:border-[#c9a962] hover:text-[#c9a962] transition-colors duration-150';
 
 /** Quick presets and persisted saved-view chips for the filters panel. */
 export function SavedViewsBar({

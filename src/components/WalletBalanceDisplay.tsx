@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect, useState, useCallback } from "react";
-import { cn } from "@/lib/cn";
-import { useStellarWallet } from "@/hooks/useStellarWallet";
+import { useEffect, useState, useCallback } from 'react';
+import { cn } from '@/lib/cn';
+import { useStellarWallet } from '@/hooks/useStellarWallet';
 
 interface Balance {
   asset: string;
@@ -24,7 +24,9 @@ export default function WalletBalanceDisplay({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const [balanceHistory, setBalanceHistory] = useState<Array<{ timestamp: number; balances: Balance[] }>>([]);
+  const [balanceHistory, setBalanceHistory] = useState<
+    Array<{ timestamp: number; balances: Balance[] }>
+  >([]);
   const [selectedCurrency, setSelectedCurrency] = useState<string | null>(null);
 
   const fetchBalances = useCallback(async () => {
@@ -34,12 +36,10 @@ export default function WalletBalanceDisplay({
     setError(null);
 
     try {
-      const response = await fetch(
-        `https://horizon.stellar.org/accounts/${wallet.publicKey}`
-      );
+      const response = await fetch(`https://horizon.stellar.org/accounts/${wallet.publicKey}`);
 
       if (!response.ok) {
-        throw new Error("Failed to fetch account balances");
+        throw new Error('Failed to fetch account balances');
       }
 
       const data = await response.json();
@@ -50,26 +50,22 @@ export default function WalletBalanceDisplay({
           asset_code?: string;
           asset_issuer?: string;
         }) => ({
-          asset:
-            balance.asset_type === "native"
-              ? "XLM"
-              : balance.asset_code || "Unknown",
+          asset: balance.asset_type === 'native' ? 'XLM' : balance.asset_code || 'Unknown',
           balance: balance.balance,
           issuer: balance.asset_issuer,
-        })
+        }),
       );
 
       setBalances(newBalances);
 
       // Track history
       if (showHistory) {
-        setBalanceHistory((prev) => [
-          ...prev,
-          { timestamp: Date.now(), balances: newBalances },
-        ].slice(-24)); // Keep last 24 entries
+        setBalanceHistory((prev) =>
+          [...prev, { timestamp: Date.now(), balances: newBalances }].slice(-24),
+        ); // Keep last 24 entries
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch balances");
+      setError(err instanceof Error ? err.message : 'Failed to fetch balances');
     } finally {
       setLoading(false);
     }
@@ -86,15 +82,15 @@ export default function WalletBalanceDisplay({
     return () => clearInterval(interval);
   }, [autoRefresh, fetchBalances]);
 
-  const usdcBalance = balances.find((b) => b.asset === "USDC");
-  const xlmBalance = balances.find((b) => b.asset === "XLM");
+  const usdcBalance = balances.find((b) => b.asset === 'USDC');
+  const xlmBalance = balances.find((b) => b.asset === 'XLM');
 
   const getBalanceChange = (asset: string) => {
     if (balanceHistory.length < 2) return null;
 
     const current = balances.find((b) => b.asset === asset);
     const previous = balanceHistory[balanceHistory.length - 2].balances.find(
-      (b) => b.asset === asset
+      (b) => b.asset === asset,
     );
 
     if (!current || !previous) return null;
@@ -105,7 +101,12 @@ export default function WalletBalanceDisplay({
 
   if (!wallet) {
     return (
-      <div className={cn("rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900", className)}>
+      <div
+        className={cn(
+          'rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900',
+          className,
+        )}
+      >
         <p className="text-center text-gray-600 dark:text-gray-400">
           Connect your wallet to view balances
         </p>
@@ -114,7 +115,12 @@ export default function WalletBalanceDisplay({
   }
 
   return (
-    <div className={cn("space-y-4 rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900", className)}>
+    <div
+      className={cn(
+        'space-y-4 rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900',
+        className,
+      )}
+    >
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Wallet Balances</h2>
         <div className="flex gap-2">
@@ -124,7 +130,7 @@ export default function WalletBalanceDisplay({
             className="rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600 disabled:opacity-50"
             aria-label="Refresh balances"
           >
-            {loading ? "Loading..." : "Refresh"}
+            {loading ? 'Loading...' : 'Refresh'}
           </button>
           <label className="flex items-center gap-2 text-sm">
             <input
@@ -151,25 +157,23 @@ export default function WalletBalanceDisplay({
           <div className="rounded-lg bg-gradient-to-r from-blue-50 to-blue-100 p-4 dark:from-blue-900 dark:to-blue-800">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  USDC Balance
-                </p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">USDC Balance</p>
                 <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                   {parseFloat(usdcBalance.balance).toFixed(2)}
                 </p>
               </div>
-              {showHistory && getBalanceChange("USDC") !== null && (
+              {showHistory && getBalanceChange('USDC') !== null && (
                 <div
                   className={cn(
-                    "text-right",
-                    getBalanceChange("USDC")! > 0
-                      ? "text-green-600 dark:text-green-400"
-                      : "text-red-600 dark:text-red-400"
+                    'text-right',
+                    getBalanceChange('USDC')! > 0
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-red-600 dark:text-red-400',
                   )}
                 >
                   <p className="text-sm font-medium">
-                    {getBalanceChange("USDC")! > 0 ? "+" : ""}
-                    {getBalanceChange("USDC")!.toFixed(2)}
+                    {getBalanceChange('USDC')! > 0 ? '+' : ''}
+                    {getBalanceChange('USDC')!.toFixed(2)}
                   </p>
                 </div>
               )}
@@ -182,25 +186,23 @@ export default function WalletBalanceDisplay({
           <div className="rounded-lg bg-gradient-to-r from-yellow-50 to-yellow-100 p-4 dark:from-yellow-900 dark:to-yellow-800">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  XLM Balance
-                </p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">XLM Balance</p>
                 <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
                   {parseFloat(xlmBalance.balance).toFixed(2)}
                 </p>
               </div>
-              {showHistory && getBalanceChange("XLM") !== null && (
+              {showHistory && getBalanceChange('XLM') !== null && (
                 <div
                   className={cn(
-                    "text-right",
-                    getBalanceChange("XLM")! > 0
-                      ? "text-green-600 dark:text-green-400"
-                      : "text-red-600 dark:text-red-400"
+                    'text-right',
+                    getBalanceChange('XLM')! > 0
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-red-600 dark:text-red-400',
                   )}
                 >
                   <p className="text-sm font-medium">
-                    {getBalanceChange("XLM")! > 0 ? "+" : ""}
-                    {getBalanceChange("XLM")!.toFixed(2)}
+                    {getBalanceChange('XLM')! > 0 ? '+' : ''}
+                    {getBalanceChange('XLM')!.toFixed(2)}
                   </p>
                 </div>
               )}
@@ -212,12 +214,10 @@ export default function WalletBalanceDisplay({
       {/* Other Assets */}
       {balances.length > 2 && (
         <div>
-          <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-            Other Assets
-          </p>
+          <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Other Assets</p>
           <div className="space-y-2">
             {balances
-              .filter((b) => b.asset !== "USDC" && b.asset !== "XLM")
+              .filter((b) => b.asset !== 'USDC' && b.asset !== 'XLM')
               .map((balance) => (
                 <div
                   key={balance.asset}
@@ -231,9 +231,7 @@ export default function WalletBalanceDisplay({
                       </p>
                     )}
                   </div>
-                  <p className="font-semibold">
-                    {parseFloat(balance.balance).toFixed(2)}
-                  </p>
+                  <p className="font-semibold">{parseFloat(balance.balance).toFixed(2)}</p>
                 </div>
               ))}
           </div>
@@ -248,19 +246,15 @@ export default function WalletBalanceDisplay({
           </p>
           <div className="space-y-2">
             <div className="flex gap-2">
-              {["USDC", "XLM"].map((asset) => (
+              {['USDC', 'XLM'].map((asset) => (
                 <button
                   key={asset}
-                  onClick={() =>
-                    setSelectedCurrency(
-                      selectedCurrency === asset ? null : asset
-                    )
-                  }
+                  onClick={() => setSelectedCurrency(selectedCurrency === asset ? null : asset)}
                   className={cn(
-                    "rounded px-3 py-1 text-sm font-medium transition-colors",
+                    'rounded px-3 py-1 text-sm font-medium transition-colors',
                     selectedCurrency === asset
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
                   )}
                 >
                   {asset}
@@ -275,20 +269,17 @@ export default function WalletBalanceDisplay({
                 </p>
                 <div className="mt-2 flex items-end gap-1">
                   {balanceHistory.map((entry, idx) => {
-                    const balance = entry.balances.find(
-                      (b) => b.asset === selectedCurrency
-                    );
+                    const balance = entry.balances.find((b) => b.asset === selectedCurrency);
                     const maxBalance = Math.max(
                       ...balanceHistory.map(
                         (e) =>
                           parseFloat(
-                            e.balances.find((b) => b.asset === selectedCurrency)
-                              ?.balance || "0"
-                          ) || 0
-                      )
+                            e.balances.find((b) => b.asset === selectedCurrency)?.balance || '0',
+                          ) || 0,
+                      ),
                     );
                     const height = maxBalance
-                      ? (parseFloat(balance?.balance || "0") / maxBalance) * 100
+                      ? (parseFloat(balance?.balance || '0') / maxBalance) * 100
                       : 0;
 
                     return (
@@ -296,7 +287,7 @@ export default function WalletBalanceDisplay({
                         key={idx}
                         className="flex-1 rounded-t bg-blue-500"
                         style={{ height: `${Math.max(height, 5)}%` }}
-                        title={`${balance?.balance || "0"}`}
+                        title={`${balance?.balance || '0'}`}
                       />
                     );
                   })}
@@ -310,9 +301,7 @@ export default function WalletBalanceDisplay({
       {/* Wallet Address */}
       <div className="rounded bg-gray-50 p-3 text-xs dark:bg-gray-800">
         <p className="text-gray-600 dark:text-gray-400">Wallet Address</p>
-        <p className="break-all font-mono text-gray-700 dark:text-gray-300">
-          {wallet.publicKey}
-        </p>
+        <p className="break-all font-mono text-gray-700 dark:text-gray-300">{wallet.publicKey}</p>
       </div>
     </div>
   );

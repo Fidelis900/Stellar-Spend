@@ -44,7 +44,7 @@ function makeTx(overrides: Partial<Transaction> = {}): Transaction {
     beneficiary: {
       institution: 'ACCESS_BANK',
       accountIdentifier: '0123456789', // PII
-      accountName: 'Test Beneficiary',  // PII
+      accountName: 'Test Beneficiary', // PII
       currency: 'NGN',
     },
     status: 'pending',
@@ -188,9 +188,7 @@ describe('Ciphertext verified at rest', () => {
     const raw2 = await inner.getById('tx_b');
 
     // Same plaintext but different ciphertext because each encryption uses a random IV
-    expect(raw1!.beneficiary.accountIdentifier).not.toBe(
-      raw2!.beneficiary.accountIdentifier,
-    );
+    expect(raw1!.beneficiary.accountIdentifier).not.toBe(raw2!.beneficiary.accountIdentifier);
   });
 
   it('ciphertext survives an update — raw store still holds ciphertext after update', async () => {
@@ -277,7 +275,12 @@ describe('Key rotation procedure', () => {
     expect(decryptField(encWithOldKey)).toBe(plain);
 
     const rows: Record<string, unknown>[] = [
-      { beneficiary: { accountIdentifier: encWithOldKey, accountName: encryptField('Test Beneficiary') } },
+      {
+        beneficiary: {
+          accountIdentifier: encWithOldKey,
+          accountName: encryptField('Test Beneficiary'),
+        },
+      },
     ];
 
     // Step 2: Set the new key and rotate
@@ -305,9 +308,7 @@ describe('Key rotation procedure', () => {
 
   it('old key cannot decrypt after rotation', () => {
     const plain = '0123456789';
-    const rows: Record<string, unknown>[] = [
-      { accountIdentifier: encryptField(plain) },
-    ];
+    const rows: Record<string, unknown>[] = [{ accountIdentifier: encryptField(plain) }];
 
     process.env.NEW_ENCRYPTION_KEY = NEW_KEY;
     rotateFieldEncryption(rows as any, ['accountIdentifier']);
@@ -329,9 +330,7 @@ describe('Key rotation procedure', () => {
   });
 
   it('rotation fails gracefully when NEW_ENCRYPTION_KEY is not set', () => {
-    const rows: Record<string, unknown>[] = [
-      { accountIdentifier: encryptField('secret') },
-    ];
+    const rows: Record<string, unknown>[] = [{ accountIdentifier: encryptField('secret') }];
     // Do NOT set NEW_ENCRYPTION_KEY
 
     const result = rotateFieldEncryption(rows as any, ['accountIdentifier']);
@@ -361,15 +360,21 @@ describe('Key rotation procedure', () => {
     // Spot-check: verify first and last rows with new key
     process.env.ENCRYPTION_KEY = NEW_KEY;
     expect(decryptField((rows[0].beneficiary as any).accountIdentifier)).toBe('account_0');
-    expect(decryptField((rows[count - 1].beneficiary as any).accountName)).toBe(`name_${count - 1}`);
+    expect(decryptField((rows[count - 1].beneficiary as any).accountName)).toBe(
+      `name_${count - 1}`,
+    );
   });
 });
 
 // ── #792 — Encryption utility correctness ────────────────────────────────────
 
 describe('encryptField / decryptField integrity', () => {
-  beforeEach(() => { process.env.ENCRYPTION_KEY = OLD_KEY; });
-  afterEach(() => { delete process.env.ENCRYPTION_KEY; });
+  beforeEach(() => {
+    process.env.ENCRYPTION_KEY = OLD_KEY;
+  });
+  afterEach(() => {
+    delete process.env.ENCRYPTION_KEY;
+  });
 
   it('decrypts to the exact original plaintext including Unicode', () => {
     const inputs = ['1234567890', 'Alice Ọlá', 'Müller', '이름', '🇳🇬'];

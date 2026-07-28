@@ -6,14 +6,14 @@ This document is that policy. It is the **normative** reference for version life
 
 Related documents, none of which duplicate this one:
 
-| Document | Covers |
-|---|---|
-| [`openapi.yaml`](../openapi.yaml) | **The source of truth for the API contract itself** — routes, schemas, status codes |
-| [ADR-004](./adr/ADR-004-api-versioning-strategy.md) | *Why* we chose hybrid URL-path + header versioning |
+| Document                                                                                          | Covers                                                                                |
+| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| [`openapi.yaml`](../openapi.yaml)                                                                 | **The source of truth for the API contract itself** — routes, schemas, status codes   |
+| [ADR-004](./adr/ADR-004-api-versioning-strategy.md)                                               | _Why_ we chose hybrid URL-path + header versioning                                    |
 | [`src/lib/api-versioning/DEPRECATION_POLICY.md`](../src/lib/api-versioning/DEPRECATION_POLICY.md) | Implementation mechanics — thin-adapter route architecture, how to register a version |
-| [`docs/api-migration-v1.md`](./api-migration-v1.md) | Client-facing guide for the unversioned → v1 migration |
+| [`docs/api-migration-v1.md`](./api-migration-v1.md)                                               | Client-facing guide for the unversioned → v1 migration                                |
 
-**`openapi.yaml` is the source of truth for what the API does.** If this document and `openapi.yaml` disagree about a route's shape, `openapi.yaml` wins and this document is wrong. This document is authoritative only for *policy* — lifecycle, timing, and obligations.
+**`openapi.yaml` is the source of truth for what the API does.** If this document and `openapi.yaml` disagree about a route's shape, `openapi.yaml` wins and this document is wrong. This document is authoritative only for _policy_ — lifecycle, timing, and obligations.
 
 ---
 
@@ -40,11 +40,11 @@ supported ──────► deprecated ──────► sunset
              sunset date         elapses
 ```
 
-| Stage | Guarantee to clients | Registry shape |
-|---|---|---|
-| **`supported`** | No breaking changes. Additive changes only. Bugs are fixed here. | `status: "supported"` |
+| Stage            | Guarantee to clients                                                                                                                 | Registry shape                                                                       |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| **`supported`**  | No breaking changes. Additive changes only. Bugs are fixed here.                                                                     | `status: "supported"`                                                                |
 | **`deprecated`** | Still fully functional. No new features. Security and correctness fixes only. Every response carries a machine-readable sunset date. | `status: "deprecated"` + `deprecatedAt`, `sunsetAt`, and ideally `migrationGuideUrl` |
-| **`sunset`** | Removed. Requests return `410 Gone`. | `sunsetAt` has passed |
+| **`sunset`**     | Removed. Requests return `410 Gone`.                                                                                                 | `sunsetAt` has passed                                                                |
 
 Stages are not skippable. **A version is never removed without first spending its full deprecation window in the `deprecated` stage** — no exceptions for low traffic. Traffic estimates are not a substitute for the notice period, since we cannot distinguish "nobody uses it" from "the one integrator who uses it is on holiday".
 
@@ -84,7 +84,7 @@ The line between "ship it into v1" and "this needs v2" is whether a correct, exi
 
 ### Judgement calls
 
-- **Adding an enum value to a *response*** is technically breaking — a client with an exhaustive `switch` will fall through. Treat it as breaking when the field drives client control flow (e.g. order status), and non-breaking for informational fields. Document new values in the changelog either way.
+- **Adding an enum value to a _response_** is technically breaking — a client with an exhaustive `switch` will fall through. Treat it as breaking when the field drives client control flow (e.g. order status), and non-breaking for informational fields. Document new values in the changelog either way.
 - **Fixing a bug where behaviour contradicts `openapi.yaml`** is non-breaking, because `openapi.yaml` is the contract. But if clients have visibly adapted to the buggy behaviour, announce it in the changelog and give notice, even though no version bump is required.
 - **Tightening a rate limit** is not a contract change, but treat it as breaking in spirit: announce it with the same notice period.
 
@@ -124,11 +124,11 @@ Note step 6: **v1 is not deprecated on the day v2 ships.** Deprecation starts wh
 
 ## Support window
 
-| Obligation | Minimum |
-|---|---|
-| Notice before sunset (`deprecatedAt` → `sunsetAt`) | **6 months** |
-| Overlap where both old and new versions are fully supported | **6 months** |
-| Notice for a breaking change to a `supported` version | Not permitted — that is what a new version is for |
+| Obligation                                                  | Minimum                                           |
+| ----------------------------------------------------------- | ------------------------------------------------- |
+| Notice before sunset (`deprecatedAt` → `sunsetAt`)          | **6 months**                                      |
+| Overlap where both old and new versions are fully supported | **6 months**                                      |
+| Notice for a breaking change to a `supported` version       | Not permitted — that is what a new version is for |
 
 Six months is a floor, not a target. Extend it when the change requires integrator work beyond swapping a base path — anything touching signing, settlement, or webhook payload structure warrants twelve.
 
@@ -144,35 +144,35 @@ This section documents the headers **as currently implemented** in [`middleware.
 
 ### Every API response
 
-| Header | Value | Notes |
-|---|---|---|
-| `X-API-Version` | Numeric, no `v` prefix — e.g. `1` | Set on all `/api/v{n}/*` responses |
-| `X-Request-Id` | UUID | Echoed from the request or generated |
+| Header          | Value                             | Notes                                |
+| --------------- | --------------------------------- | ------------------------------------ |
+| `X-API-Version` | Numeric, no `v` prefix — e.g. `1` | Set on all `/api/v{n}/*` responses   |
+| `X-Request-Id`  | UUID                              | Echoed from the request or generated |
 
 ### Deprecated versions
 
 A deprecated version's responses carry:
 
-| Header | Format | Example |
-|---|---|---|
-| `Deprecation` | ISO 8601 date — when deprecation was announced | `2025-01-01` |
-| `Sunset` | ISO 8601 date — when the version stops working ([RFC 8594](https://www.rfc-editor.org/rfc/rfc8594)) | `2026-01-01` |
-| `Link` | Successor and migration guide | `</api/v1/offramp/quote>; rel="successor-version", </docs/api-migration-v1>; rel="deprecation"` |
+| Header        | Format                                                                                              | Example                                                                                         |
+| ------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `Deprecation` | ISO 8601 date — when deprecation was announced                                                      | `2025-01-01`                                                                                    |
+| `Sunset`      | ISO 8601 date — when the version stops working ([RFC 8594](https://www.rfc-editor.org/rfc/rfc8594)) | `2026-01-01`                                                                                    |
+| `Link`        | Successor and migration guide                                                                       | `</api/v1/offramp/quote>; rel="successor-version", </docs/api-migration-v1>; rel="deprecation"` |
 
 Clients should treat a present `Sunset` header as a hard deadline and alert on it. The `Link` relation `successor-version` gives the replacement path directly, so simple clients can migrate by substitution.
 
 ### Status codes for version errors
 
-The implemented behaviour differs by *how* the version was requested:
+The implemented behaviour differs by _how_ the version was requested:
 
-| Request | Response |
-|---|---|
-| `/api/v1/*` — known version | Passes through, `X-API-Version: 1` |
-| `/api/v9/*` — unknown version in the URL | `404` · `{"error": "API version not supported"}` |
-| `/api/*` with `X-API-Version: 1` or `Accept: application/vnd.stellarspend.v1+json` | Internally rewritten to `/api/v1/*` |
-| `/api/*` with an unknown version header | `400` · `{"error": "Unsupported API version", "supported": ["v1"]}` |
-| `/api/*` with no version indicator | Passes through as legacy, with deprecation headers |
-| A sunset version | Should be `410 Gone` — see [Known gaps](#current-state-and-known-gaps) |
+| Request                                                                            | Response                                                               |
+| ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `/api/v1/*` — known version                                                        | Passes through, `X-API-Version: 1`                                     |
+| `/api/v9/*` — unknown version in the URL                                           | `404` · `{"error": "API version not supported"}`                       |
+| `/api/*` with `X-API-Version: 1` or `Accept: application/vnd.stellarspend.v1+json` | Internally rewritten to `/api/v1/*`                                    |
+| `/api/*` with an unknown version header                                            | `400` · `{"error": "Unsupported API version", "supported": ["v1"]}`    |
+| `/api/*` with no version indicator                                                 | Passes through as legacy, with deprecation headers                     |
+| A sunset version                                                                   | Should be `410 Gone` — see [Known gaps](#current-state-and-known-gaps) |
 
 The `404` / `400` split is deliberate in effect if not by design: an unknown path segment is a routing failure, while an unparseable header is a request error. The `400` response also lists supported versions, which the `404` does not.
 
@@ -188,9 +188,7 @@ GET /api/versions
 
 ```json
 {
-  "versions": [
-    { "version": "v1", "status": "supported", "prefix": "/api/v1" }
-  ]
+  "versions": [{ "version": "v1", "status": "supported", "prefix": "/api/v1" }]
 }
 ```
 

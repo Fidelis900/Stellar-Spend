@@ -18,7 +18,9 @@ class EventBus {
     }
     const listeners = this.handlers.get(type)!;
     if (listeners.length >= this.config.maxListeners) {
-      logger.warn(`EventBus: Max listeners (${this.config.maxListeners}) reached for event type: ${type}`);
+      logger.warn(
+        `EventBus: Max listeners (${this.config.maxListeners}) reached for event type: ${type}`,
+      );
     }
     listeners.push(handler);
   }
@@ -45,12 +47,12 @@ class EventBus {
     }
 
     const handlers = this.handlers.get(type) || [];
-    const promises = handlers.map(handler =>
+    const promises = handlers.map((handler) =>
       Promise.resolve()
         .then(() => handler(event))
-        .catch(error => {
+        .catch((error) => {
           logger.error(`EventBus: Handler error for ${type}`, { error, eventId: event.id });
-        })
+        }),
     );
 
     await Promise.all(promises);

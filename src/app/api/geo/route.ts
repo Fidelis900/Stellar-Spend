@@ -10,9 +10,8 @@ export async function GET(request: NextRequest) {
   const jurisdictionStatus = geo.country ? getJurisdictionStatus(geo.country) : 'allowed';
   const consentDenied = hasDeniedGeoConsent(request);
 
-  const defaultCurrency = !consentDenied && geo.country
-    ? getDefaultCurrencyForCountry(geo.country)?.code
-    : undefined;
+  const defaultCurrency =
+    !consentDenied && geo.country ? getDefaultCurrencyForCountry(geo.country)?.code : undefined;
 
   return NextResponse.json({
     country: geo.country,

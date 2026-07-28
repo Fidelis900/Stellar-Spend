@@ -1,8 +1,8 @@
 import { logger } from '@/lib/logger';
-import crypto from "crypto";
+import crypto from 'crypto';
 
-export type AlertType = "above" | "below";
-export type AlertStatus = "active" | "triggered" | "inactive";
+export type AlertType = 'above' | 'below';
+export type AlertStatus = 'active' | 'triggered' | 'inactive';
 
 export interface AlertHistoryRecord {
   timestamp: number;
@@ -45,14 +45,14 @@ if (!globalAlerts._priceAlerts) {
 }
 
 export class PriceAlertStorage {
-  private static readonly STORAGE_KEY = "stellar_spend_price_alerts";
+  private static readonly STORAGE_KEY = 'stellar_spend_price_alerts';
   private static readonly POLL_INTERVAL = 60000;
   private static pollingInterval: NodeJS.Timeout | null = null;
 
   static createAlert(
     alert: Omit<
       PriceAlert,
-      "id" | "createdAt" | "triggeredAt" | "notificationSent" | "triggerHistory"
+      'id' | 'createdAt' | 'triggeredAt' | 'notificationSent' | 'triggerHistory'
     >,
   ): PriceAlert {
     const id = crypto.randomUUID();
@@ -78,7 +78,7 @@ export class PriceAlertStorage {
   }
 
   static getAllAlerts(): PriceAlert[] {
-    if (typeof window !== "undefined") {
+    if (typeof window !== 'undefined') {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       return stored ? JSON.parse(stored) : [];
     }
@@ -86,14 +86,12 @@ export class PriceAlertStorage {
   }
 
   static getActiveAlerts(): PriceAlert[] {
-    return this.getAllAlerts().filter((a) => a.status === "active");
+    return this.getAllAlerts().filter((a) => a.status === 'active');
   }
 
   static getAlertsByUser(userAddress: string): PriceAlert[] {
     const lower = userAddress.toLowerCase();
-    return this.getAllAlerts().filter(
-      (a) => a.userAddress?.toLowerCase() === lower,
-    );
+    return this.getAllAlerts().filter((a) => a.userAddress?.toLowerCase() === lower);
   }
 
   static deleteAlert(id: string): boolean {
@@ -106,7 +104,7 @@ export class PriceAlertStorage {
 
   static updateAlert(
     id: string,
-    updates: Partial<Omit<PriceAlert, "id" | "createdAt">>,
+    updates: Partial<Omit<PriceAlert, 'id' | 'createdAt'>>,
   ): PriceAlert | null {
     const alerts = this.getAllAlerts();
     const index = alerts.findIndex((a) => a.id === id);
@@ -142,19 +140,16 @@ export class PriceAlertStorage {
 
     const entries = Object.entries(triggersByCurrency);
     const mostTriggeredCurrency =
-      entries.length > 0
-        ? entries.reduce((a, b) => (b[1] > a[1] ? b : a))[0]
-        : null;
+      entries.length > 0 ? entries.reduce((a, b) => (b[1] > a[1] ? b : a))[0] : null;
 
     return {
       totalAlerts: all.length,
-      activeAlerts: all.filter((a) => a.status === "active").length,
-      triggeredAlerts: all.filter((a) => a.status === "triggered").length,
-      inactiveAlerts: all.filter((a) => a.status === "inactive").length,
+      activeAlerts: all.filter((a) => a.status === 'active').length,
+      triggeredAlerts: all.filter((a) => a.status === 'triggered').length,
+      inactiveAlerts: all.filter((a) => a.status === 'inactive').length,
       totalTriggerCount,
       mostTriggeredCurrency,
-      averageTriggersPerAlert:
-        all.length > 0 ? totalTriggerCount / all.length : 0,
+      averageTriggersPerAlert: all.length > 0 ? totalTriggerCount / all.length : 0,
     };
   }
 
@@ -170,8 +165,8 @@ export class PriceAlertStorage {
       if (currentPrice === undefined) return;
 
       const shouldTrigger =
-        (alert.alertType === "above" && currentPrice >= alert.targetPrice) ||
-        (alert.alertType === "below" && currentPrice <= alert.targetPrice);
+        (alert.alertType === 'above' && currentPrice >= alert.targetPrice) ||
+        (alert.alertType === 'below' && currentPrice <= alert.targetPrice);
 
       if (shouldTrigger && !alert.notificationSent) {
         const historyRecord: AlertHistoryRecord = {
@@ -180,18 +175,13 @@ export class PriceAlertStorage {
           notificationSent: true,
         };
 
-        const nextStatus: AlertStatus = alert.recurring
-          ? "active"
-          : "triggered";
+        const nextStatus: AlertStatus = alert.recurring ? 'active' : 'triggered';
         this.updateAlert(alert.id, {
           status: nextStatus,
           triggeredAt: Date.now(),
           notificationSent: !alert.recurring,
           triggeredCount: (alert.triggeredCount ?? 0) + 1,
-          triggerHistory: [
-            historyRecord,
-            ...(alert.triggerHistory ?? []),
-          ].slice(0, 50),
+          triggerHistory: [historyRecord, ...(alert.triggerHistory ?? [])].slice(0, 50),
         });
 
         triggered.push(alert);
@@ -216,7 +206,7 @@ export class PriceAlertStorage {
           onAlert(triggered);
         }
       } catch (error) {
-        logger.error("Price alert check failed:", {}, error);
+        logger.error('Price alert check failed:', {}, error);
       }
     }, this.POLL_INTERVAL);
   }
@@ -229,7 +219,7 @@ export class PriceAlertStorage {
   }
 
   private static persistAlerts(alerts: PriceAlert[]): void {
-    if (typeof window !== "undefined") {
+    if (typeof window !== 'undefined') {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(alerts));
     } else {
       globalAlerts._priceAlerts = alerts;

@@ -24,7 +24,8 @@ describe('env.ts', () => {
       process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
       process.env.NEXT_PUBLIC_STELLAR_SOROBAN_RPC_URL = 'https://public-soroban';
       process.env.NEXT_PUBLIC_BASE_RETURN_ADDRESS = '0xpublic';
-      process.env.NEXT_PUBLIC_STELLAR_USDC_ISSUER = 'GBUQWP3BOUZX34ULNQG23RQ6F4YUSXHTQSXUSMIQ75XABZEYYWRB6HP';
+      process.env.NEXT_PUBLIC_STELLAR_USDC_ISSUER =
+        'GBUQWP3BOUZX34ULNQG23RQ6F4YUSXHTQSXUSMIQ75XABZEYYWRB6HP';
 
       const result = validateEnv();
 
@@ -46,7 +47,8 @@ describe('env.ts', () => {
       delete process.env.DATABASE_URL;
       process.env.NEXT_PUBLIC_STELLAR_SOROBAN_RPC_URL = 'https://public-soroban';
       process.env.NEXT_PUBLIC_BASE_RETURN_ADDRESS = '0xpublic';
-      process.env.NEXT_PUBLIC_STELLAR_USDC_ISSUER = 'GBUQWP3BOUZX34ULNQG23RQ6F4YUSXHTQSXUSMIQ75XABZEYYWRB6HP';
+      process.env.NEXT_PUBLIC_STELLAR_USDC_ISSUER =
+        'GBUQWP3BOUZX34ULNQG23RQ6F4YUSXHTQSXUSMIQ75XABZEYYWRB6HP';
 
       expect(() => validateEnv()).toThrow('Missing required server env vars');
       expect(() => validateEnv()).toThrow('DATABASE_URL');
@@ -63,7 +65,8 @@ describe('env.ts', () => {
       process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
       process.env.NEXT_PUBLIC_STELLAR_SOROBAN_RPC_URL = 'https://public-soroban';
       delete process.env.NEXT_PUBLIC_BASE_RETURN_ADDRESS;
-      process.env.NEXT_PUBLIC_STELLAR_USDC_ISSUER = 'GBUQWP3BOUZX34ULNQG23RQ6F4YUSXHTQSXUSMIQ75XABZEYYWRB6HP';
+      process.env.NEXT_PUBLIC_STELLAR_USDC_ISSUER =
+        'GBUQWP3BOUZX34ULNQG23RQ6F4YUSXHTQSXUSMIQ75XABZEYYWRB6HP';
 
       expect(() => validateEnv()).toThrow('Missing required public env vars');
       expect(() => validateEnv()).toThrow('NEXT_PUBLIC_BASE_RETURN_ADDRESS');
@@ -80,7 +83,8 @@ describe('env.ts', () => {
       process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
       process.env.NEXT_PUBLIC_STELLAR_SOROBAN_RPC_URL = 'https://public-soroban';
       process.env.NEXT_PUBLIC_BASE_RETURN_ADDRESS = '0xpublic';
-      process.env.NEXT_PUBLIC_STELLAR_USDC_ISSUER = 'GBUQWP3BOUZX34ULNQG23RQ6F4YUSXHTQSXUSMIQ75XABZEYYWRB6HP';
+      process.env.NEXT_PUBLIC_STELLAR_USDC_ISSUER =
+        'GBUQWP3BOUZX34ULNQG23RQ6F4YUSXHTQSXUSMIQ75XABZEYYWRB6HP';
       process.env.NEXT_PUBLIC_PAYCREST_API_KEY = 'secret-api-key';
 
       expect(() => validateEnv()).toThrow('Remove secret values from public env vars');

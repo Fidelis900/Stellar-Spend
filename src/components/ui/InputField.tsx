@@ -1,4 +1,4 @@
-import { Skeleton } from "./Skeleton";
+import { Skeleton } from './Skeleton';
 
 interface InputFieldProps {
   label: string;
@@ -17,7 +17,7 @@ export function InputField({
   label,
   value,
   onChange,
-  type = "text",
+  type = 'text',
   min,
   step,
   placeholder,
@@ -26,17 +26,17 @@ export function InputField({
   disabled = false,
 }: InputFieldProps) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <label style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.08em" }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <label style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '0.08em' }}>
         {label}
       </label>
       <div
         style={{
-          display: "flex",
-          alignItems: "center",
+          display: 'flex',
+          alignItems: 'center',
           height: 46,
-          border: "1px solid var(--line)",
-          padding: "0 12px",
+          border: '1px solid var(--line)',
+          padding: '0 12px',
           gap: 8,
         }}
       >
@@ -50,11 +50,11 @@ export function InputField({
           disabled={disabled}
           style={{
             flex: 1,
-            background: "none",
+            background: 'none',
             border: 0,
-            outline: "none",
-            color: "var(--text)",
-            font: "inherit",
+            outline: 'none',
+            color: 'var(--text)',
+            font: 'inherit',
             fontSize: 14,
             opacity: disabled ? 0.5 : 1,
           }}
@@ -62,7 +62,7 @@ export function InputField({
         {isLoadingSuffix ? (
           <Skeleton width={72} height={14} aria-label="Loading quote…" />
         ) : suffix ? (
-          <span style={{ fontSize: 12, color: "var(--muted)", whiteSpace: "nowrap" }}>
+          <span style={{ fontSize: 12, color: 'var(--muted)', whiteSpace: 'nowrap' }}>
             {suffix}
           </span>
         ) : null}

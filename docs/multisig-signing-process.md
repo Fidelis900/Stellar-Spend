@@ -9,9 +9,9 @@ This document describes the operational signing process for Stellar-Spend's M-of
 High-value release and upgrade actions require approval from multiple signers before execution.
 The authority is implemented in two layers:
 
-| Layer | Location | Role |
-|-------|----------|------|
-| On-chain | `contracts/multisig-authority/` | Soroban contract that stores proposals and signature counts, emits audit events |
+| Layer     | Location                         | Role                                                                                              |
+| --------- | -------------------------------- | ------------------------------------------------------------------------------------------------- |
+| On-chain  | `contracts/multisig-authority/`  | Soroban contract that stores proposals and signature counts, emits audit events                   |
 | Off-chain | `src/lib/multisig-settlement.ts` | TypeScript coordinator that persists proposals/signatures to Postgres and enforces the same rules |
 
 ---
@@ -20,10 +20,10 @@ The authority is implemented in two layers:
 
 Set the following in environment / runtime config before deploying:
 
-| Parameter | Description | Example |
-|-----------|-------------|---------|
-| `MULTISIG_THRESHOLD` | M — minimum signatures required | `2` |
-| `MULTISIG_SIGNERS` | Comma-separated signer addresses | `addr1,addr2,addr3` |
+| Parameter                   | Description                                                   | Example                            |
+| --------------------------- | ------------------------------------------------------------- | ---------------------------------- |
+| `MULTISIG_THRESHOLD`        | M — minimum signatures required                               | `2`                                |
+| `MULTISIG_SIGNERS`          | Comma-separated signer addresses                              | `addr1,addr2,addr3`                |
 | `MULTISIG_HIGH_VALUE_LIMIT` | Transfers above this (USDC base units) require full threshold | `1000000` (= 1 USDC at 6 decimals) |
 
 Below the high-value limit, a single signer suffices. Set to `0` to always require the full threshold.
@@ -37,13 +37,13 @@ Below the high-value limit, a single signer suffices. Set to `0` to always requi
 ```ts
 const svc = new MultisigSettlementService(config);
 const proposal = await svc.propose(
-  "signer-address-alice",       // proposer (must be registered signer)
-  "Release escrow #123 to Bob", // description
-  "0xTargetContractOrAddress",  // target
-  5_000_000n,                   // value in base units (above high-value limit)
-  aliceSignature,               // proposer's cryptographic signature
+  'signer-address-alice', // proposer (must be registered signer)
+  'Release escrow #123 to Bob', // description
+  '0xTargetContractOrAddress', // target
+  5_000_000n, // value in base units (above high-value limit)
+  aliceSignature, // proposer's cryptographic signature
 );
-console.log("Proposal ID:", proposal.id);
+console.log('Proposal ID:', proposal.id);
 ```
 
 Alice's signature is automatically recorded. The proposal expires after 24 hours.
@@ -53,11 +53,7 @@ Alice's signature is automatically recorded. The proposal expires after 24 hours
 Each additional signer independently fetches the proposal and adds their signature:
 
 ```ts
-const status = await svc.sign(
-  proposal.id,
-  "signer-address-bob",
-  bobSignature,
-);
+const status = await svc.sign(proposal.id, 'signer-address-bob', bobSignature);
 console.log(`${status.collected}/${status.required} signatures collected`);
 ```
 
@@ -66,7 +62,7 @@ console.log(`${status.collected}/${status.required} signatures collected`);
 Once `status.ready === true`:
 
 ```ts
-const approvedValue = await svc.execute(proposal.id, "signer-address-bob");
+const approvedValue = await svc.execute(proposal.id, 'signer-address-bob');
 // approvedValue === 5_000_000n
 // Caller should now invoke the on-chain release with this value
 ```
@@ -101,11 +97,11 @@ ORDER  BY s.signed_at ASC;
 
 Adding or removing signers and changing the threshold are admin-only operations and themselves require the current threshold (on-chain) or direct admin auth (off-chain service constructor).
 
-| Operation | On-chain function | Notes |
-|-----------|------------------|-------|
-| Add signer | `add_signer(admin, new_signer)` | Admin auth required |
-| Remove signer | `remove_signer(admin, signer)` | Blocked if removal would make quorum impossible |
-| Change threshold | `set_threshold(admin, new_threshold)` | Must remain ≤ signer count |
+| Operation        | On-chain function                     | Notes                                           |
+| ---------------- | ------------------------------------- | ----------------------------------------------- |
+| Add signer       | `add_signer(admin, new_signer)`       | Admin auth required                             |
+| Remove signer    | `remove_signer(admin, signer)`        | Blocked if removal would make quorum impossible |
+| Change threshold | `set_threshold(admin, new_threshold)` | Must remain ≤ signer count                      |
 
 ---
 

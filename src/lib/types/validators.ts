@@ -9,7 +9,9 @@ export const AmountSchema = z.string().regex(/^\d+(\.\d{1,8})?$/, 'Invalid amoun
 
 // Address validation
 export const StellarAddressSchema = z.string().regex(/^G[A-Z2-7]{55}$/, 'Invalid Stellar address');
-export const EthereumAddressSchema = z.string().regex(/^0x[a-fA-F0-9]{40}$/, 'Invalid Ethereum address');
+export const EthereumAddressSchema = z
+  .string()
+  .regex(/^0x[a-fA-F0-9]{40}$/, 'Invalid Ethereum address');
 
 // Currency validation
 export const CurrencyCodeSchema = z.string().length(3).toUpperCase();

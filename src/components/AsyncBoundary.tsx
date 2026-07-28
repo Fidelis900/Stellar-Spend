@@ -55,10 +55,7 @@ export function AsyncBoundary({
 
   if (error && errorContent) {
     return (
-      <div
-        role="alert"
-        className={cn('async-boundary-error', errorClassName, className)}
-      >
+      <div role="alert" className={cn('async-boundary-error', errorClassName, className)}>
         {errorContent(error)}
       </div>
     );
@@ -66,9 +63,7 @@ export function AsyncBoundary({
 
   if (isEmpty && emptyContent) {
     return (
-      <div className={cn('async-boundary-empty', emptyClassName, className)}>
-        {emptyContent}
-      </div>
+      <div className={cn('async-boundary-empty', emptyClassName, className)}>{emptyContent}</div>
     );
   }
 
@@ -82,10 +77,7 @@ export function ListLoadingState({ rows = 5 }: { rows?: number }) {
   return (
     <div className="space-y-2">
       {Array.from({ length: rows }).map((_, i) => (
-        <div
-          key={i}
-          className="h-12 bg-[#222222] rounded animate-pulse"
-        />
+        <div key={i} className="h-12 bg-[#222222] rounded animate-pulse" />
       ))}
     </div>
   );

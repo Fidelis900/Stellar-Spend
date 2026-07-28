@@ -1,6 +1,6 @@
-import { pool } from "./db/client";
-import { logger } from "./logger";
-import crypto from "crypto";
+import { pool } from './db/client';
+import { logger } from './logger';
+import crypto from 'crypto';
 
 export interface TransactionSignature {
   id: string;
@@ -18,7 +18,7 @@ export interface TransactionSignature {
 export interface SignatureVerificationLog {
   id: string;
   signatureId: string;
-  verificationStatus: "pending" | "verified" | "failed";
+  verificationStatus: 'pending' | 'verified' | 'failed';
   verifiedBy?: string;
   verifiedAt: number;
   details?: string;
@@ -30,9 +30,9 @@ export class TransactionSigningService {
     userAddress: string,
     signature: string,
     publicKey: string,
-    algorithm = "ed25519",
+    algorithm = 'ed25519',
   ): Promise<TransactionSignature> {
-    const id = `sig_${Date.now()}_${crypto.randomBytes(8).toString("hex")}`;
+    const id = `sig_${Date.now()}_${crypto.randomBytes(8).toString('hex')}`;
     const now = Date.now();
 
     await pool.query(
@@ -73,11 +73,7 @@ export class TransactionSigningService {
 
     try {
       // Verify signature using the public key
-      const isValid = this.verifySignatureData(
-        row.signature,
-        row.public_key,
-        row.algorithm,
-      );
+      const isValid = this.verifySignatureData(row.signature, row.public_key, row.algorithm);
 
       const now = Date.now();
       await pool.query(
@@ -86,16 +82,16 @@ export class TransactionSigningService {
       );
 
       // Log verification
-      const logId = `log_${Date.now()}_${crypto.randomBytes(8).toString("hex")}`;
+      const logId = `log_${Date.now()}_${crypto.randomBytes(8).toString('hex')}`;
       await pool.query(
         `INSERT INTO signature_verification_logs (id, signature_id, verification_status, verified_at, details)
          VALUES ($1, $2, $3, $4, $5)`,
         [
           logId,
           signatureId,
-          isValid ? "verified" : "failed",
+          isValid ? 'verified' : 'failed',
           now,
-          isValid ? "Signature verified successfully" : "Signature verification failed",
+          isValid ? 'Signature verified successfully' : 'Signature verification failed',
         ],
       );
 
@@ -121,14 +117,10 @@ export class TransactionSigningService {
     }
   }
 
-  private verifySignatureData(
-    signature: string,
-    publicKey: string,
-    algorithm: string,
-  ): boolean {
+  private verifySignatureData(signature: string, publicKey: string, algorithm: string): boolean {
     // This is a placeholder for actual signature verification
     // In production, use proper cryptographic libraries like tweetnacl or libsodium
-    if (algorithm === "ed25519") {
+    if (algorithm === 'ed25519') {
       // Verify ed25519 signature
       // For now, just check that signature and public key are valid hex strings
       return /^[a-f0-9]{128}$/.test(signature) && /^[a-f0-9]{64}$/.test(publicKey);

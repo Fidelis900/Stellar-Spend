@@ -61,7 +61,7 @@ export function calculateTotalFees(
   networkFee: string,
   paycrestFee: string,
   currency: string,
-  contractResourceFee?: string
+  contractResourceFee?: string,
 ): string {
   const bridge = parseFloat(bridgeFee) || 0;
   const network = parseFloat(networkFee) || 0;
@@ -90,9 +90,17 @@ export async function calculateAllFees(params: FeeCalculationParams): Promise<Fe
   const bridgeFee = calculateBridgeFee(amount, feeMethod);
   const networkFee = calculateNetworkFee(feeMethod);
   const paycrestFee = receiveAmount ? calculatePaycrestFee(receiveAmount) : '0';
-  const contractResourceFee = contractResourceEstimate ? contractResourceEstimate.estimatedFeeXLM : undefined;
+  const contractResourceFee = contractResourceEstimate
+    ? contractResourceEstimate.estimatedFeeXLM
+    : undefined;
 
-  const totalFee = calculateTotalFees(bridgeFee, networkFee, paycrestFee, currency, contractResourceFee);
+  const totalFee = calculateTotalFees(
+    bridgeFee,
+    networkFee,
+    paycrestFee,
+    currency,
+    contractResourceFee,
+  );
   const amountAfterFees = calculateAmountAfterFees(amount, bridgeFee);
 
   return {
@@ -127,7 +135,7 @@ export interface DetailedFeeBreakdown extends FeeBreakdown {
 }
 
 export async function getDetailedFeeBreakdown(
-  params: FeeCalculationParams
+  params: FeeCalculationParams,
 ): Promise<DetailedFeeBreakdown> {
   const basicFees = await calculateAllFees(params);
 

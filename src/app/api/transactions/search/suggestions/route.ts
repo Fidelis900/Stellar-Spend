@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     const suggestions = TransactionSearchService.getSearchSuggestions(
       userTransactions,
       query,
-      limit
+      limit,
     );
 
     return NextResponse.json({ suggestions });

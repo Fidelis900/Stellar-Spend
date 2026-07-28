@@ -12,12 +12,18 @@ interface MerchantDashboardProps {
   onCreatePayout?: () => void;
 }
 
-function statusVariant(status: MerchantPayout['status']): 'success' | 'warning' | 'error' | 'default' {
+function statusVariant(
+  status: MerchantPayout['status'],
+): 'success' | 'warning' | 'error' | 'default' {
   switch (status) {
-    case 'completed': return 'success';
-    case 'processing': return 'warning';
-    case 'failed': return 'error';
-    default: return 'default';
+    case 'completed':
+      return 'success';
+    case 'processing':
+      return 'warning';
+    case 'failed':
+      return 'error';
+    default:
+      return 'default';
   }
 }
 
@@ -33,7 +39,12 @@ export function MerchantDashboard({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">{businessName}</h1>
-        <Button onClick={() => { setShowNewPayout(true); onCreatePayout?.(); }}>
+        <Button
+          onClick={() => {
+            setShowNewPayout(true);
+            onCreatePayout?.();
+          }}
+        >
           New Bulk Payout
         </Button>
       </div>

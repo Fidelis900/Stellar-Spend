@@ -54,7 +54,7 @@ export function InsuranceClaimForm({
     const check = async () => {
       setIsCheckingEligibility(true);
       // Simulate network delay
-      await new Promise(r => setTimeout(r, 1500));
+      await new Promise((r) => setTimeout(r, 1500));
       // In a real app, we'd call an API. Here we assume transactions with 'ins_' are mocks and always eligible.
       setIsEligible(true);
       setIsCheckingEligibility(false);
@@ -96,19 +96,16 @@ export function InsuranceClaimForm({
 
     try {
       if (insuranceId.startsWith('ins_')) {
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise((r) => setTimeout(r, 1000));
         onSuccess(`CLAIM-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`);
         return;
       }
 
-      const res = await fetch(
-        `/api/transactions/${encodeURIComponent(transactionId)}/insurance`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ insuranceId, reason, evidence: evidence || undefined }),
-        },
-      );
+      const res = await fetch(`/api/transactions/${encodeURIComponent(transactionId)}/insurance`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ insuranceId, reason, evidence: evidence || undefined }),
+      });
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -170,19 +167,31 @@ export function InsuranceClaimForm({
         {isCheckingEligibility ? (
           <div className="flex flex-col items-center justify-center py-8 space-y-3 bg-[#111111] border border-[#222222]">
             <div className="w-6 h-6 border-2 border-[#c9a962]/20 border-t-[#c9a962] rounded-full animate-spin" />
-            <p className="text-[10px] text-[#777777] uppercase tracking-widest">{t('insurance.eligibility_check')}</p>
+            <p className="text-[10px] text-[#777777] uppercase tracking-widest">
+              {t('insurance.eligibility_check')}
+            </p>
           </div>
         ) : !isEligible ? (
           <div className="p-4 bg-red-900/20 border border-red-500/50 flex flex-col items-center gap-3">
             <span className="text-2xl">⚠</span>
             <p className="text-xs text-red-400 text-center">{t('insurance.ineligible')}</p>
-            <button onClick={onCancel} className="text-[10px] uppercase tracking-widest text-white underline">Go Back</button>
+            <button
+              onClick={onCancel}
+              className="text-[10px] uppercase tracking-widest text-white underline"
+            >
+              Go Back
+            </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4 animate-in fade-in duration-300">
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col gap-4 animate-in fade-in duration-300"
+          >
             <div className="p-2 bg-green-900/10 border border-green-500/30 flex items-center gap-2">
               <span className="text-green-500 text-xs">✓</span>
-              <p className="text-[10px] text-green-500 uppercase tracking-widest font-bold">{t('insurance.eligible')}</p>
+              <p className="text-[10px] text-green-500 uppercase tracking-widest font-bold">
+                {t('insurance.eligible')}
+              </p>
             </div>
 
             {/* Reason */}
@@ -243,33 +252,43 @@ export function InsuranceClaimForm({
               <label className="text-[10px] tracking-widest uppercase text-[#777777]">
                 {t('insurance.upload_document')}
               </label>
-              <div 
+              <div
                 onClick={() => fileInputRef.current?.click()}
                 className={cn(
-                  "border-2 border-dashed border-[#333333] p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#c9a962] transition-colors",
-                  filePreview && "border-[#c9a962] bg-[#c9a962]/5"
+                  'border-2 border-dashed border-[#333333] p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#c9a962] transition-colors',
+                  filePreview && 'border-[#c9a962] bg-[#c9a962]/5',
                 )}
               >
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  onChange={handleFileChange} 
-                  className="hidden" 
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  className="hidden"
                   accept="image/*,application/pdf"
                 />
                 {filePreview ? (
                   <div className="flex flex-col items-center gap-2">
                     {selectedFile?.type.startsWith('image/') ? (
-                      <img src={filePreview} alt="Preview" className="h-20 w-auto object-contain border border-[#333333]" />
+                      <img
+                        src={filePreview}
+                        alt="Preview"
+                        className="h-20 w-auto object-contain border border-[#333333]"
+                      />
                     ) : (
-                      <div className="w-12 h-12 bg-[#222222] flex items-center justify-center text-xs">PDF</div>
+                      <div className="w-12 h-12 bg-[#222222] flex items-center justify-center text-xs">
+                        PDF
+                      </div>
                     )}
-                    <span className="text-[10px] text-white truncate max-w-[200px]">{selectedFile?.name}</span>
+                    <span className="text-[10px] text-white truncate max-w-[200px]">
+                      {selectedFile?.name}
+                    </span>
                   </div>
                 ) : (
                   <>
                     <span className="text-xl opacity-30">↑</span>
-                    <span className="text-[10px] text-[#555555] uppercase tracking-widest">Click to upload JPG, PNG or PDF (max 5MB)</span>
+                    <span className="text-[10px] text-[#555555] uppercase tracking-widest">
+                      Click to upload JPG, PNG or PDF (max 5MB)
+                    </span>
                   </>
                 )}
               </div>
@@ -313,7 +332,9 @@ export function InsuranceClaimForm({
                   'focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]',
                 )}
               >
-                {loading ? t('common.loading').toUpperCase() : t('insurance.file_claim').toUpperCase()}
+                {loading
+                  ? t('common.loading').toUpperCase()
+                  : t('insurance.file_claim').toUpperCase()}
               </button>
             </div>
           </form>
@@ -322,4 +343,3 @@ export function InsuranceClaimForm({
     </div>
   );
 }
-

@@ -3,17 +3,17 @@
  * Implements HMAC-based request signing with timestamp validation
  */
 
-import { createHmac, timingSafeEqual } from "crypto";
+import { createHmac, timingSafeEqual } from 'crypto';
 
 export interface SignatureConfig {
-  algorithm: "sha256" | "sha512";
-  encoding: "hex" | "base64";
+  algorithm: 'sha256' | 'sha512';
+  encoding: 'hex' | 'base64';
   timestampTolerance: number; // milliseconds
 }
 
 export const DEFAULT_SIGNATURE_CONFIG: SignatureConfig = {
-  algorithm: "sha256",
-  encoding: "hex",
+  algorithm: 'sha256',
+  encoding: 'hex',
   timestampTolerance: 5 * 60 * 1000, // 5 minutes
 };
 
@@ -26,9 +26,9 @@ export function generateSignature(
   body: string | null,
   timestamp: string,
   secret: string,
-  config: SignatureConfig = DEFAULT_SIGNATURE_CONFIG
+  config: SignatureConfig = DEFAULT_SIGNATURE_CONFIG,
 ): string {
-  const message = [method, path, body || "", timestamp].join("\n");
+  const message = [method, path, body || '', timestamp].join('\n');
 
   const hmac = createHmac(config.algorithm, secret);
   hmac.update(message);
@@ -46,18 +46,18 @@ export function verifySignature(
   timestamp: string,
   signature: string,
   secret: string,
-  config: SignatureConfig = DEFAULT_SIGNATURE_CONFIG
+  config: SignatureConfig = DEFAULT_SIGNATURE_CONFIG,
 ): { valid: boolean; error?: string } {
   // Validate timestamp
   const requestTime = parseInt(timestamp, 10);
   const now = Date.now();
 
   if (isNaN(requestTime)) {
-    return { valid: false, error: "Invalid timestamp format" };
+    return { valid: false, error: 'Invalid timestamp format' };
   }
 
   if (Math.abs(now - requestTime) > config.timestampTolerance) {
-    return { valid: false, error: "Request timestamp is too old or in the future" };
+    return { valid: false, error: 'Request timestamp is too old or in the future' };
   }
 
   // Generate expected signature
@@ -67,31 +67,33 @@ export function verifySignature(
   try {
     const isValid = timingSafeEqual(
       Buffer.from(signature, config.encoding),
-      Buffer.from(expectedSignature, config.encoding)
+      Buffer.from(expectedSignature, config.encoding),
     );
     return { valid: isValid };
   } catch {
-    return { valid: false, error: "Signature verification failed" };
+    return { valid: false, error: 'Signature verification failed' };
   }
 }
 
 /**
  * Extract signature from request headers
  */
-export function extractSignatureFromHeaders(headers: Record<string, string | string[] | undefined>): {
+export function extractSignatureFromHeaders(
+  headers: Record<string, string | string[] | undefined>,
+): {
   signature?: string;
   timestamp?: string;
   error?: string;
 } {
-  const signature = headers["x-signature"] || headers["x-hmac-signature"];
-  const timestamp = headers["x-timestamp"] || headers["x-request-timestamp"];
+  const signature = headers['x-signature'] || headers['x-hmac-signature'];
+  const timestamp = headers['x-timestamp'] || headers['x-request-timestamp'];
 
   if (!signature) {
-    return { error: "Missing signature header (x-signature or x-hmac-signature)" };
+    return { error: 'Missing signature header (x-signature or x-hmac-signature)' };
   }
 
   if (!timestamp) {
-    return { error: "Missing timestamp header (x-timestamp or x-request-timestamp)" };
+    return { error: 'Missing timestamp header (x-timestamp or x-request-timestamp)' };
   }
 
   return {
@@ -115,14 +117,14 @@ export function createSignedRequestHeaders(
   path: string,
   body: string | null,
   secret: string,
-  config: SignatureConfig = DEFAULT_SIGNATURE_CONFIG
+  config: SignatureConfig = DEFAULT_SIGNATURE_CONFIG,
 ): Record<string, string> {
   const timestamp = generateTimestamp();
   const signature = generateSignature(method, path, body, timestamp, secret, config);
 
   return {
-    "x-signature": signature,
-    "x-timestamp": timestamp,
+    'x-signature': signature,
+    'x-timestamp': timestamp,
   };
 }
 
@@ -135,7 +137,7 @@ export function validateRequestSignature(
   body: string | null,
   headers: Record<string, string | string[] | undefined>,
   secret: string,
-  config: SignatureConfig = DEFAULT_SIGNATURE_CONFIG
+  config: SignatureConfig = DEFAULT_SIGNATURE_CONFIG,
 ): { valid: boolean; error?: string } {
   const { signature, timestamp, error: extractError } = extractSignatureFromHeaders(headers);
 
@@ -144,7 +146,7 @@ export function validateRequestSignature(
   }
 
   if (!signature || !timestamp) {
-    return { valid: false, error: "Missing signature or timestamp" };
+    return { valid: false, error: 'Missing signature or timestamp' };
   }
 
   return verifySignature(method, path, body, timestamp, signature, secret, config);

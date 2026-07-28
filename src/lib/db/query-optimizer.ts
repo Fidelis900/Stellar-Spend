@@ -1,5 +1,5 @@
-import { pool } from "./client";
-import { logger } from "../logger";
+import { pool } from './client';
+import { logger } from '../logger';
 
 export interface QueryMetrics {
   query: string;
@@ -42,7 +42,7 @@ export class QueryOptimizer {
     }
 
     if (metric.isSlowQuery) {
-      logger.warn("Slow query detected", {
+      logger.warn('Slow query detected', {
         query: metric.query,
         executionTime,
         threshold: this.SLOW_QUERY_THRESHOLD,
@@ -55,8 +55,8 @@ export class QueryOptimizer {
    */
   private normalizeQuery(query: string): string {
     return query
-      .replace(/\s+/g, " ")
-      .replace(/\$\d+/g, "$N")
+      .replace(/\s+/g, ' ')
+      .replace(/\$\d+/g, '$N')
       .replace(/'[^']*'/g, "'...'")
       .trim();
   }
@@ -68,15 +68,11 @@ export class QueryOptimizer {
     const slowQueries = this.queryMetrics.filter((m) => m.isSlowQuery);
     const avgExecutionTime =
       this.queryMetrics.length > 0
-        ? this.queryMetrics.reduce((sum, m) => sum + m.executionTime, 0) /
-          this.queryMetrics.length
+        ? this.queryMetrics.reduce((sum, m) => sum + m.executionTime, 0) / this.queryMetrics.length
         : 0;
 
     // Group queries by normalized form
-    const queryGroups = new Map<
-      string,
-      { count: number; totalTime: number; times: number[] }
-    >();
+    const queryGroups = new Map<string, { count: number; totalTime: number; times: number[] }>();
     for (const metric of this.queryMetrics) {
       const group = queryGroups.get(metric.query) || {
         count: 0,
@@ -98,10 +94,7 @@ export class QueryOptimizer {
       .sort((a, b) => b.avgTime - a.avgTime)
       .slice(0, 10);
 
-    const recommendations = this.generateRecommendations(
-      topQueries,
-      slowQueries,
-    );
+    const recommendations = this.generateRecommendations(topQueries, slowQueries);
 
     return {
       totalQueries: this.queryMetrics.length,
@@ -124,7 +117,7 @@ export class QueryOptimizer {
     // Check for N+1 patterns
     const selectCounts = new Map<string, number>();
     for (const metric of this.queryMetrics) {
-      if (metric.query.toUpperCase().startsWith("SELECT")) {
+      if (metric.query.toUpperCase().startsWith('SELECT')) {
         const count = selectCounts.get(metric.query) || 0;
         selectCounts.set(metric.query, count + 1);
       }
@@ -140,7 +133,7 @@ export class QueryOptimizer {
 
     // Check for slow queries without indexes
     for (const slow of slowQueries.slice(0, 5)) {
-      if (slow.query.includes("WHERE") && !slow.query.includes("INDEX")) {
+      if (slow.query.includes('WHERE') && !slow.query.includes('INDEX')) {
         recommendations.push(
           `Slow query detected: "${slow.query}". Consider adding an index on the WHERE clause columns.`,
         );
@@ -150,8 +143,8 @@ export class QueryOptimizer {
     // Check for missing LIMIT clauses
     for (const query of topQueries) {
       if (
-        query.query.toUpperCase().includes("SELECT") &&
-        !query.query.toUpperCase().includes("LIMIT") &&
+        query.query.toUpperCase().includes('SELECT') &&
+        !query.query.toUpperCase().includes('LIMIT') &&
         query.count > 50
       ) {
         recommendations.push(

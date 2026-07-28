@@ -259,20 +259,16 @@ describe('aria-labels.ts', () => {
         ariaLabels.cancelTransaction,
       ];
 
-      interactiveLabels.forEach(label => {
+      interactiveLabels.forEach((label) => {
         expect(typeof label).toBe('string');
         expect(label.length).toBeGreaterThan(0);
       });
     });
 
     it('should have accessible labels for form inputs', () => {
-      const formLabels = [
-        ariaLabels.amountInput,
-        ariaLabels.currencySelect,
-        ariaLabels.bankSelect,
-      ];
+      const formLabels = [ariaLabels.amountInput, ariaLabels.currencySelect, ariaLabels.bankSelect];
 
-      formLabels.forEach(label => {
+      formLabels.forEach((label) => {
         expect(typeof label).toBe('string');
         expect(label.length).toBeGreaterThan(0);
       });
@@ -281,7 +277,7 @@ describe('aria-labels.ts', () => {
     it('should provide descriptions for complex concepts', () => {
       const descriptions = Object.values(ariaDescriptions);
 
-      descriptions.forEach(desc => {
+      descriptions.forEach((desc) => {
         if (typeof desc === 'string') {
           expect(desc.length).toBeGreaterThan(0);
         }

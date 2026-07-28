@@ -1,15 +1,15 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import type { 
-  NotificationPreferences, 
+import type {
+  NotificationPreferences,
   NotificationDeliveryRecord,
-  NotificationChannel
+  NotificationChannel,
 } from '@/lib/notifications/types';
-import { 
+import {
   getOrCreateNotificationPreferences,
   upsertNotificationPreferences,
-  getTransactionNotificationDeliveries
+  getTransactionNotificationDeliveries,
 } from '@/lib/notifications/service';
 
 interface NotificationState {
@@ -32,15 +32,15 @@ export function useNotifications(userAddress: string | null) {
   // Load preferences
   const loadPreferences = useCallback(async () => {
     if (!userAddress) return;
-    
+
     try {
       const preferences = await getOrCreateNotificationPreferences(userAddress);
-      setState(prev => ({ ...prev, preferences, loading: false }));
+      setState((prev) => ({ ...prev, preferences, loading: false }));
     } catch (error) {
-      setState(prev => ({ 
-        ...prev, 
+      setState((prev) => ({
+        ...prev,
         error: error instanceof Error ? error.message : 'Failed to load preferences',
-        loading: false 
+        loading: false,
       }));
     }
   }, [userAddress]);
@@ -57,70 +57,71 @@ export function useNotifications(userAddress: string | null) {
         // This would require a new API endpoint
         console.log('Fetching all deliveries would require a new endpoint');
       }
-      
-      const unreadCount = deliveries.filter(d => !d.metadata?.read).length;
-      setState(prev => ({ 
-        ...prev, 
-        deliveries, 
+
+      const unreadCount = deliveries.filter((d) => !d.metadata?.read).length;
+      setState((prev) => ({
+        ...prev,
+        deliveries,
         unreadCount,
-        loading: false 
+        loading: false,
       }));
     } catch (error) {
-      setState(prev => ({ 
-        ...prev, 
+      setState((prev) => ({
+        ...prev,
         error: error instanceof Error ? error.message : 'Failed to load deliveries',
-        loading: false 
+        loading: false,
       }));
     }
   }, []);
 
   // Update preferences
-  const updatePreferences = useCallback(async (updates: Partial<NotificationPreferences>) => {
-    if (!userAddress) return;
-    
-    try {
-      const updatedPreferences = await upsertNotificationPreferences({
-        userAddress,
-        ...updates
-      });
-      setState(prev => ({ ...prev, preferences: updatedPreferences }));
-      return updatedPreferences;
-    } catch (error) {
-      setState(prev => ({ 
-        ...prev, 
-        error: error instanceof Error ? error.message : 'Failed to update preferences'
-      }));
-      throw error;
-    }
-  }, [userAddress]);
+  const updatePreferences = useCallback(
+    async (updates: Partial<NotificationPreferences>) => {
+      if (!userAddress) return;
+
+      try {
+        const updatedPreferences = await upsertNotificationPreferences({
+          userAddress,
+          ...updates,
+        });
+        setState((prev) => ({ ...prev, preferences: updatedPreferences }));
+        return updatedPreferences;
+      } catch (error) {
+        setState((prev) => ({
+          ...prev,
+          error: error instanceof Error ? error.message : 'Failed to update preferences',
+        }));
+        throw error;
+      }
+    },
+    [userAddress],
+  );
 
   // Mark notification as read
   const markAsRead = useCallback(async (deliveryId: string) => {
     // In a real implementation, this would update the delivery record
     // For now, we'll simulate it by updating local state
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      deliveries: prev.deliveries.map(d => 
-        d.id === deliveryId 
-          ? { ...d, metadata: { ...d.metadata, read: true } } 
-          : d
+      deliveries: prev.deliveries.map((d) =>
+        d.id === deliveryId ? { ...d, metadata: { ...d.metadata, read: true } } : d,
       ),
-      unreadCount: Math.max(0, prev.unreadCount - 1)
+      unreadCount: Math.max(0, prev.unreadCount - 1),
     }));
   }, []);
 
   // Group deliveries by date
   const groupedDeliveries = useCallback(() => {
     const grouped: Record<string, NotificationDeliveryRecord[]> = {};
-    
-    state.deliveries.forEach(delivery => {
+
+    state.deliveries.forEach((delivery) => {
       const date = new Date(delivery.createdAt).toDateString();
       if (!grouped[date]) {
         grouped[date] = [];
       }
       grouped[date].push(delivery);
     });
-    
+
     return grouped;
   }, [state.deliveries]);
 
@@ -140,6 +141,6 @@ export function useNotifications(userAddress: string | null) {
     refresh: () => {
       loadPreferences();
       loadDeliveries();
-    }
+    },
   };
 }

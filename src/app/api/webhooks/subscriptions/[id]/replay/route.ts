@@ -5,10 +5,7 @@ import { enqueue } from '@/lib/webhook/dispatcher';
 import { getSubscription } from '@/lib/webhook/subscription-store';
 import { requireApiKeyAdmin } from '@/app/api/api-keys/_utils';
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const unauthorized = requireApiKeyAdmin(request);
   if (unauthorized) return unauthorized;
 
@@ -31,7 +28,7 @@ export async function POST(
 
       const record = await enqueue(
         { headers: {}, body: log.requestBody, source: 'replay' },
-        log.payloadUrl
+        log.payloadUrl,
       );
 
       return NextResponse.json({

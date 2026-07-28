@@ -38,7 +38,7 @@ export class InMemoryApiKeyRepository implements ApiKeyRepository {
 
   async getActiveByUserId(userId: string): Promise<ApiKey[]> {
     return Array.from(this.apiKeys.values()).filter(
-      (k) => k.userId === userId && k.isActive && (!k.expiresAt || k.expiresAt > Date.now())
+      (k) => k.userId === userId && k.isActive && (!k.expiresAt || k.expiresAt > Date.now()),
     );
   }
 }

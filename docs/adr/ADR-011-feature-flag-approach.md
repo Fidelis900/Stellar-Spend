@@ -61,7 +61,7 @@ export const FLAGS = {
   },
   'ui.quote-comparison': {
     default: false,
-    rollout: 0.1,   // 10% of requests
+    rollout: 0.1, // 10% of requests
     description: 'Show QuoteComparison component to a percentage of users',
   },
   'onramp.moonpay': {
@@ -91,6 +91,7 @@ Flags can be toggled via `PUT /api/admin/feature-flags` (requires admin API key)
 ## Consequences
 
 **Positive:**
+
 - Flag changes take effect within 60 seconds without deployment
 - Gradual rollout is deterministic per-request (stable for a given user across sessions via request ID seeding)
 - Typed schema prevents typos — `isFlagEnabled('coridorkes')` is a TypeScript error
@@ -98,12 +99,14 @@ Flags can be toggled via `PUT /api/admin/feature-flags` (requires admin API key)
 - Admin API allows operational toggling during incidents
 
 **Negative / Trade-offs:**
+
 - Gradual rollout is per-request, not per-user — a user may see different behavior across sessions if they don't have a persistent session ID
 - No built-in analytics (who saw flag X, what was the conversion rate). PostHog or Sentry can be added for this separately
 - The 60-second cache TTL means kill-switches are not instantaneous. For true emergency kill-switches, an environment variable redeploy is still faster
 - DB-backed flags require a migration to add the `feature_flags` table; until then, flags default to schema defaults
 
 **Conventions:**
+
 - Flag names use dot notation: `module.feature` (e.g., `corridor.ghs`, `ui.new-form`)
 - Flags are additive — old flags are deprecated, not deleted, to prevent accidental re-activation
 - All flag evaluations in server code go through `isFlagEnabled()` from `src/lib/feature-flags/server.ts`
@@ -111,4 +114,4 @@ Flags can be toggled via `PUT /api/admin/feature-flags` (requires admin API key)
 
 ---
 
-*Related: [[ADR-005-environment-variable-validation]], [[ADR-009-provider-abstraction-routing]]*
+_Related: [[ADR-005-environment-variable-validation]], [[ADR-009-provider-abstraction-routing]]_

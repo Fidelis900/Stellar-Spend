@@ -43,9 +43,7 @@ async function injectAndRunAxe(page: Page): Promise<AxeResults> {
 }
 
 function getSeriousViolations(results: AxeResults): AxeViolation[] {
-  return results.violations.filter(
-    (v) => v.impact === 'serious' || v.impact === 'critical'
-  );
+  return results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
 }
 
 function reportViolations(violations: AxeViolation[], context: string) {
@@ -120,7 +118,10 @@ test.describe('A11y: Offramp form', () => {
       const id = await input.getAttribute('id');
 
       // At least one labelling mechanism must be present
-      const hasLabel = ariaLabel || ariaLabelledby || (id && (await page.locator(`label[for="${id}"]`).count()) > 0);
+      const hasLabel =
+        ariaLabel ||
+        ariaLabelledby ||
+        (id && (await page.locator(`label[for="${id}"]`).count()) > 0);
       expect(hasLabel, `Input at index ${i} has no accessible label`).toBeTruthy();
     }
   });
@@ -164,13 +165,13 @@ test.describe('A11y: Transaction history', () => {
 
     for (let i = 0; i < tableCount; i++) {
       const table = tables.nth(i);
-      const hasCaption = await table.locator('caption').count() > 0;
-      const hasAriaLabel = await table.getAttribute('aria-label') !== null;
-      const hasAriaLabelledby = await table.getAttribute('aria-labelledby') !== null;
+      const hasCaption = (await table.locator('caption').count()) > 0;
+      const hasAriaLabel = (await table.getAttribute('aria-label')) !== null;
+      const hasAriaLabelledby = (await table.getAttribute('aria-labelledby')) !== null;
 
       expect(
         hasCaption || hasAriaLabel || hasAriaLabelledby,
-        `Table at index ${i} has no accessible label`
+        `Table at index ${i} has no accessible label`,
       ).toBe(true);
     }
   });
@@ -210,9 +211,15 @@ test.describe('A11y: Color contrast', () => {
     const contrastViolations = await page.evaluate<AxeViolation[]>(() => {
       return new Promise((resolve) => {
         // @ts-ignore
-        window.axe.run(document, { runOnly: ['color-contrast'] }, (_err: unknown, results: AxeResults) => {
-          resolve(results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical'));
-        });
+        window.axe.run(
+          document,
+          { runOnly: ['color-contrast'] },
+          (_err: unknown, results: AxeResults) => {
+            resolve(
+              results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical'),
+            );
+          },
+        );
       });
     });
 

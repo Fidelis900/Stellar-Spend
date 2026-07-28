@@ -23,12 +23,12 @@ There is **no global state library** in this project — no Redux, Zustand, Jota
 
 What we use instead:
 
-| Concern | Mechanism |
-|---|---|
-| Global client state | React Context, in `src/contexts/` (and `src/lib/i18n/provider.tsx`) |
-| Server state | `fetch` inside a hook, or `usePollingManager` for status polling |
-| Cross-session persistence | `localStorage`, wrapped in a module under `src/lib/` |
-| Local state | `useState` / `useReducer` in the component |
+| Concern                   | Mechanism                                                           |
+| ------------------------- | ------------------------------------------------------------------- |
+| Global client state       | React Context, in `src/contexts/` (and `src/lib/i18n/provider.tsx`) |
+| Server state              | `fetch` inside a hook, or `usePollingManager` for status polling    |
+| Cross-session persistence | `localStorage`, wrapped in a module under `src/lib/`                |
+| Local state               | `useState` / `useReducer` in the component                          |
 
 Because there is no query cache, **two components calling the same data hook each perform their own request and hold their own copy.** That is the central constraint behind the guidance in this document.
 
@@ -46,9 +46,9 @@ State that only one component and its immediate children care about. Form inputs
 
 ### Tier 2 — Reusable local behaviour
 
-Local state whose *logic* repeats across components: clipboard status, focus trapping, undo stacks, keyboard shortcuts.
+Local state whose _logic_ repeats across components: clipboard status, focus trapping, undo stacks, keyboard shortcuts.
 
-**Extract a hook into `src/hooks/`.** Each caller still gets its own independent instance — the hook shares *behaviour*, not *state*. `useClipboard`, `useFocusTrap`, `useUndo`, `useKeyboardNavigation`, and `useProgressiveDisclosure` are all this tier.
+**Extract a hook into `src/hooks/`.** Each caller still gets its own independent instance — the hook shares _behaviour_, not _state_. `useClipboard`, `useFocusTrap`, `useUndo`, `useKeyboardNavigation`, and `useProgressiveDisclosure` are all this tier.
 
 > The most common mistake in this codebase is assuming a hook shares state. It does not. Two components calling `useNotificationCenter` have two separate notification lists that happen to read the same `localStorage` key.
 
@@ -69,7 +69,7 @@ State that is genuinely application-wide, owned by the client rather than a serv
 
 **Use a Context in `src/contexts/`, mounted in `src/app/layout.tsx`.**
 
-This tier is deliberately small. Three qualifiers must *all* hold:
+This tier is deliberately small. Three qualifiers must _all_ hold:
 
 1. **Genuinely global** — needed across unrelated routes, not just deep in one subtree. If a shared parent exists, pass props.
 2. **Client-owned** — not a copy of server data (that is Tier 3).
@@ -124,35 +124,35 @@ I18nProvider
 
 ### `I18nProvider` — `src/lib/i18n/provider.tsx`
 
-| | |
-|---|---|
-| **Owns** | Active `language`, the `I18n` instance, `isRTL` |
-| **Consumed via** | `useI18n()` / `t()` |
-| **Persistence** | `localStorage["stellar_language"]` |
-| **Why Context** | Every rendered string depends on it; changes only on explicit user action |
-| **Note** | Lives in `src/lib/i18n/`, not `src/contexts/`, because it ships with the rest of the i18n module. Outermost provider, since `HtmlDirSync` sets document direction from it. |
+|                  |                                                                                                                                                                            |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Owns**         | Active `language`, the `I18n` instance, `isRTL`                                                                                                                            |
+| **Consumed via** | `useI18n()` / `t()`                                                                                                                                                        |
+| **Persistence**  | `localStorage["stellar_language"]`                                                                                                                                         |
+| **Why Context**  | Every rendered string depends on it; changes only on explicit user action                                                                                                  |
+| **Note**         | Lives in `src/lib/i18n/`, not `src/contexts/`, because it ships with the rest of the i18n module. Outermost provider, since `HtmlDirSync` sets document direction from it. |
 
 Supported languages: `en`, `es`, `fr`, `zh`, `ar`, `pt`, `sw`. Falls back to browser detection, then `en`.
 
 ### `ThemeProvider` — `src/contexts/ThemeContext.tsx`
 
-| | |
-|---|---|
-| **Owns** | Active `theme` (`light` \| `dark` \| `high-contrast`), `isSystem` |
-| **Consumed via** | `useTheme()` — **from `@/contexts/ThemeContext`**, see [Known inconsistencies](#known-inconsistencies) |
-| **Persistence** | `localStorage["theme"]`; absent key means "follow system" |
-| **Why Context** | Applied as `data-theme` on `<html>`, read by components anywhere, changes only on user action or an OS preference change |
-| **Note** | Tracks `prefers-color-scheme` and `prefers-contrast` while `isSystem` is true. Emits a `theme_change` accessibility beacon to `/api/monitoring/vitals` on every applied change. A blocking `themeInitScript` in `<head>` sets the initial attribute to avoid a flash before hydration. |
+|                  |                                                                                                                                                                                                                                                                                        |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Owns**         | Active `theme` (`light` \| `dark` \| `high-contrast`), `isSystem`                                                                                                                                                                                                                      |
+| **Consumed via** | `useTheme()` — **from `@/contexts/ThemeContext`**, see [Known inconsistencies](#known-inconsistencies)                                                                                                                                                                                 |
+| **Persistence**  | `localStorage["theme"]`; absent key means "follow system"                                                                                                                                                                                                                              |
+| **Why Context**  | Applied as `data-theme` on `<html>`, read by components anywhere, changes only on user action or an OS preference change                                                                                                                                                               |
+| **Note**         | Tracks `prefers-color-scheme` and `prefers-contrast` while `isSystem` is true. Emits a `theme_change` accessibility beacon to `/api/monitoring/vitals` on every applied change. A blocking `themeInitScript` in `<head>` sets the initial attribute to avoid a flash before hydration. |
 
 ### `ToastProvider` — `src/contexts/ToastContext.tsx`
 
-| | |
-|---|---|
-| **Owns** | The active `toasts` array |
-| **Consumed via** | `useToasts()` (read), `useToastActions()` (write), `useToast()` (both) |
-| **Persistence** | None — intentionally ephemeral |
-| **Why Context** | Any component must be able to raise a toast without prop-drilling a callback |
-| **Note** | **Split into two Contexts on purpose**: state and actions are separate providers so components that only *raise* toasts do not re-render when the toast list changes. Toasts auto-dismiss after 5s. |
+|                  |                                                                                                                                                                                                     |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Owns**         | The active `toasts` array                                                                                                                                                                           |
+| **Consumed via** | `useToasts()` (read), `useToastActions()` (write), `useToast()` (both)                                                                                                                              |
+| **Persistence**  | None — intentionally ephemeral                                                                                                                                                                      |
+| **Why Context**  | Any component must be able to raise a toast without prop-drilling a callback                                                                                                                        |
+| **Note**         | **Split into two Contexts on purpose**: state and actions are separate providers so components that only _raise_ toasts do not re-render when the toast list changes. Toasts auto-dismiss after 5s. |
 
 > The Toast split is the pattern to copy for any new Context whose actions are stable but whose state changes often. Prefer `useToastActions()` over `useToast()` when you only need to raise a toast.
 
@@ -160,13 +160,13 @@ Supported languages: `en`, `es`, `fr`, `zh`, `ar`, `pt`, `sw`. Falls back to bro
 
 These are shared through a module rather than a provider — deliberately, since they are read imperatively rather than rendered:
 
-| Concern | Where |
-|---|---|
-| Wallet connection | `src/lib/wallets/manager.ts`, surfaced by `useStellarWallet` |
-| Transaction history | `localStorage` via `src/lib/` storage modules (see [ADR-001](./adr/ADR-001-localstorage-transaction-history.md)) |
-| Sync settings | `src/lib/sync-storage.ts`, surfaced by `useSyncSettings` |
-| Price alerts / notifications | `src/lib/price-alerts.ts`, surfaced by `useNotificationCenter` |
-| Feature flags | fetched per-consumer by `useFeatureFlag` |
+| Concern                      | Where                                                                                                            |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Wallet connection            | `src/lib/wallets/manager.ts`, surfaced by `useStellarWallet`                                                     |
+| Transaction history          | `localStorage` via `src/lib/` storage modules (see [ADR-001](./adr/ADR-001-localstorage-transaction-history.md)) |
+| Sync settings                | `src/lib/sync-storage.ts`, surfaced by `useSyncSettings`                                                         |
+| Price alerts / notifications | `src/lib/price-alerts.ts`, surfaced by `useNotificationCenter`                                                   |
+| Feature flags                | fetched per-consumer by `useFeatureFlag`                                                                         |
 
 ---
 
@@ -194,10 +194,10 @@ Current deviations from the convention above, recorded so they are not copied.
 
 They are imported in different places:
 
-| File | Imports from | Theme values |
-|---|---|---|
+| File                             | Imports from              | Theme values                     |
+| -------------------------------- | ------------------------- | -------------------------------- |
 | `src/components/ThemeToggle.tsx` | `@/contexts/ThemeContext` | `light`, `dark`, `high-contrast` |
-| `src/app/settings/page.tsx` | `@/hooks/useTheme` | `light`, `dark`, `system` |
+| `src/app/settings/page.tsx`      | `@/hooks/useTheme`        | `light`, `dark`, `system`        |
 
 The value sets are incompatible, which produces three observable problems:
 

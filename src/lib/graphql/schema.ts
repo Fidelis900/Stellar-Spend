@@ -1,4 +1,4 @@
-import { buildSchema } from "graphql";
+import { buildSchema } from 'graphql';
 
 export const typeDefs = `
   # ─── Core Domain Types ────────────────────────────────────────────────────────

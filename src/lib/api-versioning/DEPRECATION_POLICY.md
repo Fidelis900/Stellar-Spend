@@ -24,11 +24,11 @@ export async function POST(request: NextRequest) {
 
 ## Lifecycle stages
 
-| Stage | Meaning |
-|-------|---------|
-| `supported` | Fully maintained; no breaking changes without a new version. |
+| Stage        | Meaning                                                                                                                               |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `supported`  | Fully maintained; no breaking changes without a new version.                                                                          |
 | `deprecated` | Announces a sunset date; clients have at least **6 months** to migrate. Response carries `Deprecation`, `Sunset`, and `Link` headers. |
-| `sunset` | The `sunsetAt` date has passed; the route returns `410 Gone`. |
+| `sunset`     | The `sunsetAt` date has passed; the route returns `410 Gone`.                                                                         |
 
 ## Adding a new version
 

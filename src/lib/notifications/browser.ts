@@ -4,10 +4,7 @@ import type { NotificationContext } from '@/lib/notifications/types';
 /**
  * Shows a browser notification if permissions are granted
  */
-export function showBrowserNotification(
-  title: string,
-  options: NotificationOptions = {}
-): void {
+export function showBrowserNotification(title: string, options: NotificationOptions = {}): void {
   // Check if notifications are supported
   if (!('Notification' in window)) {
     logger.warn('Browser notifications are not supported in this browser.');
@@ -19,18 +16,18 @@ export function showBrowserNotification(
     new Notification(title, {
       body: options.body || '',
       icon: options.icon || '/icon-192x192.png',
-      ...options
+      ...options,
     });
     return;
   }
 
   // Otherwise, we need to request permission
-  Notification.requestPermission().then(permission => {
+  Notification.requestPermission().then((permission) => {
     if (permission === 'granted') {
       new Notification(title, {
         body: options.body || '',
         icon: options.icon || '/icon-192x192.png',
-        ...options
+        ...options,
       });
     }
   });
@@ -43,9 +40,9 @@ export function requestNotificationPermission(): Promise<NotificationPermission>
   if (!('Notification' in window)) {
     return Promise.reject(new Error('Browser notifications are not supported'));
   }
-  
-  return Notification.permission === 'default' 
-    ? Notification.requestPermission() 
+
+  return Notification.permission === 'default'
+    ? Notification.requestPermission()
     : Promise.resolve(Notification.permission);
 }
 

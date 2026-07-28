@@ -5,7 +5,7 @@ import { logger } from '@/lib/logger';
 
 /**
  * GET /api/monitoring/cache
- * 
+ *
  * Expose cache hit/miss metrics for observability dashboard
  */
 export async function GET() {
@@ -32,7 +32,7 @@ export async function GET() {
 
 /**
  * POST /api/monitoring/cache
- * 
+ *
  * Warm cache manually (admin operation)
  */
 export async function POST() {
@@ -52,7 +52,7 @@ export async function POST() {
 
 /**
  * DELETE /api/monitoring/cache
- * 
+ *
  * Clear cache (admin operation)
  */
 export async function DELETE() {

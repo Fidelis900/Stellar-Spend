@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef } from 'react';
 
 export interface UndoableAction {
   id: string;
@@ -21,27 +21,30 @@ export function useUndo(options: UseUndoOptions = {}) {
   const [currentIndex, setCurrentIndex] = useState(-1);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const addAction = useCallback((action: UndoableAction) => {
-    setHistory((prev) => {
-      const newHistory = prev.slice(0, currentIndex + 1);
-      newHistory.push(action);
-      if (newHistory.length > maxHistory) {
-        newHistory.shift();
+  const addAction = useCallback(
+    (action: UndoableAction) => {
+      setHistory((prev) => {
+        const newHistory = prev.slice(0, currentIndex + 1);
+        newHistory.push(action);
+        if (newHistory.length > maxHistory) {
+          newHistory.shift();
+        }
+        return newHistory;
+      });
+      setCurrentIndex((prev) => Math.min(prev + 1, maxHistory - 1));
+
+      // Clear previous timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
-      return newHistory;
-    });
-    setCurrentIndex((prev) => Math.min(prev + 1, maxHistory - 1));
 
-    // Clear previous timeout
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    // Set new timeout to expire the action
-    timeoutRef.current = setTimeout(() => {
-      setHistory((prev) => prev.filter((a) => a.id !== action.id));
-    }, timeout);
-  }, [currentIndex, maxHistory, timeout]);
+      // Set new timeout to expire the action
+      timeoutRef.current = setTimeout(() => {
+        setHistory((prev) => prev.filter((a) => a.id !== action.id));
+      }, timeout);
+    },
+    [currentIndex, maxHistory, timeout],
+  );
 
   const undo = useCallback(() => {
     if (currentIndex > 0) {

@@ -87,7 +87,7 @@ function average(values: number[], digits = 2): number {
 export function buildTransactionAnalyticsReport(
   rows: AnalyticsRow[],
   periodDays: number,
-  now = new Date()
+  now = new Date(),
 ): TransactionAnalyticsReport {
   const successfulRows = rows.filter((row) => row.status === 'completed');
   const failedRows = rows.filter((row) => row.status === 'failed');
@@ -135,8 +135,14 @@ export function buildTransactionAnalyticsReport(
       date,
       averageTotalFee: average(dayRows.map((row) => toNumber(row.total_fee))),
       totalFeesCollected: round(totalFeesCollected, 6),
-      averageBridgeFee: average(dayRows.map((row) => toNumber(row.bridge_fee)), 6),
-      averageNetworkFee: average(dayRows.map((row) => toNumber(row.network_fee)), 6),
+      averageBridgeFee: average(
+        dayRows.map((row) => toNumber(row.bridge_fee)),
+        6,
+      ),
+      averageNetworkFee: average(
+        dayRows.map((row) => toNumber(row.network_fee)),
+        6,
+      ),
       averagePaycrestFee: average(dayRows.map((row) => toNumber(row.paycrest_fee))),
       transactionCount: dayRows.length,
     };
@@ -145,11 +151,13 @@ export function buildTransactionAnalyticsReport(
   const latestTrendDirection =
     feeTrends.length < 2
       ? 'flat'
-      : feeTrends[feeTrends.length - 1].averageTotalFee > feeTrends[feeTrends.length - 2].averageTotalFee
-      ? 'up'
-      : feeTrends[feeTrends.length - 1].averageTotalFee < feeTrends[feeTrends.length - 2].averageTotalFee
-      ? 'down'
-      : 'flat';
+      : feeTrends[feeTrends.length - 1].averageTotalFee >
+          feeTrends[feeTrends.length - 2].averageTotalFee
+        ? 'up'
+        : feeTrends[feeTrends.length - 1].averageTotalFee <
+            feeTrends[feeTrends.length - 2].averageTotalFee
+          ? 'down'
+          : 'flat';
 
   const totalFeesCollected = rows.reduce((sum, row) => sum + toNumber(row.total_fee), 0);
 
@@ -197,7 +205,7 @@ export async function getTransactionAnalytics(periodDays = 7): Promise<Transacti
       WHERE timestamp >= $1
       ORDER BY timestamp ASC
     `,
-    [since]
+    [since],
   );
 
   return buildTransactionAnalyticsReport(result.rows, safePeriodDays);

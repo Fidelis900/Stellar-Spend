@@ -34,35 +34,35 @@ All variables must be set in Vercel's **Environment Variables** settings (Settin
 
 These must **never** use the `NEXT_PUBLIC_` prefix. The app throws a startup error if they are missing or accidentally exposed.
 
-| Variable | Description |
-|---|---|
-| `PAYCREST_API_KEY` | Paycrest API key from the Paycrest dashboard |
-| `PAYCREST_WEBHOOK_SECRET` | Webhook signing secret from Paycrest webhook settings |
-| `BASE_PRIVATE_KEY` | Private key of the Base wallet that signs payout transactions |
-| `BASE_RETURN_ADDRESS` | Public Base address for refunds/treasury routing |
-| `BASE_RPC_URL` | Base mainnet RPC URL |
-| `STELLAR_SOROBAN_RPC_URL` | Soroban RPC endpoint for server-side tx building |
-| `STELLAR_HORIZON_URL` | Horizon endpoint for account/trustline lookups (use `https://horizon.stellar.org`) |
+| Variable                  | Description                                                                        |
+| ------------------------- | ---------------------------------------------------------------------------------- |
+| `PAYCREST_API_KEY`        | Paycrest API key from the Paycrest dashboard                                       |
+| `PAYCREST_WEBHOOK_SECRET` | Webhook signing secret from Paycrest webhook settings                              |
+| `BASE_PRIVATE_KEY`        | Private key of the Base wallet that signs payout transactions                      |
+| `BASE_RETURN_ADDRESS`     | Public Base address for refunds/treasury routing                                   |
+| `BASE_RPC_URL`            | Base mainnet RPC URL                                                               |
+| `STELLAR_SOROBAN_RPC_URL` | Soroban RPC endpoint for server-side tx building                                   |
+| `STELLAR_HORIZON_URL`     | Horizon endpoint for account/trustline lookups (use `https://horizon.stellar.org`) |
 
 ### Required — Public (Browser-Safe)
 
-| Variable | Description |
-|---|---|
-| `NEXT_PUBLIC_STELLAR_SOROBAN_RPC_URL` | Soroban RPC endpoint exposed to the browser |
-| `NEXT_PUBLIC_BASE_RETURN_ADDRESS` | Base return address shown to the browser |
-| `NEXT_PUBLIC_STELLAR_USDC_ISSUER` | Stellar USDC issuer account (from Circle/Stellar docs) |
+| Variable                              | Description                                            |
+| ------------------------------------- | ------------------------------------------------------ |
+| `NEXT_PUBLIC_STELLAR_SOROBAN_RPC_URL` | Soroban RPC endpoint exposed to the browser            |
+| `NEXT_PUBLIC_BASE_RETURN_ADDRESS`     | Base return address shown to the browser               |
+| `NEXT_PUBLIC_STELLAR_USDC_ISSUER`     | Stellar USDC issuer account (from Circle/Stellar docs) |
 
 ### Optional
 
-| Variable | Description |
-|---|---|
-| `SENTRY_DSN` | Sentry DSN for server-side error tracking |
-| `NEXT_PUBLIC_SENTRY_DSN` | Sentry DSN for browser-side error tracking |
-| `SENTRY_ORG` | Sentry org slug (required for source map uploads) |
-| `SENTRY_PROJECT` | Sentry project slug (required for source map uploads) |
-| `SENTRY_AUTH_TOKEN` | Sentry auth token for source map uploads during CI builds |
-| `ALLOWED_ORIGINS` | Comma-separated list of allowed CORS origins (e.g. `https://your-app.vercel.app,https://www.your-domain.com`). When empty, only localhost origins are allowed — always set this in production. |
-| `ANALYZE` | Set to `true` to generate a bundle analysis report during build |
+| Variable                 | Description                                                                                                                                                                                    |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SENTRY_DSN`             | Sentry DSN for server-side error tracking                                                                                                                                                      |
+| `NEXT_PUBLIC_SENTRY_DSN` | Sentry DSN for browser-side error tracking                                                                                                                                                     |
+| `SENTRY_ORG`             | Sentry org slug (required for source map uploads)                                                                                                                                              |
+| `SENTRY_PROJECT`         | Sentry project slug (required for source map uploads)                                                                                                                                          |
+| `SENTRY_AUTH_TOKEN`      | Sentry auth token for source map uploads during CI builds                                                                                                                                      |
+| `ALLOWED_ORIGINS`        | Comma-separated list of allowed CORS origins (e.g. `https://your-app.vercel.app,https://www.your-domain.com`). When empty, only localhost origins are allowed — always set this in production. |
+| `ANALYZE`                | Set to `true` to generate a bundle analysis report during build                                                                                                                                |
 
 ---
 
@@ -71,14 +71,17 @@ These must **never** use the `NEXT_PUBLIC_` prefix. The app throws a startup err
 ### First Deployment (Manual)
 
 1. Install the Vercel CLI:
+
    ```bash
    npm i -g vercel
    ```
 
 2. Link the project:
+
    ```bash
    vercel link
    ```
+
    Follow the prompts to connect to your Vercel org and project. This creates `.vercel/project.json` with `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`.
 
 3. Set all environment variables in the Vercel dashboard (Settings → Environment Variables) before deploying.
@@ -94,12 +97,12 @@ The repository includes `.github/workflows/deploy.yml`. It triggers on every pus
 
 Required GitHub Actions secrets (Settings → Secrets and variables → Actions):
 
-| Secret | Where to get it |
-|---|---|
-| `VERCEL_TOKEN` | Vercel dashboard → Account Settings → Tokens |
-| `VERCEL_ORG_ID` | `.vercel/project.json` after `vercel link` |
-| `VERCEL_PROJECT_ID` | `.vercel/project.json` after `vercel link` |
-| `SENTRY_AUTH_TOKEN` | Sentry → Settings → Auth Tokens |
+| Secret              | Where to get it                              |
+| ------------------- | -------------------------------------------- |
+| `VERCEL_TOKEN`      | Vercel dashboard → Account Settings → Tokens |
+| `VERCEL_ORG_ID`     | `.vercel/project.json` after `vercel link`   |
+| `VERCEL_PROJECT_ID` | `.vercel/project.json` after `vercel link`   |
+| `SENTRY_AUTH_TOKEN` | Sentry → Settings → Auth Tokens              |
 
 The deploy job runs in the `production` GitHub environment. You can add required reviewers to that environment in Settings → Environments for an approval gate before production deploys.
 
@@ -121,15 +124,15 @@ The build fails if the `.next` output exceeds **150 MB**. Run `npm run build:ana
 
 ### DNS Records
 
-| Type | Name | Value |
-|---|---|---|
-| `A` | `@` (apex) | `76.76.21.21` (Vercel's IP) |
-| `CNAME` | `www` | `cname.vercel-dns.com` |
+| Type    | Name       | Value                       |
+| ------- | ---------- | --------------------------- |
+| `A`     | `@` (apex) | `76.76.21.21` (Vercel's IP) |
+| `CNAME` | `www`      | `cname.vercel-dns.com`      |
 
 For a subdomain (e.g. `app.your-domain.com`):
 
-| Type | Name | Value |
-|---|---|---|
+| Type    | Name  | Value                  |
+| ------- | ----- | ---------------------- |
 | `CNAME` | `app` | `cname.vercel-dns.com` |
 
 DNS propagation typically takes a few minutes to a few hours. Vercel provisions a TLS certificate automatically via Let's Encrypt once DNS resolves.
@@ -167,6 +170,7 @@ Sentry is pre-configured in three files:
 Both use `tracesSampleRate: 0.1` (10% of transactions traced). Adjust this in the config files if you need more or less trace coverage.
 
 To enable Sentry:
+
 1. Create a project at [sentry.io](https://sentry.io).
 2. Set `SENTRY_DSN` and `NEXT_PUBLIC_SENTRY_DSN` in Vercel.
 3. Set `SENTRY_ORG`, `SENTRY_PROJECT`, and `SENTRY_AUTH_TOKEN` for source map uploads.

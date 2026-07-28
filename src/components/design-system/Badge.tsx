@@ -21,12 +21,12 @@ export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
         className={cn(
           'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
           variantStyles[variant],
-          className
+          className,
         )}
         {...props}
       />
     );
-  }
+  },
 );
 
 Badge.displayName = 'Badge';

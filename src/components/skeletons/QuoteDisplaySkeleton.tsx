@@ -1,15 +1,11 @@
-import { SkeletonBase } from "./SkeletonBase";
+import { SkeletonBase } from './SkeletonBase';
 
 /**
  * Skeleton for the RightPanel quote display while a quote is being fetched.
  */
 export function QuoteDisplaySkeleton() {
   return (
-    <div
-      aria-label="Loading quote"
-      aria-busy="true"
-      className="flex flex-col gap-4 w-full"
-    >
+    <div aria-label="Loading quote" aria-busy="true" className="flex flex-col gap-4 w-full">
       {/* Hero panel */}
       <div className="border border-[#333333] bg-[#111111] p-5 flex flex-col gap-4">
         <SkeletonBase width={120} height={10} aria-label="Loading label…" />

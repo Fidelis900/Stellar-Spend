@@ -70,14 +70,14 @@ describe('notifyTransactionStatusUpdate', () => {
 
     await notifyTransactionStatusUpdate(
       { transaction: baseTransaction, previousStatus: 'pending', source: 'webhook' },
-      [emailAdapter, smsAdapter]
+      [emailAdapter, smsAdapter],
     );
 
     expect(emailSend).toHaveBeenCalledOnce();
     expect(smsSend).not.toHaveBeenCalled();
     expect(createDeliveryMock).toHaveBeenCalledOnce();
     expect(createDeliveryMock).toHaveBeenCalledWith(
-      expect.objectContaining({ channel: 'email', status: 'sent', providerMessageId: 'email-1' })
+      expect.objectContaining({ channel: 'email', status: 'sent', providerMessageId: 'email-1' }),
     );
   });
 
@@ -94,7 +94,7 @@ describe('notifyTransactionStatusUpdate', () => {
         previousPayoutStatus: undefined,
         source: 'manual_update',
       },
-      [emailAdapter]
+      [emailAdapter],
     );
 
     expect(createDeliveryMock).not.toHaveBeenCalled();

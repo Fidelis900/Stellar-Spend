@@ -10,11 +10,11 @@
 
 Stellar-Spend integrates with three external services, each with distinct APIs, error models, and failure modes:
 
-| Service | Purpose | SDK / Transport |
-|---|---|---|
-| **Paycrest** | Fiat payout orders, FX rates, bank lookups | REST (fetch) |
-| **Allbridge** | USDC cross-chain bridge (Stellar → Base) | TypeScript SDK (`@allbridge/bridge-core-sdk`) |
-| **Base (viem)** | EVM transaction signing and submission | `viem` library |
+| Service         | Purpose                                    | SDK / Transport                               |
+| --------------- | ------------------------------------------ | --------------------------------------------- |
+| **Paycrest**    | Fiat payout orders, FX rates, bank lookups | REST (fetch)                                  |
+| **Allbridge**   | USDC cross-chain bridge (Stellar → Base)   | TypeScript SDK (`@allbridge/bridge-core-sdk`) |
+| **Base (viem)** | EVM transaction signing and submission     | `viem` library                                |
 
 The API route handlers (e.g., `POST /api/offramp/paycrest/order`) needed to call these services without:
 
@@ -43,6 +43,7 @@ src/lib/clients/
 ```
 
 Each adapter is responsible for:
+
 - Translating domain inputs to third-party API parameters.
 - Normalizing third-party responses into internal types.
 - Wrapping third-party errors into typed internal error classes (e.g., `PaycrestHttpError`).
@@ -64,17 +65,20 @@ export async function POST(req: NextRequest) {
 ## Consequences
 
 **Positive:**
+
 - Route handlers are free of SDK import concerns and third-party error shapes.
 - Swapping a provider (e.g., replacing Paycrest with a different settlement layer) requires only adapter changes, not route changes.
 - Unit tests mock the adapter interface entirely — no real HTTP calls, no SDK initialization overhead.
 - Centralized error normalization: `PaycrestHttpError` is defined once and handled consistently across all routes that use `PaycrestAdapter`.
 
 **Negative / Trade-offs:**
+
 - Adapter classes add an extra abstraction layer; simple calls require following the adapter → route chain.
 - Interface definitions must be kept in sync with the underlying SDK/API when breaking changes occur.
 - The adapter pattern works best when the interface is stable; early-stage integrations (where the adapter interface is still changing) benefit less.
 
 **Conventions:**
+
 - All external HTTP calls are made inside adapters.
 - Adapters throw typed error classes (`PaycrestHttpError`, etc.) rather than plain `Error`.
 - Route handlers catch adapter errors and map them to HTTP status codes.
@@ -82,4 +86,4 @@ export async function POST(req: NextRequest) {
 
 ---
 
-*Related: [[ADR-002-allbridge-sdk-dynamic-import]], [[ADR-004-api-versioning-strategy]]*
+_Related: [[ADR-002-allbridge-sdk-dynamic-import]], [[ADR-004-api-versioning-strategy]]_

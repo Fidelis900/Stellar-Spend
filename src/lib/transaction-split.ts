@@ -59,8 +59,10 @@ const STORAGE_KEY = 'stellar_spend_splits';
 export function validateSplit(recipients: SplitRecipient[]): string | null {
   if (recipients.length < 2) return 'At least 2 recipients required';
   const total = recipients.reduce((s, r) => s + r.percentage, 0);
-  if (Math.abs(total - 100) > 0.01) return `Percentages must sum to 100 (currently ${total.toFixed(2)})`;
-  if (recipients.some((r) => r.percentage <= 0)) return 'Each recipient must have a positive percentage';
+  if (Math.abs(total - 100) > 0.01)
+    return `Percentages must sum to 100 (currently ${total.toFixed(2)})`;
+  if (recipients.some((r) => r.percentage <= 0))
+    return 'Each recipient must have a positive percentage';
   return null;
 }
 
@@ -139,7 +141,9 @@ export class SplitStorage {
     const partial = all.filter((s) => s.status === 'partial').length;
     const failed = all.filter((s) => s.status === 'failed').length;
     const totalVolume = all.reduce((sum, s) => sum + parseFloat(s.totalAmount || '0'), 0);
-    const avgRecipients = all.length ? all.reduce((sum, s) => sum + s.recipients.length, 0) / all.length : 0;
+    const avgRecipients = all.length
+      ? all.reduce((sum, s) => sum + s.recipients.length, 0) / all.length
+      : 0;
 
     return {
       totalSplits: all.length,

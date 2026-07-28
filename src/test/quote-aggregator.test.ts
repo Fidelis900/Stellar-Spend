@@ -268,7 +268,7 @@ describe('rankQuotes', () => {
     expect(best!.provider).toBe('a');
 
     const alternatives = quotes
-      .filter(q => q.success && q.provider !== best!.provider)
+      .filter((q) => q.success && q.provider !== best!.provider)
       .sort((a, b) => (b.netPayout ?? 0) - (a.netPayout ?? 0));
 
     expect(alternatives[0].provider).toBe('c');

@@ -3,7 +3,12 @@ import { recordApiTiming } from '../performance';
 import { logger } from '../logger';
 
 export function createLoggingMiddleware() {
-  return (request: NextRequest, response: NextResponse, durationMs: number, requestId?: string): NextResponse => {
+  return (
+    request: NextRequest,
+    response: NextResponse,
+    durationMs: number,
+    requestId?: string,
+  ): NextResponse => {
     const { pathname } = request.nextUrl;
     requestId ??= request.headers.get('x-request-id') ?? crypto.randomUUID();
 
@@ -17,7 +22,12 @@ export function createLoggingMiddleware() {
 
     const log = logger.withContext({ requestId });
     const level = response.status >= 500 ? 'error' : response.status >= 400 ? 'warn' : 'info';
-    log[level]('http.request', { method: request.method, path: pathname, status: response.status, durationMs });
+    log[level]('http.request', {
+      method: request.method,
+      path: pathname,
+      status: response.status,
+      durationMs,
+    });
 
     response.headers.set('X-Request-Id', requestId);
     return response;

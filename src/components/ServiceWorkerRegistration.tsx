@@ -1,22 +1,22 @@
 import { logger } from '@/lib/logger';
-"use client";
+('use client');
 
-import { useEffect, useState } from "react";
-import { cn } from "@/lib/cn";
+import { useEffect, useState } from 'react';
+import { cn } from '@/lib/cn';
 
 export default function ServiceWorkerRegistration() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
 
   useEffect(() => {
-    if (!("serviceWorker" in navigator)) {
+    if (!('serviceWorker' in navigator)) {
       return;
     }
 
     const registerServiceWorker = async () => {
       try {
-        const reg = await navigator.serviceWorker.register("/sw.js", {
-          scope: "/",
+        const reg = await navigator.serviceWorker.register('/sw.js', {
+          scope: '/',
         });
 
         setRegistration(reg);
@@ -27,12 +27,12 @@ export default function ServiceWorkerRegistration() {
         }, 60000); // Check every minute
 
         // Listen for updates
-        reg.addEventListener("updatefound", () => {
+        reg.addEventListener('updatefound', () => {
           const newWorker = reg.installing;
           if (!newWorker) return;
 
-          newWorker.addEventListener("statechange", () => {
-            if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               // New service worker is ready
               setUpdateAvailable(true);
               notifyUpdateAvailable();
@@ -42,7 +42,7 @@ export default function ServiceWorkerRegistration() {
 
         return () => clearInterval(interval);
       } catch (error) {
-        logger.error("Service Worker registration failed:", {}, error);
+        logger.error('Service Worker registration failed:', {}, error);
       }
     };
 
@@ -53,20 +53,20 @@ export default function ServiceWorkerRegistration() {
     if (!registration?.waiting) return;
 
     // Tell the new service worker to take control
-    registration.waiting.postMessage({ type: "SKIP_WAITING" });
+    registration.waiting.postMessage({ type: 'SKIP_WAITING' });
 
     // Reload the page when the new service worker takes control
-    navigator.serviceWorker.addEventListener("controllerchange", () => {
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
       window.location.reload();
     });
   };
 
   const notifyUpdateAvailable = () => {
     // Show a toast or notification that an update is available
-    if ("Notification" in window && Notification.permission === "granted") {
-      new Notification("Stellar Spend Update Available", {
-        body: "A new version is available. Refresh to update.",
-        icon: "/icons/icon-192x192.png",
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('Stellar Spend Update Available', {
+        body: 'A new version is available. Refresh to update.',
+        icon: '/icons/icon-192x192.png',
       });
     }
   };
@@ -87,9 +87,9 @@ export default function ServiceWorkerRegistration() {
               <button
                 onClick={handleUpdate}
                 className={cn(
-                  "flex-1 px-3 py-2 text-xs font-semibold tracking-widest uppercase",
-                  "bg-[#c9a962] text-[#0a0a0a] rounded transition-colors duration-150",
-                  "hover:bg-[#d4b982] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]"
+                  'flex-1 px-3 py-2 text-xs font-semibold tracking-widest uppercase',
+                  'bg-[#c9a962] text-[#0a0a0a] rounded transition-colors duration-150',
+                  'hover:bg-[#d4b982] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]',
                 )}
               >
                 Refresh
@@ -97,9 +97,9 @@ export default function ServiceWorkerRegistration() {
               <button
                 onClick={() => setUpdateAvailable(false)}
                 className={cn(
-                  "flex-1 px-3 py-2 text-xs font-semibold tracking-widest uppercase",
-                  "border border-[#555555] text-[#555555] rounded transition-colors duration-150",
-                  "hover:border-[#c9a962] hover:text-[#c9a962] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#555555]"
+                  'flex-1 px-3 py-2 text-xs font-semibold tracking-widest uppercase',
+                  'border border-[#555555] text-[#555555] rounded transition-colors duration-150',
+                  'hover:border-[#c9a962] hover:text-[#c9a962] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#555555]',
                 )}
               >
                 Later

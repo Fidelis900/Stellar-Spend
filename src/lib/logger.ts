@@ -35,17 +35,50 @@ export interface LogEntry {
 
 /** Keys whose values are fully redacted (security secrets) */
 const REDACT_KEYS = new Set([
-  'privatekey', 'private_key', 'apikey', 'api_key', 'secret',
-  'password', 'token', 'authorization', 'x-api-key', 'database_url',
-  'session', 'jwt', 'refresh_token', 'refreshToken', 'access_token', 'accessToken',
-  'ssn', 'creditcard', 'credit_card', 'card_number', 'cardnumber',
-  'cvv', 'cvv2', 'routing_number', 'routingnumber', 'iban', 'bic', 'swift',
+  'privatekey',
+  'private_key',
+  'apikey',
+  'api_key',
+  'secret',
+  'password',
+  'token',
+  'authorization',
+  'x-api-key',
+  'database_url',
+  'session',
+  'jwt',
+  'refresh_token',
+  'refreshToken',
+  'access_token',
+  'accessToken',
+  'ssn',
+  'creditcard',
+  'credit_card',
+  'card_number',
+  'cardnumber',
+  'cvv',
+  'cvv2',
+  'routing_number',
+  'routingnumber',
+  'iban',
+  'bic',
+  'swift',
   // PII — beneficiary fields (#692)
-  'accountidentifier', 'account_identifier', 'beneficiary_account_identifier',
-  'accountname', 'account_name', 'beneficiary_account_name',
+  'accountidentifier',
+  'account_identifier',
+  'beneficiary_account_identifier',
+  'accountname',
+  'account_name',
+  'beneficiary_account_name',
   // PII — user addresses and wallet identifiers (#802)
-  'useraddress', 'user_address', 'walletaddress', 'wallet_address',
-  'fromaddress', 'from_address', 'toaddress', 'to_address',
+  'useraddress',
+  'user_address',
+  'walletaddress',
+  'wallet_address',
+  'fromaddress',
+  'from_address',
+  'toaddress',
+  'to_address',
 ]);
 
 /** PII patterns — values matching these regexes are masked */
@@ -112,7 +145,7 @@ function emit(
     service: 'stellar-spend',
     environment: process.env.NODE_ENV ?? 'development',
     ...context,
-    ...redact(fields) as Record<string, unknown>,
+    ...(redact(fields) as Record<string, unknown>),
   };
 
   if (error instanceof Error) {
@@ -139,8 +172,8 @@ export interface Logger {
 function createLogger(context: Record<string, unknown> = {}): Logger {
   return {
     debug: (event, fields = {}) => emit('debug', event, fields, undefined, context),
-    info:  (event, fields = {}) => emit('info',  event, fields, undefined, context),
-    warn:  (event, fields = {}, error?) => emit('warn',  event, fields, error, context),
+    info: (event, fields = {}) => emit('info', event, fields, undefined, context),
+    warn: (event, fields = {}, error?) => emit('warn', event, fields, error, context),
     error: (event, fields = {}, error?) => emit('error', event, fields, error, context),
     withContext: (ctx) => createLogger({ ...context, ...ctx }),
   };

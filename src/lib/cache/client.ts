@@ -40,7 +40,7 @@ class InMemoryCache implements CacheClient {
   }
 
   async keys(pattern: string): Promise<string[]> {
-    const regex = new RegExp("^" + pattern.replace(/\*/g, ".*") + "$");
+    const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
     return [...this.store.keys()].filter((k) => regex.test(k));
   }
 
@@ -63,7 +63,7 @@ export function getCacheClient(): CacheClient {
 
   const redisUrl = process.env.REDIS_URL;
   if (!redisUrl) {
-    logger.warn("[cache] REDIS_URL not set — using in-memory cache fallback");
+    logger.warn('[cache] REDIS_URL not set — using in-memory cache fallback');
     _client = new InMemoryCache();
     return _client;
   }
@@ -71,15 +71,15 @@ export function getCacheClient(): CacheClient {
   // Dynamically require ioredis to avoid bundling issues
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const Redis = require("ioredis");
+    const Redis = require('ioredis');
     const redis = new Redis(redisUrl, {
       maxRetriesPerRequest: 3,
       enableReadyCheck: true,
       lazyConnect: true,
     });
 
-    redis.on("error", (err: Error) => {
-      logger.error("[cache] Redis error:", {}, err.message);
+    redis.on('error', (err: Error) => {
+      logger.error('[cache] Redis error:', {}, err.message);
     });
 
     _client = {
@@ -88,7 +88,7 @@ export function getCacheClient(): CacheClient {
       },
       async set(key, value, ttlSeconds) {
         if (ttlSeconds) {
-          await redis.set(key, value, "EX", ttlSeconds);
+          await redis.set(key, value, 'EX', ttlSeconds);
         } else {
           await redis.set(key, value);
         }
@@ -108,14 +108,14 @@ export function getCacheClient(): CacheClient {
       async ping() {
         try {
           const result = await redis.ping();
-          return result === "PONG";
+          return result === 'PONG';
         } catch {
           return false;
         }
       },
     };
   } catch {
-    logger.warn("[cache] ioredis not available — using in-memory cache fallback");
+    logger.warn('[cache] ioredis not available — using in-memory cache fallback');
     _client = new InMemoryCache();
   }
 

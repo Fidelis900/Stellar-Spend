@@ -15,7 +15,7 @@ service:
 
 ingress:
   enabled: false
-  className: ""
+  className: ''
   annotations: {}
   hosts:
     - host: stellar-spend.local
@@ -26,11 +26,11 @@ ingress:
 
 resources:
   requests:
-    memory: "256Mi"
-    cpu: "100m"
+    memory: '256Mi'
+    cpu: '100m'
   limits:
-    memory: "512Mi"
-    cpu: "500m"
+    memory: '512Mi'
+    cpu: '500m'
 
 # Horizontal Pod Autoscaler
 autoscaling:
@@ -68,7 +68,7 @@ readinessProbe:
 # Non-secret environment variables
 env:
   NODE_ENV: production
-  PORT: "3000"
+  PORT: '3000'
   NEXT_PUBLIC_ENV: production
 
 # Reference to an existing Secret containing app secrets.
@@ -78,7 +78,7 @@ existingSecret: stellar-spend-secrets
 
 serviceAccount:
   create: false
-  name: ""
+  name: ''
 
 podAnnotations: {}
 

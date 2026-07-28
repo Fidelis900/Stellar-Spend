@@ -36,7 +36,7 @@ export interface AnalyticsPeriod {
   feeAnalysis: FeeAnalysis;
   spendingPatterns: SpendingPattern[];
   /** Conversion funnel data (#399) */
-  funnel?: import("@/lib/funnel").FunnelData;
+  funnel?: import('@/lib/funnel').FunnelData;
 }
 
 export interface AnalyticsReport {

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 
-type ToastType = "success" | "error" | "info" | "warning";
+type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 interface Toast {
   id: string;
@@ -25,7 +25,7 @@ const ToastActionContext = createContext<ToastActionContextValue | undefined>(un
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const showToast = useCallback((message: string, type: ToastType = "info") => {
+  const showToast = useCallback((message: string, type: ToastType = 'info') => {
     const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => {
@@ -49,7 +49,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 export function useToasts() {
   const context = useContext(ToastStateContext);
   if (!context) {
-    throw new Error("useToasts must be used within ToastProvider");
+    throw new Error('useToasts must be used within ToastProvider');
   }
   return context.toasts;
 }
@@ -57,7 +57,7 @@ export function useToasts() {
 export function useToastActions() {
   const context = useContext(ToastActionContext);
   if (!context) {
-    throw new Error("useToastActions must be used within ToastProvider");
+    throw new Error('useToastActions must be used within ToastProvider');
   }
   return context;
 }

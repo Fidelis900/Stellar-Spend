@@ -35,12 +35,22 @@ export async function POST(request: NextRequest) {
   };
 
   if (!merchantId || !idempotencyKey || !Array.isArray(items) || items.length === 0) {
-    return ErrorHandler.validation('merchantId, idempotencyKey, and non-empty items array are required');
+    return ErrorHandler.validation(
+      'merchantId, idempotencyKey, and non-empty items array are required',
+    );
   }
 
   for (const item of items) {
-    if (!item.beneficiaryInstitution || !item.beneficiaryAccount || !item.beneficiaryName || !item.amount || !item.currency) {
-      return ErrorHandler.validation('Each item must have beneficiaryInstitution, beneficiaryAccount, beneficiaryName, amount, and currency');
+    if (
+      !item.beneficiaryInstitution ||
+      !item.beneficiaryAccount ||
+      !item.beneficiaryName ||
+      !item.amount ||
+      !item.currency
+    ) {
+      return ErrorHandler.validation(
+        'Each item must have beneficiaryInstitution, beneficiaryAccount, beneficiaryName, amount, and currency',
+      );
     }
   }
 

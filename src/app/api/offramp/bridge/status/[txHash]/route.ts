@@ -24,10 +24,7 @@ const BRIDGE_TERMINAL_STATES: BridgeStatus[] = ['completed', 'failed', 'expired'
  *   }
  * }
  */
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ txHash: string }> }
-) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ txHash: string }> }) {
   const { txHash } = await params;
 
   // Check cache first

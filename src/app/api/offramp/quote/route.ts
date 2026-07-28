@@ -2,7 +2,11 @@ import { logger } from '@/lib/logger';
 import { NextResponse, type NextRequest } from 'next/server';
 import { env } from '@/lib/env';
 import { validateAmount } from '@/lib/offramp/utils/validation';
-import { fetchPaycrestQuote, buildQuote, calculateBridgeAmount } from '@/lib/offramp/utils/quote-fetcher';
+import {
+  fetchPaycrestQuote,
+  buildQuote,
+  calculateBridgeAmount,
+} from '@/lib/offramp/utils/quote-fetcher';
 import { ErrorHandler } from '@/lib/error-handler';
 import { withAllbridgeTimeout } from '@/lib/offramp/utils/timeout';
 import { isSupportedCurrency } from '@/lib/currencies';
@@ -43,7 +47,7 @@ export async function POST(request: NextRequest) {
     if (!validateAmount(String(amount ?? ''))) {
       return NextResponse.json(
         { error: 'Invalid amount: must be a positive number' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -59,13 +63,14 @@ export async function POST(request: NextRequest) {
     if (!normalizedFee) {
       return NextResponse.json(
         { error: 'feeMethod must be "USDC", "XLM", "stablecoin", or "native"' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const bridgeAmount = normalizedFee === 'stablecoin'
-      ? calculateBridgeAmount(String(amount), 'stablecoin', STABLECOIN_FEE)
-      : String(amount);
+    const bridgeAmount =
+      normalizedFee === 'stablecoin'
+        ? calculateBridgeAmount(String(amount), 'stablecoin', STABLECOIN_FEE)
+        : String(amount);
 
     // Initialize Allbridge SDK
     let receiveAmount: string;
@@ -87,8 +92,10 @@ export async function POST(request: NextRequest) {
 
       for (const [, chain] of Object.entries(chainDetails)) {
         const c = chain as any;
-        if (c.name?.toLowerCase().includes('stellar') || c.name?.toLowerCase().includes('soroban')) stellarChain = c;
-        if (c.name?.toLowerCase().includes('ethereum') || c.name?.toLowerCase().includes('base')) baseChain = c;
+        if (c.name?.toLowerCase().includes('stellar') || c.name?.toLowerCase().includes('soroban'))
+          stellarChain = c;
+        if (c.name?.toLowerCase().includes('ethereum') || c.name?.toLowerCase().includes('base'))
+          baseChain = c;
       }
 
       if (!stellarChain || !baseChain) throw new Error('Chain details unavailable');

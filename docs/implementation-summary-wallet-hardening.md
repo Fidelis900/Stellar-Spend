@@ -7,6 +7,7 @@ This PR implements a comprehensive hardening of the wallet flow for Stellar Spen
 ## Changes Summary
 
 ### Files Modified
+
 - `src/lib/wallets/manager.ts` - Enhanced with event system and listener support
 - `src/lib/wallets/freighter.adapter.ts` - Improved error handling and messages
 - `src/lib/wallets/lobstr.adapter.ts` - Improved error handling and messages
@@ -14,6 +15,7 @@ This PR implements a comprehensive hardening of the wallet flow for Stellar Spen
 - `src/hooks/useStellarWallet.ts` - Complete rewrite/enhancement with new features
 
 ### Files Created
+
 - `src/hooks/useStellarWallet.ts` - Main React hook (new file)
 - `src/components/WalletErrorDisplay.tsx` - Error display component with suggestions (new)
 - `docs/wallet-hardening.md` - Comprehensive documentation (new)
@@ -22,6 +24,7 @@ This PR implements a comprehensive hardening of the wallet flow for Stellar Spen
 - `src/hooks/__tests__/useStellarWallet.test.tsx` - Hook tests (new)
 
 ### Statistics
+
 - **Lines of Code**: 1,935+ total changes
 - **Test Coverage**: 45+ test cases (unit and integration)
 - **Components**: 1 new error display component
@@ -31,11 +34,13 @@ This PR implements a comprehensive hardening of the wallet flow for Stellar Spen
 ## Features Implemented
 
 ### 1. Wallet Detection ✓
+
 - Auto-detects installed wallets (Freighter, Lobstr)
 - Gracefully handles none-installed scenario
 - Public API: `detectWallets()`, `isWalletAvailable(type)`, `detectedWallets`
 
 ### 2. Auto-Reconnect on Reload ✓
+
 - Persists last-used wallet to localStorage
 - Automatically reconnects on page load
 - Optional setting: `autoReconnect` (default: true)
@@ -43,6 +48,7 @@ This PR implements a comprehensive hardening of the wallet flow for Stellar Spen
 - Validates wallet availability before reconnection
 
 ### 3. Account Change Detection ✓
+
 - Monitors wallet account changes via event listeners
 - Sets `accountChanged` flag when account switches
 - Provides actionable error message
@@ -50,6 +56,7 @@ This PR implements a comprehensive hardening of the wallet flow for Stellar Spen
 - Public API: `accountChanged`, `clearAccountChanged()`
 
 ### 4. Improved Error States ✓
+
 - Error classification by type:
   - `WALLET_NOT_AVAILABLE` - Extension not installed
   - `WALLET_CONNECTION_ERROR` - Connection failed
@@ -63,12 +70,14 @@ This PR implements a comprehensive hardening of the wallet flow for Stellar Spen
 - Public API: `error`, `errorMessage`, `getErrorMessage(error)`
 
 ### 5. Switch Wallet Without Full Disconnect ✓
+
 - Switch between wallets seamlessly
 - Maintains account change listeners
 - Updates localStorage preference if enabled
 - Public API: `switchWallet(newWalletType)`
 
 ### 6. Last-Used Wallet Persistence ✓
+
 - Remembers user's preferred wallet
 - Stored in localStorage: `stellar.lastWallet`
 - Optional setting: `rememberLastWallet` (default: true)
@@ -76,17 +85,20 @@ This PR implements a comprehensive hardening of the wallet flow for Stellar Spen
 - Public API: `lastUsedWallet`, `saveLastWallet(type)`
 
 ### 7. Settings Management ✓
+
 - Persistent user settings stored in localStorage
 - Settings: `autoReconnect`, `rememberLastWallet`
 - Public API: `settings`, `saveSettings(newSettings)`
 
 ### 8. Event Listener System ✓
+
 - Manager-level event system for wallet changes
 - Events: `accountChange`, `disconnect`, `networkChange`
 - Proper cleanup on unmount
 - Public API: `manager.on(eventType, listener)` returns unsubscribe
 
 ### 9. Comprehensive Error Display Component ✓
+
 - `WalletErrorDisplay.tsx` shows errors with context
 - Provides actionable suggestions
 - Dismissible alerts
@@ -98,6 +110,7 @@ This PR implements a comprehensive hardening of the wallet flow for Stellar Spen
 ### Test Coverage: 45+ Cases
 
 **Manager Tests (manager.test.ts)**
+
 - Initialization with adapters
 - Auto-connect functionality
 - Connect/disconnect operations
@@ -107,6 +120,7 @@ This PR implements a comprehensive hardening of the wallet flow for Stellar Spen
 - Unsubscription functionality
 
 **Hook Tests (useStellarWallet.test.tsx)**
+
 - Initial state correctness
 - Auto-reconnect enablement
 - Wallet detection
@@ -117,6 +131,7 @@ This PR implements a comprehensive hardening of the wallet flow for Stellar Spen
 - Cleanup on unmount
 
 **Integration Tests (wallet-integration.test.ts)**
+
 - Reconnect scenarios
 - Multiple rapid connections
 - Account change edge cases
@@ -127,6 +142,7 @@ This PR implements a comprehensive hardening of the wallet flow for Stellar Spen
 - Initialization robustness
 
 ### Test Commands
+
 ```bash
 npm run test -- src/lib/wallets/manager.test.ts --run
 npm run test -- src/hooks/useStellarWallet.test.tsx --run
@@ -136,6 +152,7 @@ npm run test -- src/lib/wallets/wallet-integration.test.ts --run
 ## Documentation
 
 ### Files
+
 - `docs/wallet-hardening.md` - Complete feature guide (2,000+ words)
 - Usage examples
 - Integration patterns
@@ -147,6 +164,7 @@ npm run test -- src/lib/wallets/wallet-integration.test.ts --run
 - Migration guide
 
 ### Key Sections
+
 1. Features overview
 2. Architecture overview
 3. State flow diagram
@@ -160,6 +178,7 @@ npm run test -- src/lib/wallets/wallet-integration.test.ts --run
 ## Usage Examples
 
 ### Basic Connection
+
 ```typescript
 const { isConnected, publicKey, connect, error } = useStellarWallet();
 
@@ -169,6 +188,7 @@ const { isConnected, publicKey, connect, error } = useStellarWallet();
 ```
 
 ### Account Change Handling
+
 ```typescript
 const { accountChanged, walletType, connect } = useStellarWallet();
 
@@ -180,6 +200,7 @@ useEffect(() => {
 ```
 
 ### Wallet Switching
+
 ```typescript
 const { switchWallet, isSwitching } = useStellarWallet();
 
@@ -204,17 +225,20 @@ const { switchWallet, isSwitching } = useStellarWallet();
 ## Acceptance Criteria Met
 
 ✓ **Switching accounts in the wallet updates the app without reload**
+
 - Account change detection via event listeners
 - Automatic or manual reconnection available
 - UI updates reflect account change
 
 ✓ **All failure modes show actionable messages**
+
 - Locked wallet → "Unlock your wallet"
 - Rejected request → "Approve in your wallet popup"
 - Wrong network → "Switch networks in your wallet"
 - Not installed → "Install the wallet extension"
 
 ✓ **Relevant areas covered**
+
 - `src/hooks/useWalletFlow.ts` - Maintained (UI state machine)
 - `useStellarWallet.ts` - New (wallet connection & state)
 - `src/lib/wallets/*` - Enhanced (managers & adapters)
