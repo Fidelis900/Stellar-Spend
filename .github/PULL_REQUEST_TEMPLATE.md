@@ -32,6 +32,7 @@ Closes #<!-- issue number(s) -->
 - [ ] All existing tests pass — `npm test`
 - [ ] E2E tests pass (if UI flows changed) — `npm run test:e2e`
 - [ ] Mutation score not degraded for touched modules
+- [ ] **New protected endpoint** — if this PR adds a new API route that requires authentication, a corresponding entry has been added to `PROTECTED_ENDPOINTS` in `src/test/integration/api-key-scope-regression.integration.test.ts` and the route scope is registered in `src/lib/api-keys/scopes.ts`
 
 ### Documentation
 - [ ] Inline JSDoc / comments updated where relevant
