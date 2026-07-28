@@ -38,6 +38,23 @@ describe('Logger - Redaction', () => {
       expect(result.Secret).toBe('[REDACTED]');
     });
 
+    // #802 — wallet / address PII fields
+    it('should redact userAddress, walletAddress, fromAddress, toAddress (#802)', () => {
+      const result = redactSensitive({
+        userAddress: 'GCFXABCD1234',
+        walletAddress: '0xdeadbeef',
+        fromAddress: 'GAABC...',
+        toAddress: '0x1234',
+        userId: 'user-123', // non-PII key — should NOT be redacted
+      }) as Record<string, unknown>;
+
+      expect(result.userAddress).toBe('[REDACTED]');
+      expect(result.walletAddress).toBe('[REDACTED]');
+      expect(result.fromAddress).toBe('[REDACTED]');
+      expect(result.toAddress).toBe('[REDACTED]');
+      expect(result.userId).toBe('user-123');
+    });
+
     it('should keep non-sensitive keys unchanged', () => {
       const result = redactSensitive({
         name: 'John Doe',

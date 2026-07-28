@@ -155,9 +155,9 @@ export async function warmCache(): Promise<void> {
   }
 
   try {
-    // Warm NGN rate (most common)
-    const { getRate } = await import("../services/quote.service");
-    await getCachedRate("NGN", () => getRate("NGN"));
+    // Warm NGN rate (most common) via the shared fxRateService
+    const { fxRateService } = await import("../services/fx-rate.service");
+    await fxRateService.getRate("NGN");
     logger.info("[cache] Warmed: NGN rate");
   } catch (err) {
     logger.warn("[cache] Failed to warm NGN rate:", err);

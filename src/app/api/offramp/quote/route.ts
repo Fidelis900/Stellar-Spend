@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { logger } from '@/lib/logger';
 import { NextResponse, type NextRequest } from 'next/server';
 import { env } from '@/lib/env';
@@ -44,30 +43,10 @@ export async function POST(request: NextRequest) {
     if (!validateAmount(String(amount ?? ''))) {
       return NextResponse.json(
         { error: 'Invalid amount: must be a positive number' },
-=======
-import { NextRequest, NextResponse } from 'next/server';
-import { getQuote, type QuoteRequest } from '@/lib/quote-aggregator';
-
-/**
- * POST /api/offramp/quote
- * 
- * Get exchange rate quote with caching
- * Implements stale-while-revalidate for responsive UX
- */
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const { amount, currency, feeMethod = 'USDC' } = body;
-
-    if (!amount || !currency) {
-      return NextResponse.json(
-        { error: 'Missing required fields: amount, currency' },
->>>>>>> de69014 (security+perf: pentest checklist, performance budgets, RSC streaming, cache tuning (#697 #698 #699 #700))
         { status: 400 }
       );
     }
 
-<<<<<<< HEAD
     if (!currency || typeof currency !== 'string') {
       return NextResponse.json({ error: 'currency is required' }, { status: 400 });
     }
@@ -119,7 +98,10 @@ export async function POST(req: NextRequest) {
 
       if (!stellarUsdc || !baseUsdc) throw new Error('USDC token not found');
 
-      receiveAmount = await sdk.getAmountToBeReceived(bridgeAmount, stellarUsdc, baseUsdc);
+      receiveAmount = await withAllbridgeTimeout(
+        sdk.getAmountToBeReceived(bridgeAmount, stellarUsdc, baseUsdc),
+        'getAmountToBeReceived',
+      );
     } catch {
       return NextResponse.json({ error: 'Bridge quote unavailable' }, { status: 502 });
     }
@@ -136,29 +118,11 @@ export async function POST(req: NextRequest) {
     const quote = buildQuote(destinationAmount, rate, currency, '0', '0', 300);
     return NextResponse.json(quote);
   } catch (error) {
-    logger.error('Quote fetch error:', {}, error);
+    logger.error('Quote fetch error', {}, error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     if (message.includes('Invalid') || message.includes('less than')) {
       return NextResponse.json({ error: message }, { status: 400 });
     }
     return NextResponse.json({ error: 'Failed to generate quote' }, { status: 500 });
-=======
-    const quoteRequest: QuoteRequest = {
-      amount,
-      sourceCurrency: 'USDC',
-      destinationCurrency: currency,
-      feeMethod,
-    };
-
-    const quote = await getQuote(quoteRequest);
-
-    return NextResponse.json(quote);
-  } catch (error) {
-    console.error('[Quote API] Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch quote' },
-      { status: 500 }
-    );
->>>>>>> de69014 (security+perf: pentest checklist, performance budgets, RSC streaming, cache tuning (#697 #698 #699 #700))
   }
 }

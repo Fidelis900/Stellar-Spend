@@ -43,6 +43,9 @@ const REDACT_KEYS = new Set([
   // PII — beneficiary fields (#692)
   'accountidentifier', 'account_identifier', 'beneficiary_account_identifier',
   'accountname', 'account_name', 'beneficiary_account_name',
+  // PII — user addresses and wallet identifiers (#802)
+  'useraddress', 'user_address', 'walletaddress', 'wallet_address',
+  'fromaddress', 'from_address', 'toaddress', 'to_address',
 ]);
 
 /** PII patterns — values matching these regexes are masked */

@@ -5,6 +5,7 @@ import { extractErrorMessage } from '@/lib/offramp/utils/errors';
 import { buildTxLimiter, getClientIp } from '@/lib/offramp/utils/rate-limiter';
 import { generateRequestId, createRequestLogger } from '@/lib/offramp/utils/logger';
 import { ErrorHandler } from '@/lib/error-handler';
+import { allbridgeBreaker, CircuitOpenError } from '@/lib/circuit-breaker';
 
 export const maxDuration = 30;
 
@@ -82,8 +83,27 @@ export async function POST(request: NextRequest) {
       }),
     });
 
-    // Fetch chain details and tokens
-    const chainDetails = await sdk.chainDetailsMap();
+    // Fetch chain details and tokens — wrapped in circuit breaker
+    let chainDetails: Awaited<ReturnType<typeof sdk.chainDetailsMap>>;
+    try {
+      chainDetails = await allbridgeBreaker.execute(
+        () => sdk.chainDetailsMap(),
+        {
+          fallback: () => {
+            throw new Error('Allbridge SDK unavailable — circuit open');
+          },
+        },
+      );
+    } catch (err) {
+      if (err instanceof CircuitOpenError || (err instanceof Error && err.message.includes('circuit open'))) {
+        logger.logError(503, 'Bridge service temporarily unavailable');
+        return withRequestId(
+          NextResponse.json({ error: 'Bridge service is temporarily unavailable. Please try again shortly.' }, { status: 503 }),
+          requestId,
+        );
+      }
+      throw err;
+    }
 
     let stellarChain: any = null;
     let baseChain: any = null;
