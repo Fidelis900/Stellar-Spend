@@ -1,0 +1,16 @@
+{
+  "atLeast": 95,
+  "strict": false,
+  "detail": false,
+  "ignoreCatch": false,
+  "ignoreFiles": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/__tests__/**",
+    "**/test/**",
+    "**/e2e/**",
+    "src/test/**"
+  ]
+}
