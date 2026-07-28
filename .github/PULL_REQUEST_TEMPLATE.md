@@ -67,3 +67,10 @@ Closes #<!-- issue number(s) -->
 ## Dependencies / follow-up work
 
 <!-- List any PRs this depends on, or follow-up issues to be filed. -->
+
+### Code Quality Checklist
+- [ ] No commented-out code blocks
+- [ ] No console.log statements (except in development)
+- [ ] No TODO comments without linked issues
+- [ ] Code follows project style guide
+- [ ] All tests passing
