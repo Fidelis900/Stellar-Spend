@@ -251,3 +251,212 @@ expect(onSubmit).toHaveBeenCalledOnce();
 ```ts
 beforeEach(() => localStorage.clear());
 ```
+
+---
+
+## OpenAPI Contract Tests (Issue #834)
+
+Contract tests live in `src/test/contract/openapi-contract.test.ts` and run automatically as part of `npm test`.
+
+### What they verify
+
+- Every route handler's response conforms to the schema in `openapi.yaml`.
+- Required fields are present (`required: [...]` in the spec is enforced via AJV).
+- The `Error` schema's `error` enum only contains documented codes.
+- No undocumented top-level fields drift into responses (`additionalProperties: false` applied structurally).
+- All `$ref` targets in `components/schemas` resolve without errors (orphaned refs are caught).
+
+### Running just the contract tests
+
+```bash
+npx vitest --run src/test/contract/openapi-contract.test.ts
+```
+
+### Updating `openapi.yaml` when the backend contract changes
+
+1. **Add / change an endpoint:** edit the relevant `paths` entry in `openapi.yaml`.
+2. **Add / change a response schema:** edit the corresponding entry in `components/schemas`.
+3. **Regenerate from routes (optional):** if your team uses `openapi-typescript` or a similar generator, run it and then diff `openapi.yaml` to confirm the changes are intentional:
+
+   ```bash
+   # Example with openapi-typescript (install separately if needed)
+   npx openapi-typescript openapi.yaml -o src/types/api.d.ts
+   ```
+
+4. **Run the contract suite** to confirm no regressions:
+
+   ```bash
+   npx vitest --run src/test/contract/openapi-contract.test.ts
+   ```
+
+5. **Commit both** the updated `openapi.yaml` and any affected source files together so the spec stays in sync with the implementation.
+
+### AJV dependency
+
+The contract tests rely on `ajv` and `ajv-formats`, which are already present in `devDependencies`. If they are ever removed, add them back:
+
+```bash
+npm install --save-dev ajv ajv-formats js-yaml
+```
+
+---
+
+## Mutation Testing with Stryker (Issue #833)
+
+Mutation tests measure whether the unit-test suite can catch code changes (mutations) to library logic.
+
+### Running mutation tests
+
+```bash
+npm run test:mutation
+```
+
+This invokes `stryker run` using `stryker.conf.json`. The HTML report is written to `./mutation-report/index.html`.
+
+### Mutation score targets
+
+| Threshold | Value |
+|---|---|
+| High (green) | ≥ 80 % |
+| Medium (yellow) | ≥ 70 % |
+| Low (orange) | ≥ 60 % |
+| Break (CI fails) | < 55 % |
+
+### Files mutated by Stryker
+
+Stryker mutates `src/lib/**/*.ts` and `src/app/api/**/*.ts` (see `stryker.conf.json`). The following test files provide coverage that kills mutants:
+
+| Test file | Target lib modules |
+|---|---|
+| `src/test/mutation.test.ts` | `fee-calculation`, `error-types`, `paycrest-adapter`, `kyc-limits` |
+| `src/test/mutation-critical-paths.test.ts` | `http-client`, `cache/keys` |
+| `src/test/fee-calculation.test.ts` | `fee-calculation` (full coverage) |
+| `src/test/error-types.test.ts` | `error-types` |
+| `src/test/mapPaycrestStatus.test.ts` | `paycrest-adapter` |
+
+### Improving the mutation score
+
+When Stryker reports a surviving mutant:
+
+1. Open `./mutation-report/index.html` and find the surviving mutant.
+2. Identify which assertion was too weak to catch it (e.g. `toBeTruthy` instead of `toBe(true)`).
+3. Add a focused test that asserts the exact value a mutant would change.
+4. Re-run `npm run test:mutation` to confirm the score improved.
+
+---
+
+## E2E Testing with Playwright (Issues #831 & #832)
+
+### Overview of E2E specs
+
+| Spec file | Issue | Coverage |
+|---|---|---|
+| `e2e/payment-flow.spec.ts` | #831 (P0) | Connect wallet → amount → quote → recipient → confirm → history |
+| `e2e/kyc-rejection-resubmission.spec.ts` | #832 | Unverified → submit → rejected → resubmit → approved lifecycle |
+| `e2e/smoke.spec.ts` | — | Production smoke: health, currencies, rate, UI load |
+| `e2e/critical-journeys.spec.ts` | — | Full offramp with axe accessibility checks |
+| `e2e/transaction-history.spec.ts` | — | History display, filter, search, export |
+
+### Running E2E tests locally
+
+> **Prerequisite:** The app must be running on `http://localhost:3001`. All external dependencies are mocked inside each spec via `page.route()` — no real API keys are required.
+
+```bash
+# Build and start the server (first run)
+npm run build && npm start &
+
+# Or use the dev server (faster iteration)
+npm run dev &
+
+# Run all E2E tests
+npm run test:e2e
+
+# Run a single spec file
+npx playwright test e2e/payment-flow.spec.ts
+
+# Run KYC spec only
+npx playwright test e2e/kyc-rejection-resubmission.spec.ts
+
+# Run headless with visible browser for debugging
+npx playwright test --headed e2e/payment-flow.spec.ts
+
+# Open the HTML report after a run
+npx playwright show-report
+```
+
+### Running in CI
+
+CI sets `CI=true` which enables:
+- 2 retries on flaky tests
+- Single worker (serial execution)
+- `forbidOnly` (test.only fails the run)
+- HTML report saved as an artifact
+
+```yaml
+# Example GitHub Actions step
+- name: Run E2E tests
+  run: npm run test:e2e
+  env:
+    CI: true
+    BASE_URL: http://localhost:3001
+```
+
+### Mocking strategy in E2E tests
+
+**Wallet (Freighter):** stubbed via `page.addInitScript()` before navigation. The stub auto-approves all `signTransaction` calls and returns a deterministic public key.
+
+**API endpoints:** mocked via `page.route('**/api/...**', ...)` at the top of each `beforeEach`. This intercepts all matching fetch/XHR calls and returns JSON fixtures without touching the network.
+
+**Transaction history (localStorage):** seeded via `page.addInitScript()` using `localStorage.setItem` before the page loads.
+
+### Writing new E2E tests
+
+Use the patterns established in `e2e/payment-flow.spec.ts`:
+
+```ts
+import { test, expect } from '@playwright/test';
+
+const BASE_URL = process.env.BASE_URL ?? 'http://localhost:3001';
+
+test.beforeEach(async ({ page }) => {
+  // 1. Stub wallet
+  await page.addInitScript(() => {
+    (window as any).freighter = {
+      isConnected: async () => true,
+      getPublicKey: async () => 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5',
+      signTransaction: async (xdr: string) => xdr,
+    };
+  });
+
+  // 2. Mock APIs
+  await page.route('**/api/offramp/quote**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ destinationAmount: '158200.00', rate: 1582, currency: 'NGN' }),
+    }),
+  );
+});
+
+test('my new scenario', async ({ page }) => {
+  await page.goto(BASE_URL);
+  await page.waitForLoadState('networkidle');
+  // ... assertions ...
+});
+```
+
+### KYC fixtures
+
+Structured test data for KYC flows is in `e2e/fixtures/kyc-fixtures.ts`:
+
+```ts
+import { KYC_USERS, KYC_REJECTION_REASONS, KYC_API_RESPONSES } from './fixtures/kyc-fixtures';
+
+// Use pre-built rejection API responses in page.route():
+await page.route('**/api/kyc**', (route) =>
+  route.fulfill({
+    status: 200,
+    body: JSON.stringify(KYC_API_RESPONSES.getRejected('documentUnreadable')),
+  }),
+);
+```
