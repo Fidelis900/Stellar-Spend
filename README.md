@@ -416,3 +416,18 @@ Questions or feedback? Reach out on Telegram: [t.me/Xoulomon](https://t.me/Xoulo
 ## License
 
 [MIT](./LICENSE) © Stellar-Spend Contributors
+
+## TypeScript Configuration
+
+### Base Config
+The project uses a shared TypeScript base config (`tsconfig.base.json`) that is extended by:
+- Root `tsconfig.json` (app)
+- `packages/shared/tsconfig.json` (shared package)
+
+### Verifying Configs
+```bash
+# Verify all TypeScript configs
+npm run verify:tsconfig
+
+# Or directly
+bash scripts/verify-tsconfig.sh
