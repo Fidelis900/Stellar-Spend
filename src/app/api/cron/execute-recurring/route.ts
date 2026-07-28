@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     for (const schedule of dueSchedules) {
       try {
         // Execution logic: downstream services would process the offramp payment here.
-        logger.info('recurring.execute', { scheduleId: schedule.id, userAddress: schedule.userAddress });
+        logger.debug('recurring.execute', { scheduleId: schedule.id });
 
         results.push({ id: schedule.id, status: 'success' });
 

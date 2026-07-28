@@ -289,7 +289,7 @@ export async function attemptTimeoutRecovery(transactionId: string): Promise<{ r
 
   try {
     await dal.update(transactionId, { status: 'pending', error: undefined });
-    logger.info('transaction.timeout_recovery', { transactionId, userAddress: tx.userAddress });
+    logger.debug('transaction.timeout_recovery', { transactionId });
     return { recovered: true, reason: 'Transaction re-queued for bridge processing' };
   } catch (err) {
     return { recovered: false, reason: String(err) };

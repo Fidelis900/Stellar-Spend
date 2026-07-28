@@ -129,8 +129,7 @@ export async function POST(req: NextRequest) {
       const normalizedAmount = Math.floor(amount * 1e6) / 1e6;
       const normalizedRate = Number(rate.toFixed(6));
 
-      logger.info('[paycrest/order] amount normalization', {
-        raw: { amount, rate },
+      logger.debug('[paycrest/order] amount normalization', {
         normalized: { amount: normalizedAmount, rate: normalizedRate },
       });
 

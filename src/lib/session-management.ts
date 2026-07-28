@@ -114,7 +114,7 @@ export class SessionManagementService {
       ],
     );
 
-    logger.info("Session created", { userId: userAddress, sessionId: id, ipAddress });
+    logger.debug("Session created", { sessionId: id });
 
     return {
       id,
@@ -210,7 +210,7 @@ export class SessionManagementService {
       [newExpiresAt, now, now, row.id],
     );
 
-    logger.info("Session refreshed", { userId: row.user_address, sessionId: row.id });
+    logger.debug("Session refreshed", { sessionId: row.id });
 
     return mapRow({ ...row, expires_at: newExpiresAt, refreshed_at: now, last_activity_at: now });
   }
@@ -336,7 +336,7 @@ export class SessionManagementService {
       [revocationId, sessionId, userAddress, reason || null, Date.now()],
     );
 
-    logger.info("Session revoked", { userId: userAddress, sessionId, reason });
+    logger.debug("Session revoked", { sessionId, reason });
   }
 
   async revokeAllUserSessions(userAddress: string, reason?: string): Promise<void> {
@@ -349,7 +349,7 @@ export class SessionManagementService {
       await this.revokeSession(row.id, reason);
     }
 
-    logger.info("All sessions revoked for user", { userId: userAddress, reason });
+    logger.debug("All sessions revoked for user", { reason });
   }
 
   // ---------------------------------------------------------------------------

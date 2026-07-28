@@ -1,5 +1,6 @@
 import { isValidQuote } from './validation';
 import { withPaycrestTimeout } from './timeout';
+import { fxRateService } from '@/lib/services/fx-rate.service';
 
 export interface QuoteParams {
   amount: string;
@@ -18,9 +19,9 @@ export interface QuoteResult {
 }
 
 /**
- * Fetch quote from Paycrest API
- * Handles rate fetching and destination amount calculation
- * 
+ * Fetch quote from Paycrest API via the shared fxRateService.
+ * Handles rate fetching (with caching/TTL) and destination amount calculation.
+ *
  * @param receiveAmount - Amount received from bridge (in USDC)
  * @param currency - Target currency code (e.g., 'NGN', 'KES')
  * @returns Rate and destination amount with 1% platform fee applied
@@ -38,25 +39,8 @@ export async function fetchPaycrestQuote(
     throw new Error('Invalid receiveAmount');
   }
 
-  // Build Paycrest API URL: GET /v1/rates/USDC/{receiveAmount}/{currency}?network=base
-  const url = new URL('https://api.paycrest.io/v1/rates/USDC');
-  url.pathname = `/v1/rates/USDC/${receiveAmount}/${currency}`;
-  url.searchParams.set('network', 'base');
-
-  const response = await withPaycrestTimeout(
-    fetch(url.toString()),
-    'rate_quote'
-  );
-  if (!response.ok) {
-    throw new Error(`Paycrest API error: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  const rate = parseFloat(data.rate ?? '0');
-
-  if (isNaN(rate) || rate <= 0) {
-    throw new Error('Invalid rate received from Paycrest');
-  }
+  // Use the shared service — benefits from TTL cache and stale-while-revalidate
+  const rate = await fxRateService.getRate(currency);
 
   // Calculate destination amount with 1% platform fee: receiveAmount * rate * 0.99
   const destinationAmount = (numAmount * rate * 0.99).toString();
