@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
         if (action === 'execute') {
           const { batchId } = body;
           if (!batchId) return ErrorHandler.validation('Missing batchId');
-          const result = await executeBatch(batchId, async (payload) => {
+          const result = await executeBatch(batchId, async (_payload) => {
             return `tx_${Date.now()}`;
           });
           return NextResponse.json({ batchId, ...result });
@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
 
     const status = await getBatchStatus(batchId);
     return NextResponse.json(status);
-  } catch (error) {
+  } catch (_error) {
     return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to get batch status'));
   }
 }

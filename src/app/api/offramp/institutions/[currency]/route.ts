@@ -1,7 +1,7 @@
 import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { env } from '@/lib/env';
-import { getCorridorInstitutions, getCorridorConfig } from '@/lib/corridor-config';
+import { getCorridorConfig } from '@/lib/corridor-config';
 import { ErrorHandler } from '@/lib/error-handler';
 import { ApiError, ErrorType } from '@/lib/error-types';
 

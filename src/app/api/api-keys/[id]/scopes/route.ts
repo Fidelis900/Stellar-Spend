@@ -3,7 +3,7 @@ import { ErrorHandler } from '@/lib/error-handler';
 import { getApiKeyById } from '@/lib/api-keys/service';
 import { requireApiKeyAdmin } from '@/app/api/api-keys/_utils';
 import { pool } from '@/lib/db/client';
-import { SCOPE_CATALOG, type Scope } from '@/lib/api-keys/scopes';
+import { SCOPE_CATALOG } from '@/lib/api-keys/scopes';
 import { auditLoggingService } from '@/lib/audit-logging';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -70,7 +70,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return ErrorHandler.notFound('API key');
     }
 
-    const authHeader = request.headers.get('authorization') || '';
     await auditLoggingService.logAction('api_key.scopes_updated', 'api_key', 'success', {
       resourceId: id,
       actionDetails: `Scopes updated from [${existing.scopes.join(', ')}] to [${body.scopes.join(', ')}]`,

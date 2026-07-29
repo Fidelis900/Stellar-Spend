@@ -55,6 +55,20 @@ export default [
       'react/no-unescaped-entities': 'off',
       '@next/next/no-img-element': 'warn',
       '@typescript-eslint/no-explicit-any': 'error',
+      // Enforce no unused variables project-wide.
+      // Convention: prefix intentionally-unused params/vars with _ to suppress.
+      'no-unused-vars': 'off', // disabled in favour of the TS-aware rule below
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          vars: 'all',
+          args: 'after-used',
+          argsIgnorePattern: '^_',
+          caughtErrors: 'all',
+          caughtErrorsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+        },
+      ],
       'no-console': 'warn',
     },
   },

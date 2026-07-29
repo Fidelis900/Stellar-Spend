@@ -3,7 +3,7 @@ import { auditLoggingService } from '@/lib/audit-logging';
 import { logger } from '@/lib/logger';
 import { ErrorHandler } from '@/lib/error-handler';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const policy = await auditLoggingService.getRetentionPolicy();
     return NextResponse.json({ retentionDays: policy });

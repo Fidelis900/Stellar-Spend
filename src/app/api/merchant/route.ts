@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ErrorHandler } from '@/lib/error-handler';
 import { merchantService } from '@/lib/services/merchant.service';
 import { createMerchantSchema, formatZodErrors } from '@/lib/validators/schemas';
-import { z } from 'zod';
 import { ApiError, ErrorType } from '@/lib/error-types';
 
 // GET /api/merchant — get merchant profile by userId query param

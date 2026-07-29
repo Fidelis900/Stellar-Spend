@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { TwoFAService } from '@/lib/two-fa';
 import { ErrorHandler } from '@/lib/error-handler';
 
+// STORAGE_KEY was used in an earlier in-memory implementation; the record
+// now lives in the session store. Preserved here for reference.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const STORAGE_KEY = 'stellar_spend_2fa_config';
 
 export async function POST(req: NextRequest) {
