@@ -251,3 +251,139 @@ expect(onSubmit).toHaveBeenCalledOnce();
 ```ts
 beforeEach(() => localStorage.clear());
 ```
+
+---
+
+## Snapshot Testing Policy
+
+Snapshot tests capture the rendered output of a component or the return value of a formatter and fail when the output changes unexpectedly. They are a low-cost regression net — but only when maintained deliberately. This section defines how to use them correctly in Stellar-Spend.
+
+---
+
+### Inventory of current snapshot files
+
+| Snapshot file | Suite | Status |
+|---|---|---|
+| `src/test/__snapshots__/DataTable.test.tsx.snap` | `DataTable > matches the snapshot for a basic render` | ✅ Active — covers desktop table + mobile card layout |
+| `src/lib/__snapshots__/formatters.test.ts.snap` | `DateFormatter` and `helper functions` suites | ⚠️ Potentially stale — date strings (`Jul 25, 2025`) are hardcoded relative to a fixed test date; verify `formatters.test.ts` still passes with the frozen date |
+
+Snapshot utility helpers live in `src/test/snapshots/snapshot-utils.tsx` (not a test file — imported by test suites that need custom rendering helpers).
+
+---
+
+### When TO use snapshots
+
+Use snapshots to guard against unintended structural regressions in:
+
+- **Component markup** — rendered HTML structure of a UI component (element hierarchy, CSS class names, ARIA roles/attributes). The `DataTable` snapshot is a good example.
+- **Formatter / serialiser output** — pure functions that produce stable string representations of data (e.g. `DateFormatter.formatTimestamp`).
+- **API response shapes** — the JSON body of route handlers that have a fixed, documented contract.
+- **Complex composite renders** — components that compose many sub-components where a full structural audit in assertions would be unreasonably verbose.
+
+The key criterion: **the output must be deterministic given the same inputs.**
+
+---
+
+### When NOT to use snapshots
+
+Avoid snapshots when the output is inherently volatile or when assertions would be meaningless noise:
+
+| Scenario | Reason to avoid |
+|---|---|
+| Timestamps from `Date.now()` / `new Date()` | Output changes every run; snapshot will fail on every CI run unless the clock is frozen |
+| UUIDs, random IDs, nonces | Non-deterministic by design |
+| Network-fetched data (prices, exchange rates) | Live values differ between runs |
+| Animation or transition state | Intermediate states are not testable reliably |
+| Deeply nested third-party component internals | Upstream library updates break your snapshot without any change to your code |
+| Large, frequently-changing components | Every innocuous UI tweak forces a snapshot update, making reviews noisy and meaningless |
+
+If the data is dynamic, freeze it: use `vi.useFakeTimers()` with a fixed date or mock the data source before creating the snapshot.
+
+---
+
+### How to regenerate snapshots
+
+When a component intentionally changes and the snapshot is legitimately out of date, update it with:
+
+```bash
+npx vitest run --update-snapshots
+```
+
+To update snapshots for a single test file only:
+
+```bash
+npx vitest run --update-snapshots src/test/DataTable.test.tsx
+```
+
+To update snapshots for a single test suite interactively:
+
+```bash
+npx vitest --ui
+# then press 'u' on the failing snapshot in the UI
+```
+
+> ⚠️ **Never commit snapshot updates blindly.** Always read the diff before staging the file — see the staleness check procedure below.
+
+---
+
+### Staleness check procedure
+
+Run this procedure before opening or merging any PR that touches components or formatters:
+
+1. **Run tests in CI mode** (no watch, no update):
+   ```bash
+   npm test
+   ```
+2. **If snapshot tests fail**, inspect the diff output in the terminal. Vitest prints the expected vs. received diff inline.
+3. **Decide deliberately**:
+   - If the diff represents an _intentional_ change (you changed the component) → update the snapshot (see above) and include the updated `.snap` file in your PR.
+   - If the diff represents an _unintentional_ change (the component regressed) → fix the code, not the snapshot.
+4. **After updating**, review the full `.snap` file content — not just the diff — to confirm the new snapshot is correct.
+5. **Stage snapshot files explicitly** (`git add src/test/__snapshots__/DataTable.test.tsx.snap`) rather than via `git add .` to avoid accidentally committing unrelated changes.
+
+---
+
+### Review checklist for snapshot changes in PRs
+
+Before approving a PR that contains changes to any `.snap` file, the reviewer MUST verify each of the following:
+
+- [ ] **The diff is readable.** The changed lines in the `.snap` file correspond to documented, intentional changes described in the PR body.
+- [ ] **The snapshot is deterministic.** No timestamps, random IDs, or live network data appear in the new snapshot content.
+- [ ] **The new structure is correct.** The rendered HTML/string in the snapshot matches what you would expect from reading the component source.
+- [ ] **No accidental removals.** Existing snapshot keys have not been silently deleted without a corresponding removal of the test.
+- [ ] **ARIA attributes are preserved.** Accessibility-relevant attributes (`role`, `aria-label`, `aria-sort`, `scope`) must still be present if they were in the previous snapshot.
+- [ ] **Class names are intentional.** If Tailwind class strings changed, confirm the design change was deliberate.
+- [ ] **The test still runs.** The PR should include CI evidence (green check or attached log) that all snapshot tests pass with the new `.snap` file.
+
+---
+
+### Policy: manual review is mandatory
+
+> **Auto-approving snapshot changes without review is prohibited.**
+
+Snapshot `.snap` files are part of the test contract. They must be treated with the same scrutiny as production code changes. Specifically:
+
+- Do not approve a PR that modifies `.snap` files without reading the diff.
+- Do not merge a PR with snapshot changes solely because CI is green. CI only checks that the saved snapshot matches the current output — it does not verify that the current output is _correct_.
+- If a snapshot update is large (more than ~20 lines changed), request that the author break the PR into smaller units or provide a visual screenshot of the before/after component.
+- If you are the author, add a comment in the PR body explaining _why_ the snapshot changed and attaching a screenshot if the change is visual.
+
+---
+
+### CI enforcement
+
+The CI pipeline (`npm test`) runs Vitest **without** `--update-snapshots`. Any snapshot mismatch causes a non-zero exit and fails the build. This means:
+
+- Stale snapshot files that do not reflect the current component output will block merging.
+- Snapshot files must be committed and kept up to date; `.snap` files are **not** git-ignored.
+- If a new component test introduces a snapshot, the initial `.snap` file must be committed in the same PR as the test.
+
+To verify snapshot health locally before pushing:
+
+```bash
+npm test
+# All snapshot tests should pass with exit code 0.
+# A failing snapshot means either the component regressed or the snapshot is stale.
+```
+
+> The `scripts/check-diagrams.sh` CI script does not cover snapshot validation. Snapshot CI enforcement is handled entirely by the Vitest run in the `test` job.
