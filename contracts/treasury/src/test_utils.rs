@@ -68,8 +68,17 @@ impl TreasuryTest {
         self.read_storage(&DataKey::Schema)
     }
 
-    /// Build a fee schedule map in this fixture's env.
-    pub fn schedule(&self, tiers: &[(i128, u32)]) -> Map<i128, u32> {
+    /// Build a fee schedule map (u64 keys) in this fixture's env.
+    pub fn schedule(&self, tiers: &[(u64, u32)]) -> Map<u64, u32> {
+        let mut map: Map<u64, u32> = Map::new(&self.env);
+        for (threshold, basis_points) in tiers {
+            map.set(*threshold, *basis_points);
+        }
+        map
+    }
+
+    /// Build a legacy fee schedule map (i128 keys) for migration tests.
+    pub fn schedule_v2(&self, tiers: &[(i128, u32)]) -> Map<i128, u32> {
         let mut map: Map<i128, u32> = Map::new(&self.env);
         for (threshold, basis_points) in tiers {
             map.set(*threshold, *basis_points);
@@ -81,7 +90,7 @@ impl TreasuryTest {
     ///
     /// Lets tests set up schedules that the public API would reject (an empty one,
     /// for instance) in order to pin the read-path's behaviour against them.
-    pub fn force_schedule(&self, tiers: &[(i128, u32)]) {
+    pub fn force_schedule(&self, tiers: &[(u64, u32)]) {
         let schedule = self.schedule(tiers);
         self.env.as_contract(&self.contract_id, || {
             self.env
@@ -92,16 +101,16 @@ impl TreasuryTest {
     }
 }
 
-// ── Schema-upgrade harness (issue #817) ──────────────────────────────────────
+// ── Schema-upgrade harness (issue #817 / #811) ───────────────────────────────
 
 impl TreasuryTest {
     /// Overwrite instance storage with a **schema v1** layout.
     ///
-    /// v1 held admin, treasury and the fee schedule but no `TotalCollected` counter.
-    /// The key is explicitly removed so the migration is tested against an absent
-    /// entry rather than a zero-valued one.
+    /// v1 held admin, treasury and the fee schedule (as `Map<i128, u32>`) but no
+    /// `TotalCollected` counter. The key is explicitly removed so the migration is
+    /// tested against an absent entry rather than a zero-valued one.
     pub fn seed_v1_state(&self, tiers: &[(i128, u32)]) {
-        let schedule = self.schedule(tiers);
+        let schedule = self.schedule_v2(tiers);
         self.env.as_contract(&self.contract_id, || {
             let storage = self.env.storage().instance();
             storage.set(&DataKey::Admin, &self.admin);
@@ -112,10 +121,33 @@ impl TreasuryTest {
         });
     }
 
+    /// Overwrite instance storage with a **schema v2** layout.
+    ///
+    /// v2 added `TotalCollected` but still used `Map<i128, u32>` for the schedule.
+    /// Used to test the v2→v3 migration path in isolation.
+    pub fn seed_v2_state(&self, tiers: &[(i128, u32)], total_collected: i128) {
+        let schedule = self.schedule_v2(tiers);
+        self.env.as_contract(&self.contract_id, || {
+            let storage = self.env.storage().instance();
+            storage.set(&DataKey::Admin, &self.admin);
+            storage.set(&DataKey::Treasury, &self.treasury);
+            storage.set(&DataKey::FeeSchedule, &schedule);
+            storage.set(&DataKey::TotalCollected, &total_collected);
+            storage.set(&DataKey::Schema, &2u32);
+        });
+    }
+
     /// A fixture carrying un-migrated v1 state with the historical default tiers.
     pub fn with_legacy_v1_state() -> Self {
         let fixture = Self::registered();
         fixture.seed_v1_state(&[(0, 50), (1_000_000, 25), (10_000_000, 10)]);
+        fixture
+    }
+
+    /// A fixture carrying un-migrated v2 state (i128 keys, has TotalCollected).
+    pub fn with_legacy_v2_state() -> Self {
+        let fixture = Self::registered();
+        fixture.seed_v2_state(&[(0, 50), (1_000_000, 25), (10_000_000, 10)], 5_000);
         fixture
     }
 
@@ -126,10 +158,16 @@ impl TreasuryTest {
         })
     }
 
-    /// Fee schedule read straight out of storage.
-    pub fn stored_schedule(&self) -> Map<i128, u32> {
+    /// Fee schedule (v3, u64 keys) read straight out of storage.
+    pub fn stored_schedule(&self) -> Map<u64, u32> {
         self.read_storage(&DataKey::FeeSchedule)
             .expect("fee schedule missing")
+    }
+
+    /// Fee schedule as a v2 (i128-keyed) map for testing pre-migration state.
+    pub fn stored_schedule_v2(&self) -> Map<i128, u32> {
+        self.read_storage(&DataKey::FeeSchedule)
+            .expect("v2 fee schedule missing")
     }
 }
 

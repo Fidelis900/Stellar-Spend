@@ -30,16 +30,33 @@
 //! contract to the number of deposits that fit in a single instance entry; it is a
 //! deliberate trade so that [`EscrowContract::migrate`] can enumerate every deposit
 //! during a schema upgrade (Soroban cannot iterate persistent-storage keys).
+//!
+//! # Module layout (#812)
+//!
+//! Business logic is split into focused modules; this file is a thin
+//! contract-trait dispatcher:
+//!
+//! | Module        | Responsibility                                       |
+//! |---------------|------------------------------------------------------|
+//! | `create`      | [`EscrowContract::deposit`]                          |
+//! | `release`     | [`EscrowContract::release`] + shared guards          |
+//! | `refund`      | [`EscrowContract::refund`]                           |
+//! | `dispute`     | [`EscrowContract::set_timeout`], `can_refund`        |
 
 #![no_std]
 
 use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, BytesN, Env, Map};
 use stellar_spend_shared::{
     errors::ContractError,
-    validation::{
-        check_schema_version, require_basis_points, require_positive_amount, MAX_BASIS_POINTS,
-    },
+    validation::{check_schema_version, require_basis_points, require_positive_amount, MAX_BASIS_POINTS},
 };
+
+// ── Sub-modules (issue #812) ──────────────────────────────────────────────────
+
+pub mod create;
+pub mod dispute;
+pub mod refund;
+pub mod release;
 
 /// Current storage layout version. Bump whenever a stored type changes shape, and
 /// extend [`EscrowContract::migrate`] to convert the previous layout.
@@ -144,9 +161,7 @@ impl EscrowContract {
 
     /// Record a deposit and return its id.
     ///
-    /// The id is a monotonic counter rather than a derived string: `format!` is
-    /// unavailable in `no_std` without an allocator, and a counter is
-    /// collision-free without paying to encode addresses into a key.
+    /// Delegates to [`create::deposit`].
     pub fn deposit(
         env: Env,
         depositor: Address,
@@ -154,171 +169,48 @@ impl EscrowContract {
         bridge_address: Address,
         fee_bps: u32,
     ) -> Result<u64, ContractError> {
-        // ── CHECK ──────────────────────────────────────────────────────────
         Self::require_current_schema(&env)?;
-        require_positive_amount(amount)?;
-        require_basis_points(fee_bps, MAX_BASIS_POINTS)?;
-        depositor.require_auth();
-
-        let storage = env.storage().instance();
-        let timeout: u32 = storage
-            .get(&DataKey::Timeout)
-            .unwrap_or(DEFAULT_TIMEOUT_LEDGERS);
-        let current_ledger = env.ledger().sequence();
-
-        // Both operands are bounded (`timeout` by MAX_TIMEOUT_LEDGERS at write
-        // time), but a near-u32::MAX ledger sequence would still wrap.
-        let timeout_ledger = current_ledger
-            .checked_add(timeout)
-            .ok_or(ContractError::Overflow)?;
-
-        let id: u64 = storage.get(&DataKey::NextId).unwrap_or(0);
-        let next_id = id.checked_add(1).ok_or(ContractError::Overflow)?;
-
-        // ── EFFECT ─────────────────────────────────────────────────────────
-        let mut deposits: Map<u64, EscrowDeposit> = storage
-            .get(&DataKey::Deposits)
-            .unwrap_or_else(|| Map::new(&env));
-
-        deposits.set(
-            id,
-            EscrowDeposit {
-                depositor: depositor.clone(),
-                amount,
-                bridge_address: bridge_address.clone(),
-                timestamp: env.ledger().timestamp(),
-                timeout_ledger,
-                released: false,
-                refunded: false,
-                fee_bps,
-            },
-        );
-
-        storage.set(&DataKey::Deposits, &deposits);
-        storage.set(&DataKey::NextId, &next_id);
-        Self::bump_instance_ttl(&env);
-
-        // ── INTERACT ───────────────────────────────────────────────────────
-        env.events().publish(
-            (symbol_short!("deposit"),),
-            (id, depositor, amount, bridge_address),
-        );
-        Ok(id)
+        create::deposit(&env, depositor, amount, bridge_address, fee_bps)
     }
 
     /// Release a deposit to `recipient`. Settlement authority only.
+    ///
+    /// Delegates to [`release::release`].
     pub fn release(env: Env, deposit_id: u64, recipient: Address) -> Result<i128, ContractError> {
-        // ── CHECK ──────────────────────────────────────────────────────────
         Self::require_current_schema(&env)?;
-        Self::acquire_lock(&env)?;
-        Self::require_admin(&env)?;
-
-        let mut deposits = Self::load_deposits(&env)?;
-        let mut deposit = match deposits.get(deposit_id) {
-            Some(d) => d,
-            None => {
-                Self::release_lock(&env);
-                return Err(ContractError::NotFound);
-            }
-        };
-
-        if deposit.released || deposit.refunded {
-            Self::release_lock(&env);
-            return Err(ContractError::AlreadyProcessed);
-        }
-
-        // ── EFFECT ─────────────────────────────────────────────────────────
-        let amount = deposit.amount;
-        deposit.released = true;
-        deposits.set(deposit_id, deposit);
-        env.storage().instance().set(&DataKey::Deposits, &deposits);
-        Self::bump_instance_ttl(&env);
-        Self::release_lock(&env);
-
-        // ── INTERACT ───────────────────────────────────────────────────────
-        env.events()
-            .publish((symbol_short!("release"),), (deposit_id, recipient, amount));
-        Ok(amount)
+        release::release(&env, deposit_id, recipient)
     }
 
     /// Refund a deposit to its depositor once the timeout ledger has passed.
     ///
-    /// Requires the depositor's authorisation.
+    /// Delegates to [`refund::refund`].
     pub fn refund(env: Env, deposit_id: u64) -> Result<i128, ContractError> {
-        // ── CHECK ──────────────────────────────────────────────────────────
         Self::require_current_schema(&env)?;
-        Self::acquire_lock(&env)?;
-
-        let mut deposits = Self::load_deposits(&env)?;
-        let mut deposit = match deposits.get(deposit_id) {
-            Some(d) => d,
-            None => {
-                Self::release_lock(&env);
-                return Err(ContractError::NotFound);
-            }
-        };
-
-        deposit.depositor.require_auth();
-
-        if deposit.released || deposit.refunded {
-            Self::release_lock(&env);
-            return Err(ContractError::AlreadyProcessed);
-        }
-        if env.ledger().sequence() < deposit.timeout_ledger {
-            Self::release_lock(&env);
-            return Err(ContractError::Expired);
-        }
-
-        // ── EFFECT ─────────────────────────────────────────────────────────
-        let amount = deposit.amount;
-        let depositor = deposit.depositor.clone();
-        deposit.refunded = true;
-        deposits.set(deposit_id, deposit);
-        env.storage().instance().set(&DataKey::Deposits, &deposits);
-        Self::bump_instance_ttl(&env);
-        Self::release_lock(&env);
-
-        // ── INTERACT ───────────────────────────────────────────────────────
-        env.events()
-            .publish((symbol_short!("refund"),), (deposit_id, depositor, amount));
-        Ok(amount)
+        refund::refund(&env, deposit_id)
     }
 
     /// Fetch a deposit record.
     pub fn get_deposit(env: Env, deposit_id: u64) -> Result<EscrowDeposit, ContractError> {
         Self::require_current_schema(&env)?;
-        Self::load_deposits(&env)?
+        release::load_deposits(&env)?
             .get(deposit_id)
             .ok_or(ContractError::NotFound)
     }
 
     /// Update the refund timeout applied to *future* deposits. Authority only.
     ///
-    /// Existing deposits keep the `timeout_ledger` fixed at creation, so lengthening
-    /// the timeout cannot retroactively trap funds that are already refundable.
+    /// Delegates to [`dispute::set_timeout`].
     pub fn set_timeout(env: Env, timeout_ledgers: u32) -> Result<(), ContractError> {
         Self::require_current_schema(&env)?;
-        Self::require_admin(&env)?;
-        if !(MIN_TIMEOUT_LEDGERS..=MAX_TIMEOUT_LEDGERS).contains(&timeout_ledgers) {
-            return Err(ContractError::InvalidInput);
-        }
-
-        env.storage()
-            .instance()
-            .set(&DataKey::Timeout, &timeout_ledgers);
-        Self::bump_instance_ttl(&env);
-        env.events()
-            .publish((symbol_short!("timeout"),), timeout_ledgers);
-        Ok(())
+        dispute::set_timeout(&env, timeout_ledgers)
     }
 
     /// Whether `refund` would currently succeed for this deposit.
+    ///
+    /// Delegates to [`dispute::can_refund`].
     pub fn can_refund(env: Env, deposit_id: u64) -> Result<bool, ContractError> {
-        let deposit = Self::get_deposit(env.clone(), deposit_id)?;
-        if deposit.released || deposit.refunded {
-            return Ok(false);
-        }
-        Ok(env.ledger().sequence() >= deposit.timeout_ledger)
+        Self::require_current_schema(&env)?;
+        dispute::can_refund(&env, deposit_id)
     }
 
     // ── Upgrade surface (issue #817) ──────────────────────────────────────────
@@ -337,7 +229,7 @@ impl EscrowContract {
     /// existing layout — run `migrate` immediately afterwards, in the same
     /// transaction where possible.
     pub fn upgrade(env: Env, new_wasm_hash: BytesN<32>) -> Result<(), ContractError> {
-        Self::require_admin(&env)?;
+        release::require_admin(&env)?;
         env.deployer().update_current_contract_wasm(new_wasm_hash);
         env.events().publish((symbol_short!("upgrade"),), ());
         Ok(())
@@ -349,7 +241,7 @@ impl EscrowContract {
     /// applies — it is the one call that is *supposed* to run against stale state.
     /// Returns the version migrated from.
     pub fn migrate(env: Env) -> Result<u32, ContractError> {
-        Self::require_admin(&env)?;
+        release::require_admin(&env)?;
 
         let stored: u32 = env
             .storage()
@@ -404,16 +296,6 @@ impl EscrowContract {
 
     // ── Internal helpers ──────────────────────────────────────────────────────
 
-    fn require_admin(env: &Env) -> Result<Address, ContractError> {
-        let admin: Address = env
-            .storage()
-            .instance()
-            .get(&DataKey::Admin)
-            .ok_or(ContractError::NotInitialized)?;
-        admin.require_auth();
-        Ok(admin)
-    }
-
     fn require_current_schema(env: &Env) -> Result<(), ContractError> {
         check_schema_version(
             env.storage().instance().get(&DataKey::Schema),
@@ -421,39 +303,10 @@ impl EscrowContract {
         )
     }
 
-    fn load_deposits(env: &Env) -> Result<Map<u64, EscrowDeposit>, ContractError> {
-        env.storage()
-            .instance()
-            .get(&DataKey::Deposits)
-            .ok_or(ContractError::NotInitialized)
-    }
-
     fn bump_instance_ttl(env: &Env) {
         env.storage()
             .instance()
             .extend_ttl(INSTANCE_TTL_THRESHOLD, INSTANCE_TTL_EXTEND_TO);
-    }
-
-    // ── Reentrancy guard ──────────────────────────────────────────────────────
-
-    /// Acquire the reentrancy lock, or `Err(ContractError::Reentrant)` if held.
-    fn acquire_lock(env: &Env) -> Result<(), ContractError> {
-        let locked: bool = env
-            .storage()
-            .instance()
-            .get(&DataKey::Lock)
-            .unwrap_or(false);
-        if locked {
-            return Err(ContractError::Reentrant);
-        }
-        env.storage().instance().set(&DataKey::Lock, &true);
-        Ok(())
-    }
-
-    /// Release the reentrancy lock unconditionally. Every exit path of a guarded
-    /// function must call this before returning.
-    fn release_lock(env: &Env) {
-        env.storage().instance().set(&DataKey::Lock, &false);
     }
 }
 
