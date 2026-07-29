@@ -1,6 +1,6 @@
 # Contributing to Stellar-Spend
 
-Thank you for your interest in contributing! This document covers everything you need to know: environment setup, branch and commit conventions, the pull request process, the definition of done, and review SLAs.
+## Scratch Files
 
 > **New here?** Start with the [Developer Onboarding Guide](./docs/onboarding.md) — it takes you from clone to a running local environment and explains the architecture in detail.
 
@@ -53,6 +53,7 @@ npm run dev
 
 ### Run checks before committing
 
+### Creating Scratch Files
 ```bash
 npm run lint             # ESLint
 npm run format:check     # Prettier
