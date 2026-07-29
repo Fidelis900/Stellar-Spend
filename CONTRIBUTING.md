@@ -93,11 +93,37 @@ cargo audit --deny warnings
 
 **Set up local pre-commit hooks (optional but recommended):**
 
+The project supports two pre-commit hook systems. Either one will enforce lint, TypeScript type-check, and formatting checks before each commit.
+
+**Option A — pre-commit framework (Python):**
+
 ```bash
 pip install pre-commit
 pre-commit install
-# Now cargo audit will run automatically before commits that touch Cargo.toml files
 ```
+
+**Option B — Husky (native Git hooks):**
+
+```bash
+npm install
+npx husky install
+npx husky add .husky/pre-commit "npm run lint && npm run type:check && npm run format:check"
+```
+
+The pre-commit hooks run:
+1. `npm run lint` — ESLint checks
+2. `npm run type:check` — TypeScript type-checking (`tsc --noEmit`)
+3. `npm run format:check` — Prettier formatting check
+
+**Bypassing pre-commit hooks:**
+
+To skip hooks for a specific commit (e.g., emergency fix, WIP commit), use the `--no-verify` flag:
+
+```bash
+git commit --no-verify -m "WIP: temporary change"
+```
+
+> **Warning**: `--no-verify` bypasses all pre-commit checks. CI will still enforce lint, type-check, and format on every push. Use this flag sparingly and never for code that will be merged without review.
 
 **Common workflows before pushing contract changes:**
 

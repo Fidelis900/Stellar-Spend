@@ -1,12 +1,18 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "entry": ["src/app/**/*.{ts,tsx}", "src/lib/index.ts"],
-  "project": ["src/**/*.{ts,tsx}"],
+  "project": ["tsconfig.json", "tsconfig.base.json"],
   "ignore": [
     "src/stories/**",
     "src/test/**",
     "src/**/*.test.{ts,tsx}",
-    "src/**/*.stories.{ts,tsx}"
+    "src/**/*.stories.{ts,tsx}",
+    "**/*.test.{ts,tsx}",
+    "**/*.spec.{ts,tsx}",
+    "src/app/api/**",
+    "src/__tests__/**",
+    "**/__tests__/**"
   ],
-  "ignoreDependencies": ["@storybook/*"]
+  "ignoreDependencies": ["@storybook/*"],
+  "ignoreExportsUsedInFiles": true
 }

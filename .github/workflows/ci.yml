@@ -69,6 +69,9 @@ jobs:
       - name: Check code formatting
         run: npm run format:check
 
+      - name: Check dependency vulnerabilities
+        run: npm run audit:check
+
       - name: Check bundle sizes
         if: matrix.node-version == '20.x'
         run: |
