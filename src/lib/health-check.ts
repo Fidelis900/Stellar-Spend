@@ -1,6 +1,12 @@
 import { env } from './env';
 import packageJson from '../../package.json';
 
+// Lazy import to avoid module-level DATABASE_URL throw in test environments
+async function getPool() {
+  const { pool } = await import('./db/client');
+  return pool;
+}
+
 export interface HealthCheckResult {
   status: 'healthy' | 'degraded' | 'unhealthy';
   message?: string;
@@ -192,4 +198,23 @@ export async function performHealthCheck(): Promise<HealthCheckResponse> {
     version: packageJson.version,
     dependencies,
   };
+}
+
+/**
+ * Checks whether the PostgreSQL database is reachable and responding.
+ * Used by the readiness probe to gate traffic.
+ */
+export async function checkDatabaseHealth(): Promise<HealthCheckResult> {
+  const start = Date.now();
+  try {
+    const pool = await getPool();
+    await pool.query('SELECT 1');
+    return { status: 'healthy', responseTime: Date.now() - start };
+  } catch (error) {
+    return {
+      status: 'unhealthy',
+      message: error instanceof Error ? error.message : 'Database unreachable',
+      responseTime: Date.now() - start,
+    };
+  }
 }

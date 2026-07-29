@@ -5,6 +5,7 @@ import { generateRequestId, createRequestLogger } from '@/lib/offramp/utils/logg
 import { withIdempotency } from '@/lib/idempotency';
 import { ErrorHandler } from '@/lib/error-handler';
 import { ApiError, ErrorType } from '@/lib/error-types';
+import { paycrestOrderRouteSchema, formatZodErrors } from '@/lib/validators/schemas';
 
 export const maxDuration = 20;
 
@@ -48,126 +49,62 @@ function withRequestId<T>(response: NextResponse<T>, requestId: string): NextRes
  * }
  */
 export async function POST(req: NextRequest) {
-  return withIdempotency(
-    req,
-    async () => {
-      const requestId = generateRequestId();
-      const clientIp = getClientIp(req);
-      const logger = createRequestLogger(requestId, 'POST', '/api/offramp/paycrest/order');
+  return withIdempotency(req, async () => {
+    const requestId = generateRequestId();
+    const clientIp = getClientIp(req);
+    const logger = createRequestLogger(requestId, 'POST', '/api/offramp/paycrest/order');
 
-      try {
-        // Check rate limit
-        const rateLimitCheck = await paycrestOrderLimiter.check(clientIp);
-        if (!rateLimitCheck.allowed) {
-          logger.logError(429, 'Rate limit exceeded');
-          const res = withRequestId(
-            ErrorHandler.rateLimit('Too many requests', rateLimitCheck.retryAfter),
-            requestId,
-          );
-          res.headers.set('Retry-After', String(rateLimitCheck.retryAfter));
-          return res;
-        }
+    try {
+      // Check rate limit
+      const rateLimitCheck = await paycrestOrderLimiter.check(clientIp);
+      if (!rateLimitCheck.allowed) {
+        logger.logError(429, 'Rate limit exceeded');
+        const res = withRequestId(ErrorHandler.rateLimit('Too many requests', rateLimitCheck.retryAfter), requestId);
+        res.headers.set('Retry-After', String(rateLimitCheck.retryAfter));
+        return res;
+      }
 
-        const body = await req.json();
-        const { amount, rate, token, network, reference, returnAddress, recipient } = body;
+      const rawBody = await req.json();
 
-        const errors: Record<string, string> = {};
+      const zodResult = paycrestOrderRouteSchema.safeParse(rawBody);
+      if (!zodResult.success) {
+        const errors = formatZodErrors(zodResult.error);
+        logger.logError(400, 'Validation failed');
+        return withRequestId(
+          ErrorHandler.handle(new ApiError(ErrorType.VALIDATION, errors[0].message, 400, { errors })),
+          requestId,
+        );
+      }
 
-        if (amount === undefined || amount === null) {
-          errors.amount = 'amount is required';
-        } else if (typeof amount !== 'number' || amount <= 0) {
-          errors.amount = 'amount must be a positive number';
-        }
+      const { amount, rate, token, network, reference, returnAddress, recipient } = zodResult.data;
+      const normalizedAmount = Math.floor(amount * 1e6) / 1e6;
+      const normalizedRate = Number(rate.toFixed(6));
 
-        if (rate === undefined || rate === null) {
-          errors.rate = 'rate is required';
-        } else if (typeof rate !== 'number' || rate <= 0) {
-          errors.rate = 'rate must be a positive number';
-        }
+      logger.debug('[paycrest/order] amount normalization', {
+        normalized: { amount: normalizedAmount, rate: normalizedRate },
+      });
 
-        if (!token || typeof token !== 'string') {
-          errors.token = 'token is required and must be a string';
-        }
+      const paycrest = new PaycrestAdapter(env.server.PAYCREST_API_KEY);
+      const order = await paycrest.createOrder({
+        amount: normalizedAmount,
+        rate: normalizedRate,
+        token,
+        network,
+        reference,
+        returnAddress,
+        recipient,
+      } as PayoutOrderRequest);
 
-        if (!network || typeof network !== 'string') {
-          errors.network = 'network is required and must be a string';
-        }
+      const response = NextResponse.json({ data: order });
+      response.headers.set('X-Request-Id', requestId);
+      logger.logSuccess(200);
+      return response;
+    } catch (err: unknown) {
+      logger.error('Error creating Paycrest order:', {}, err);
 
-        if (!reference || typeof reference !== 'string') {
-          errors.reference = 'reference is required and must be a string';
-        }
-
-        if (!returnAddress || typeof returnAddress !== 'string') {
-          errors.returnAddress = 'returnAddress is required and must be a string';
-        }
-
-        if (!recipient || typeof recipient !== 'object') {
-          errors.recipient = 'recipient is required and must be an object';
-        } else {
-          const { institution, accountIdentifier, accountName, currency } = recipient;
-
-          if (!institution || typeof institution !== 'string') {
-            errors['recipient.institution'] =
-              'recipient.institution is required and must be a string';
-          }
-
-          if (!accountIdentifier || typeof accountIdentifier !== 'string') {
-            errors['recipient.accountIdentifier'] =
-              'recipient.accountIdentifier is required and must be a string';
-          }
-
-          if (!accountName || typeof accountName !== 'string') {
-            errors['recipient.accountName'] =
-              'recipient.accountName is required and must be a string';
-          }
-
-          if (!currency || typeof currency !== 'string') {
-            errors['recipient.currency'] = 'recipient.currency is required and must be a string';
-          }
-        }
-
-        if (Object.keys(errors).length > 0) {
-          logger.logError(400, 'Validation failed');
-          return withRequestId(
-            ErrorHandler.handle(
-              new ApiError(ErrorType.VALIDATION, 'Validation failed', 400, errors),
-            ),
-            requestId,
-          );
-        }
-
-        const normalizedAmount = Math.floor(amount * 1e6) / 1e6;
-        const normalizedRate = Number(rate.toFixed(6));
-
-        logger.debug('[paycrest/order] amount normalization', {
-          normalized: { amount: normalizedAmount, rate: normalizedRate },
-        });
-
-        const paycrest = new PaycrestAdapter(env.server.PAYCREST_API_KEY);
-        const order = await paycrest.createOrder({
-          amount: normalizedAmount,
-          rate: normalizedRate,
-          token,
-          network,
-          reference,
-          returnAddress,
-          recipient,
-        } as PayoutOrderRequest);
-
-        const response = NextResponse.json({ data: order });
-        response.headers.set('X-Request-Id', requestId);
-        logger.logSuccess(200);
-        return response;
-      } catch (err: unknown) {
-        logger.error('Error creating Paycrest order:', {}, err);
-
-        if (err instanceof PaycrestHttpError) {
-          logger.logError(err.status, err.message);
-          return withRequestId(ErrorHandler.handle(err, err.status), requestId);
-        }
-
-        logger.logError(500, err instanceof Error ? err.message : 'Internal server error');
-        return withRequestId(ErrorHandler.serverError(err), requestId);
+      if (err instanceof PaycrestHttpError) {
+        logger.logError(err.status, err.message);
+        return withRequestId(ErrorHandler.handle(err, err.status), requestId);
       }
     },
     { required: true },
