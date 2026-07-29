@@ -41,3 +41,17 @@ export {
 } from './beneficiary.factory';
 
 export { makeUser, makeUsers, resetUserCounter, type User } from './user.factory';
+
+export {
+  makeMultisigProposal,
+  makeMultisigSignature,
+  pendingMultisigProposal,
+  executedMultisigProposal,
+  expiredMultisigProposal,
+  partiallySignedMultisigProposal,
+  makeMultisigProposals,
+  makeMultisigSignatures,
+  resetMultisigSettlementCounters,
+  type MultisigProposal,
+  type MultisigSignature,
+} from './multisig-settlement.factory';

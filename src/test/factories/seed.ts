@@ -17,6 +17,7 @@ import { resetDefaultRng } from './rng';
 import { resetTransactionCounter } from './transaction.factory';
 import { resetBeneficiaryCounter } from './beneficiary.factory';
 import { resetUserCounter } from './user.factory';
+import { resetMultisigSettlementCounters } from './multisig-settlement.factory';
 
 /**
  * Reset all factory state to a deterministic baseline.
@@ -27,6 +28,7 @@ export function seed(s: number = 1): void {
   resetTransactionCounter();
   resetBeneficiaryCounter();
   resetUserCounter();
+  resetMultisigSettlementCounters();
 }
 
 /**
