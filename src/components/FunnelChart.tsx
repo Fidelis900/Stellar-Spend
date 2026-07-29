@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import type { FunnelData } from "@/lib/funnel";
+import type { FunnelData } from '@/lib/funnel';
 
 interface FunnelChartProps {
   data: FunnelData;
@@ -47,9 +47,7 @@ export function FunnelChart({ data }: FunnelChartProps) {
 
       <div className="mt-4 pt-4 border-t border-gray-700 flex justify-between text-sm">
         <span className="text-gray-400">Overall conversion</span>
-        <span className="font-semibold text-white">
-          {data.overallConversionRate.toFixed(1)}%
-        </span>
+        <span className="font-semibold text-white">{data.overallConversionRate.toFixed(1)}%</span>
       </div>
     </div>
   );

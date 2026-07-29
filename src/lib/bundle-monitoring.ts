@@ -32,19 +32,27 @@ export function logBundleMetrics(metrics: BundleMetrics, thresholds = DEFAULT_TH
   const warnings: string[] = [];
 
   if (metrics.gzipSize > thresholds.gzipSizeError) {
-    warnings.push(`❌ Gzip size ${formatBytes(metrics.gzipSize)} exceeds error threshold ${formatBytes(thresholds.gzipSizeError)}`);
+    warnings.push(
+      `❌ Gzip size ${formatBytes(metrics.gzipSize)} exceeds error threshold ${formatBytes(thresholds.gzipSizeError)}`,
+    );
   } else if (metrics.gzipSize > thresholds.gzipSizeWarning) {
-    warnings.push(`⚠️  Gzip size ${formatBytes(metrics.gzipSize)} exceeds warning threshold ${formatBytes(thresholds.gzipSizeWarning)}`);
+    warnings.push(
+      `⚠️  Gzip size ${formatBytes(metrics.gzipSize)} exceeds warning threshold ${formatBytes(thresholds.gzipSizeWarning)}`,
+    );
   }
 
   if (metrics.totalSize > thresholds.totalSizeError) {
-    warnings.push(`❌ Total size ${formatBytes(metrics.totalSize)} exceeds error threshold ${formatBytes(thresholds.totalSizeError)}`);
+    warnings.push(
+      `❌ Total size ${formatBytes(metrics.totalSize)} exceeds error threshold ${formatBytes(thresholds.totalSizeError)}`,
+    );
   } else if (metrics.totalSize > thresholds.totalSizeWarning) {
-    warnings.push(`⚠️  Total size ${formatBytes(metrics.totalSize)} exceeds warning threshold ${formatBytes(thresholds.totalSizeWarning)}`);
+    warnings.push(
+      `⚠️  Total size ${formatBytes(metrics.totalSize)} exceeds warning threshold ${formatBytes(thresholds.totalSizeWarning)}`,
+    );
   }
 
   if (warnings.length > 0) {
-    logger.warn("Bundle Size Warnings", { warnings: warnings.join("\n") });
+    logger.warn('Bundle Size Warnings', { warnings: warnings.join('\n') });
   }
 }
 
@@ -52,11 +60,11 @@ export function logBundleMetrics(metrics: BundleMetrics, thresholds = DEFAULT_TH
  * Format bytes to human-readable format
  */
 function formatBytes(bytes: number): string {
-  if (bytes === 0) return "0 Bytes";
+  if (bytes === 0) return '0 Bytes';
   const k = 1024;
-  const sizes = ["Bytes", "KB", "MB"];
+  const sizes = ['Bytes', 'KB', 'MB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
 }
 
 /**
@@ -71,18 +79,20 @@ export function getOptimizationRecommendations(metrics: BundleMetrics): string[]
     .sort(([, a], [, b]) => b - a);
 
   if (largeChunks.length > 0) {
-    recommendations.push("Consider code splitting for large chunks:");
+    recommendations.push('Consider code splitting for large chunks:');
     largeChunks.forEach(([chunk, size]) => {
       recommendations.push(`  - ${chunk}: ${formatBytes(size)}`);
     });
   }
 
   if (metrics.gzipSize > 200 * 1024) {
-    recommendations.push("Consider dynamic imports for heavy dependencies like @allbridge/bridge-core-sdk");
+    recommendations.push(
+      'Consider dynamic imports for heavy dependencies like @allbridge/bridge-core-sdk',
+    );
   }
 
   if (metrics.totalSize > 1024 * 1024) {
-    recommendations.push("Review and remove unused dependencies");
+    recommendations.push('Review and remove unused dependencies');
   }
 
   return recommendations;

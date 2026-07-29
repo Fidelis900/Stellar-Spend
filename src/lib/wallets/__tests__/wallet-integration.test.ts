@@ -137,7 +137,7 @@ describe('Wallet Integration Tests', () => {
     it('should return list of available wallets', () => {
       const available = manager.getAvailableWallets();
       expect(Array.isArray(available)).toBe(true);
-      available.forEach(wallet => {
+      available.forEach((wallet) => {
         expect(wallet.name).toBeDefined();
         expect(wallet.type).toBeDefined();
       });
@@ -184,10 +184,7 @@ describe('Wallet Integration Tests', () => {
     });
 
     it('should queue operations without race conditions', async () => {
-      const ops = [
-        manager.disconnect(),
-        manager.getCurrentWalletType(),
-      ];
+      const ops = [manager.disconnect(), manager.getCurrentWalletType()];
 
       await Promise.all([ops[0]]);
 

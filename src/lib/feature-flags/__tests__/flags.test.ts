@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { resolveGradualRollback, DEFAULT_FLAGS, FeatureFlagSchema, ENV_OVERRIED_FLAGS } from '../schema';
+import {
+  resolveGradualRollback,
+  DEFAULT_FLAGS,
+  FeatureFlagSchema,
+  ENV_OVERRIED_FLAGS,
+} from '../schema';
 
 describe('Feature Flag Schema', () => {
   it('parses default flags', () => {

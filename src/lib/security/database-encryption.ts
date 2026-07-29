@@ -12,7 +12,7 @@ import { logger } from '../logger';
 export async function encryptTableColumn(
   tableName: string,
   columnName: string,
-  encryptedColumnName: string
+  encryptedColumnName: string,
 ): Promise<{ encrypted: number; failed: number; errors: string[] }> {
   const errors: string[] = [];
   let encrypted = 0;
@@ -21,16 +21,16 @@ export async function encryptTableColumn(
   try {
     // Get all rows with unencrypted data
     const result = await pool.query(
-      `SELECT id, "${columnName}" FROM "${tableName}" WHERE "${encryptedColumnName}" IS NULL AND "${columnName}" IS NOT NULL`
+      `SELECT id, "${columnName}" FROM "${tableName}" WHERE "${encryptedColumnName}" IS NULL AND "${columnName}" IS NOT NULL`,
     );
 
     for (const row of result.rows) {
       try {
         const encryptedValue = encryptData(row[columnName] as string);
-        await pool.query(
-          `UPDATE "${tableName}" SET "${encryptedColumnName}" = $1 WHERE id = $2`,
-          [encryptedValue, row.id]
-        );
+        await pool.query(`UPDATE "${tableName}" SET "${encryptedColumnName}" = $1 WHERE id = $2`, [
+          encryptedValue,
+          row.id,
+        ]);
         encrypted++;
       } catch (error) {
         failed++;
@@ -70,7 +70,7 @@ export async function encryptTableColumn(
 export async function decryptTableColumn(
   tableName: string,
   encryptedColumnName: string,
-  columnName: string
+  columnName: string,
 ): Promise<{ decrypted: number; failed: number; errors: string[] }> {
   const errors: string[] = [];
   let decrypted = 0;
@@ -79,16 +79,16 @@ export async function decryptTableColumn(
   try {
     // Get all rows with encrypted data
     const result = await pool.query(
-      `SELECT id, "${encryptedColumnName}" FROM "${tableName}" WHERE "${encryptedColumnName}" IS NOT NULL`
+      `SELECT id, "${encryptedColumnName}" FROM "${tableName}" WHERE "${encryptedColumnName}" IS NOT NULL`,
     );
 
     for (const row of result.rows) {
       try {
         const decryptedValue = decryptData(row[encryptedColumnName] as string);
-        await pool.query(
-          `UPDATE "${tableName}" SET "${columnName}" = $1 WHERE id = $2`,
-          [decryptedValue, row.id]
-        );
+        await pool.query(`UPDATE "${tableName}" SET "${columnName}" = $1 WHERE id = $2`, [
+          decryptedValue,
+          row.id,
+        ]);
         decrypted++;
       } catch (error) {
         failed++;
@@ -128,7 +128,7 @@ export async function decryptTableColumn(
 export async function hashTableColumn(
   tableName: string,
   columnName: string,
-  hashColumnName: string
+  hashColumnName: string,
 ): Promise<{ hashed: number; failed: number; errors: string[] }> {
   const errors: string[] = [];
   let hashed = 0;
@@ -137,16 +137,16 @@ export async function hashTableColumn(
   try {
     // Get all rows with unhashed data
     const result = await pool.query(
-      `SELECT id, "${columnName}" FROM "${tableName}" WHERE "${hashColumnName}" IS NULL AND "${columnName}" IS NOT NULL`
+      `SELECT id, "${columnName}" FROM "${tableName}" WHERE "${hashColumnName}" IS NULL AND "${columnName}" IS NOT NULL`,
     );
 
     for (const row of result.rows) {
       try {
         const hashValue = hashData(row[columnName] as string);
-        await pool.query(
-          `UPDATE "${tableName}" SET "${hashColumnName}" = $1 WHERE id = $2`,
-          [hashValue, row.id]
-        );
+        await pool.query(`UPDATE "${tableName}" SET "${hashColumnName}" = $1 WHERE id = $2`, [
+          hashValue,
+          row.id,
+        ]);
         hashed++;
       } catch (error) {
         failed++;
@@ -185,7 +185,7 @@ export async function hashTableColumn(
  */
 export async function getTableEncryptionStatus(
   tableName: string,
-  encryptedColumnName: string
+  encryptedColumnName: string,
 ): Promise<{
   total: number;
   encrypted: number;
@@ -200,7 +200,7 @@ export async function getTableEncryptionStatus(
           COUNT(CASE WHEN "${encryptedColumnName}" IS NOT NULL THEN 1 END) as encrypted,
           COUNT(CASE WHEN "${encryptedColumnName}" IS NULL THEN 1 END) as unencrypted
         FROM "${tableName}"
-      `
+      `,
     );
 
     const row = result.rows[0];
@@ -229,7 +229,7 @@ export async function getTableEncryptionStatus(
  */
 export async function rotateTableColumnEncryption(
   tableName: string,
-  encryptedColumnName: string
+  encryptedColumnName: string,
 ): Promise<{ rotated: number; failed: number; errors: string[] }> {
   const errors: string[] = [];
   let rotated = 0;
@@ -238,7 +238,7 @@ export async function rotateTableColumnEncryption(
   try {
     // Get all encrypted rows
     const result = await pool.query(
-      `SELECT id, "${encryptedColumnName}" FROM "${tableName}" WHERE "${encryptedColumnName}" IS NOT NULL`
+      `SELECT id, "${encryptedColumnName}" FROM "${tableName}" WHERE "${encryptedColumnName}" IS NOT NULL`,
     );
 
     for (const row of result.rows) {
@@ -247,10 +247,10 @@ export async function rotateTableColumnEncryption(
         const decrypted = decryptData(row[encryptedColumnName] as string);
         // Re-encrypt with new key (which will be derived from updated ENCRYPTION_KEY env var)
         const reencrypted = encryptData(decrypted);
-        await pool.query(
-          `UPDATE "${tableName}" SET "${encryptedColumnName}" = $1 WHERE id = $2`,
-          [reencrypted, row.id]
-        );
+        await pool.query(`UPDATE "${tableName}" SET "${encryptedColumnName}" = $1 WHERE id = $2`, [
+          reencrypted,
+          row.id,
+        ]);
         rotated++;
       } catch (error) {
         failed++;
@@ -287,13 +287,10 @@ export async function rotateTableColumnEncryption(
 /**
  * Create encrypted backup of sensitive data
  */
-export async function createEncryptedBackup(
-  tableName: string,
-  columns: string[]
-): Promise<string> {
+export async function createEncryptedBackup(tableName: string, columns: string[]): Promise<string> {
   try {
     const result = await pool.query(
-      `SELECT ${columns.map((c) => `"${c}"`).join(', ')} FROM "${tableName}"`
+      `SELECT ${columns.map((c) => `"${c}"`).join(', ')} FROM "${tableName}"`,
     );
 
     const backup = {
@@ -327,7 +324,7 @@ export async function createEncryptedBackup(
  */
 export async function restoreEncryptedBackup(
   encryptedBackup: string,
-  tableName: string
+  tableName: string,
 ): Promise<{ restored: number; failed: number; errors: string[] }> {
   const errors: string[] = [];
   let restored = 0;
@@ -355,7 +352,7 @@ export async function restoreEncryptedBackup(
 
         await pool.query(
           `INSERT INTO "${tableName}" (${columns.map((c) => `"${c}"`).join(', ')}) VALUES (${placeholders})`,
-          values
+          values,
         );
         restored++;
       } catch (error) {

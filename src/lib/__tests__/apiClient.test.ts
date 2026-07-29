@@ -1,11 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import {
-  apiGet,
-  apiPost,
-  apiPatch,
-  apiDelete,
-  ApiErrorClass,
-} from '../apiClient';
+import { apiGet, apiPost, apiPatch, apiDelete, ApiErrorClass } from '../apiClient';
 
 // Mock fetch
 global.fetch = vi.fn();
@@ -24,7 +18,7 @@ describe('apiClient', () => {
     it('makes a GET request and returns typed data', async () => {
       const mockData: TestData = { id: 1, name: 'Test' };
       (global.fetch as any).mockResolvedValueOnce(
-        new Response(JSON.stringify(mockData), { status: 200 })
+        new Response(JSON.stringify(mockData), { status: 200 }),
       );
 
       const result = await apiGet<TestData>('/api/test');
@@ -36,18 +30,16 @@ describe('apiClient', () => {
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
           }),
-        })
+        }),
       );
     });
 
     it('throws ApiError on non-200 status', async () => {
       (global.fetch as any).mockResolvedValueOnce(
-        new Response(JSON.stringify({ error: 'Not found' }), { status: 404 })
+        new Response(JSON.stringify({ error: 'Not found' }), { status: 404 }),
       );
 
-      await expect(apiGet<TestData>('/api/test')).rejects.toThrow(
-        ApiErrorClass
-      );
+      await expect(apiGet<TestData>('/api/test')).rejects.toThrow(ApiErrorClass);
     });
   });
 
@@ -57,7 +49,7 @@ describe('apiClient', () => {
       const payload = { name: 'Test' };
 
       (global.fetch as any).mockResolvedValueOnce(
-        new Response(JSON.stringify(mockData), { status: 200 })
+        new Response(JSON.stringify(mockData), { status: 200 }),
       );
 
       const result = await apiPost<TestData>('/api/test', payload);
@@ -67,14 +59,12 @@ describe('apiClient', () => {
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify(payload),
-        })
+        }),
       );
     });
 
     it('handles empty response body', async () => {
-      (global.fetch as any).mockResolvedValueOnce(
-        new Response('', { status: 200 })
-      );
+      (global.fetch as any).mockResolvedValueOnce(new Response('', { status: 200 }));
 
       const result = await apiPost('/api/test');
       expect(result).toEqual({});
@@ -86,7 +76,7 @@ describe('apiClient', () => {
       const mockData: TestData = { id: 1, name: 'Updated' };
 
       (global.fetch as any).mockResolvedValueOnce(
-        new Response(JSON.stringify(mockData), { status: 200 })
+        new Response(JSON.stringify(mockData), { status: 200 }),
       );
 
       const result = await apiPatch<TestData>('/api/test/1', { name: 'Updated' });
@@ -95,41 +85,35 @@ describe('apiClient', () => {
         '/api/test/1',
         expect.objectContaining({
           method: 'PATCH',
-        })
+        }),
       );
     });
   });
 
   describe('apiDelete', () => {
     it('makes a DELETE request', async () => {
-      (global.fetch as any).mockResolvedValueOnce(
-        new Response(null, { status: 200 })
-      );
+      (global.fetch as any).mockResolvedValueOnce(new Response(null, { status: 200 }));
 
       await apiDelete('/api/test/1');
       expect(global.fetch).toHaveBeenCalledWith(
         '/api/test/1',
         expect.objectContaining({
           method: 'DELETE',
-        })
+        }),
       );
     });
   });
 
   describe('error handling', () => {
     it('handles network errors', async () => {
-      (global.fetch as any).mockRejectedValueOnce(
-        new Error('Network error')
-      );
+      (global.fetch as any).mockRejectedValueOnce(new Error('Network error'));
 
-      await expect(apiGet('/api/test')).rejects.toThrow(
-        ApiErrorClass
-      );
+      await expect(apiGet('/api/test')).rejects.toThrow(ApiErrorClass);
     });
 
     it('parses error message from response body', async () => {
       (global.fetch as any).mockResolvedValueOnce(
-        new Response(JSON.stringify({ error: 'Custom error message' }), { status: 400 })
+        new Response(JSON.stringify({ error: 'Custom error message' }), { status: 400 }),
       );
 
       try {
@@ -143,18 +127,14 @@ describe('apiClient', () => {
     });
 
     it('handles malformed JSON in response', async () => {
-      (global.fetch as any).mockResolvedValueOnce(
-        new Response('invalid json', { status: 200 })
-      );
+      (global.fetch as any).mockResolvedValueOnce(new Response('invalid json', { status: 200 }));
 
       const result = await apiGet('/api/test');
       expect(result).toEqual({});
     });
 
     it('respects custom headers', async () => {
-      (global.fetch as any).mockResolvedValueOnce(
-        new Response('{}', { status: 200 })
-      );
+      (global.fetch as any).mockResolvedValueOnce(new Response('{}', { status: 200 }));
 
       await apiGet('/api/test', {
         headers: { 'X-Custom-Header': 'value' },
@@ -166,7 +146,7 @@ describe('apiClient', () => {
           headers: expect.objectContaining({
             'X-Custom-Header': 'value',
           }),
-        })
+        }),
       );
     });
   });

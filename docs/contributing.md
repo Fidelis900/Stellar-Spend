@@ -162,12 +162,12 @@ npm run test:e2e      # Playwright end-to-end (requires dev server)
 
 ### What to Test
 
-| Change type | Required tests |
-|---|---|
-| New API route | Unit test for validation, happy path, and error cases |
-| New utility function | Unit test covering edge cases |
-| New React component | Render test + key interaction test |
-| Bug fix | Regression test that fails before the fix |
+| Change type          | Required tests                                        |
+| -------------------- | ----------------------------------------------------- |
+| New API route        | Unit test for validation, happy path, and error cases |
+| New utility function | Unit test covering edge cases                         |
+| New React component  | Render test + key interaction test                    |
+| Bug fix              | Regression test that fails before the fix             |
 
 ### Test Helpers
 
@@ -274,6 +274,7 @@ The Allbridge SDK is dynamically imported and makes real network calls. Tests th
 ### `Bridge quote unavailable` / `FX rate unavailable` in development
 
 These 502 errors mean the Allbridge or Paycrest upstream is unreachable. Check:
+
 - `BASE_RPC_URL` and `STELLAR_SOROBAN_RPC_URL` are valid and reachable
 - Your network allows outbound HTTPS to `api.paycrest.io`
 - Allbridge SDK `nodeRpcUrlsDefault` endpoints are up

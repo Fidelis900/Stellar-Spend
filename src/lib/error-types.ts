@@ -43,7 +43,7 @@ export enum ErrorType {
   CONFLICT = 'conflict',
   RATE_LIMIT = 'rate_limit_exceeded',
   SERVER_ERROR = 'server_error',
-  EXTERNAL_SERVICE = 'external_service_error'
+  EXTERNAL_SERVICE = 'external_service_error',
 }
 
 /**
@@ -57,7 +57,7 @@ export const ERROR_STATUS_CODES: Record<ErrorType, number> = {
   [ErrorType.CONFLICT]: 409,
   [ErrorType.RATE_LIMIT]: 429,
   [ErrorType.SERVER_ERROR]: 500,
-  [ErrorType.EXTERNAL_SERVICE]: 502
+  [ErrorType.EXTERNAL_SERVICE]: 502,
 };
 
 /**
@@ -65,12 +65,12 @@ export const ERROR_STATUS_CODES: Record<ErrorType, number> = {
  */
 export function getEnvironmentConfig(): EnvironmentConfig {
   const isProduction = process.env.NODE_ENV === 'production';
-  
+
   return {
     isProduction,
     includeStackTrace: !isProduction,
     includeDetails: !isProduction,
-    logLevel: isProduction ? 'error' : 'debug'
+    logLevel: isProduction ? 'error' : 'debug',
   };
 }
 
@@ -99,7 +99,7 @@ export class ApiError extends Error {
     public readonly errorType: ErrorType,
     message: string,
     public readonly statusCode: number = ERROR_STATUS_CODES[errorType] ?? 500,
-    public readonly details?: Record<string, unknown>
+    public readonly details?: Record<string, unknown>,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -111,7 +111,11 @@ export class ApiError extends Error {
   }
 
   static notFound(resource?: string): ApiError {
-    return new ApiError(ErrorType.NOT_FOUND, resource ? `${resource} not found` : 'Resource not found', 404);
+    return new ApiError(
+      ErrorType.NOT_FOUND,
+      resource ? `${resource} not found` : 'Resource not found',
+      404,
+    );
   }
 
   static unauthorized(message: string = 'Unauthorized access'): ApiError {
@@ -127,7 +131,12 @@ export class ApiError extends Error {
   }
 
   static rateLimit(message: string = 'Rate limit exceeded', retryAfter?: number): ApiError {
-    return new ApiError(ErrorType.RATE_LIMIT, message, 429, retryAfter ? { retryAfter } : undefined);
+    return new ApiError(
+      ErrorType.RATE_LIMIT,
+      message,
+      429,
+      retryAfter ? { retryAfter } : undefined,
+    );
   }
 
   static externalService(service: string, message: string): ApiError {

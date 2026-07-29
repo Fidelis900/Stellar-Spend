@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useCallback, useId, useMemo, useRef, useState } from "react";
-import { cn } from "@/lib/cn";
-import VirtualList from "./VirtualList";
+import { useCallback, useId, useMemo, useRef, useState } from 'react';
+import { cn } from '@/lib/cn';
+import VirtualList from './VirtualList';
 
-export type SortDirection = "asc" | "desc";
+export type SortDirection = 'asc' | 'desc';
 
 export interface DataTableColumn<T> {
   /** Unique column identifier, also used as the React key. */
@@ -13,7 +13,7 @@ export interface DataTableColumn<T> {
   accessor: (row: T) => React.ReactNode;
   /** Provide to make the column sortable; returns the comparable value for a row. */
   sortValue?: (row: T) => string | number;
-  align?: "left" | "right" | "center";
+  align?: 'left' | 'right' | 'center';
   className?: string;
   /** CSS grid track size used once the table switches to virtualized rendering. Defaults to "1fr". */
   width?: string;
@@ -21,7 +21,7 @@ export interface DataTableColumn<T> {
   hiddenByDefault?: boolean;
 }
 
-export type DataTableVariant = "dark-gold" | "light";
+export type DataTableVariant = 'dark-gold' | 'light';
 
 export interface DataTableProps<T> {
   columns: DataTableColumn<T>[];
@@ -57,44 +57,48 @@ const DEFAULT_ROW_HEIGHT = 49;
 const DEFAULT_VIRTUALIZE_THRESHOLD = 50;
 
 const THEME = {
-  "dark-gold": {
-    header: "bg-[#c9a962] text-[#0a0a0a]",
-    headerFocusRing: "focus-visible:ring-[#0a0a0a]",
-    border: "border-[#222222]",
-    rowEven: "bg-[#111111]",
-    rowOdd: "bg-[#0f0f0f]",
-    rowHover: "hover:bg-[#1a1a1a]",
-    cellText: "text-white",
-    card: "border-[#222222] bg-[#111111]",
-    cardLabel: "text-[#777777]",
-    accent: "text-[#c9a962] border-[#c9a962] hover:bg-[#c9a962] hover:text-[#0a0a0a] focus-visible:ring-[#c9a962]",
-    pageBtn: "border-[#333333] hover:border-[#c9a962] hover:text-[#c9a962] focus-visible:ring-[#c9a962]",
-    pageText: "text-[#777777]",
-    menu: "border-[#333333] bg-[#111111]",
-    menuLabel: "text-[#aaaaaa] hover:text-white",
+  'dark-gold': {
+    header: 'bg-[#c9a962] text-[#0a0a0a]',
+    headerFocusRing: 'focus-visible:ring-[#0a0a0a]',
+    border: 'border-[#222222]',
+    rowEven: 'bg-[#111111]',
+    rowOdd: 'bg-[#0f0f0f]',
+    rowHover: 'hover:bg-[#1a1a1a]',
+    cellText: 'text-white',
+    card: 'border-[#222222] bg-[#111111]',
+    cardLabel: 'text-[#777777]',
+    accent:
+      'text-[#c9a962] border-[#c9a962] hover:bg-[#c9a962] hover:text-[#0a0a0a] focus-visible:ring-[#c9a962]',
+    pageBtn:
+      'border-[#333333] hover:border-[#c9a962] hover:text-[#c9a962] focus-visible:ring-[#c9a962]',
+    pageText: 'text-[#777777]',
+    menu: 'border-[#333333] bg-[#111111]',
+    menuLabel: 'text-[#aaaaaa] hover:text-white',
   },
   light: {
-    header: "bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300",
-    headerFocusRing: "focus-visible:ring-gray-400",
-    border: "border-gray-200 dark:border-gray-700",
-    rowEven: "bg-white dark:bg-gray-900",
-    rowOdd: "bg-white dark:bg-gray-900",
-    rowHover: "hover:bg-gray-50 dark:hover:bg-gray-800/50",
-    cellText: "text-gray-900 dark:text-gray-100",
-    card: "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900",
-    cardLabel: "text-gray-500",
-    accent: "text-blue-600 border-blue-600 hover:bg-blue-600 hover:text-white focus-visible:ring-blue-400",
-    pageBtn: "border-gray-300 dark:border-gray-700 hover:border-blue-500 hover:text-blue-600 focus-visible:ring-blue-400",
-    pageText: "text-gray-500",
-    menu: "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900",
-    menuLabel: "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white",
+    header: 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300',
+    headerFocusRing: 'focus-visible:ring-gray-400',
+    border: 'border-gray-200 dark:border-gray-700',
+    rowEven: 'bg-white dark:bg-gray-900',
+    rowOdd: 'bg-white dark:bg-gray-900',
+    rowHover: 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+    cellText: 'text-gray-900 dark:text-gray-100',
+    card: 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900',
+    cardLabel: 'text-gray-500',
+    accent:
+      'text-blue-600 border-blue-600 hover:bg-blue-600 hover:text-white focus-visible:ring-blue-400',
+    pageBtn:
+      'border-gray-300 dark:border-gray-700 hover:border-blue-500 hover:text-blue-600 focus-visible:ring-blue-400',
+    pageText: 'text-gray-500',
+    menu: 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900',
+    menuLabel: 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white',
   },
 } as const;
 
-function alignClass(align: DataTableColumn<unknown>["align"]) {
-  if (align === "right") return "text-right";
-  if (align === "center") return "text-center";
-  return "text-left";
+function alignClass(align: DataTableColumn<unknown>['align']) {
+  if (align === 'right') return 'text-right';
+  if (align === 'center') return 'text-center';
+  return 'text-left';
 }
 
 export function DataTable<T>({
@@ -110,7 +114,7 @@ export function DataTable<T>({
   virtualizeThreshold = DEFAULT_VIRTUALIZE_THRESHOLD,
   rowHeight = DEFAULT_ROW_HEIGHT,
   maxBodyHeight = 420,
-  variant = "dark-gold",
+  variant = 'dark-gold',
   className,
   onRowActivate,
 }: DataTableProps<T>) {
@@ -119,7 +123,7 @@ export function DataTable<T>({
   const [sort, setSort] = useState<{ key: string; direction: SortDirection } | null>(null);
   const [page, setPage] = useState(0);
   const [hiddenColumns, setHiddenColumns] = useState<Set<string>>(
-    () => new Set(columns.filter((c) => c.hiddenByDefault).map((c) => c.key))
+    () => new Set(columns.filter((c) => c.hiddenByDefault).map((c) => c.key)),
   );
   const [showColumnMenu, setShowColumnMenu] = useState(false);
 
@@ -129,7 +133,7 @@ export function DataTable<T>({
 
   const visibleColumns = useMemo(
     () => columns.filter((c) => !hiddenColumns.has(c.key)),
-    [columns, hiddenColumns]
+    [columns, hiddenColumns],
   );
 
   const sortedRows = useMemo(() => {
@@ -144,7 +148,7 @@ export function DataTable<T>({
       if (av > bv) return 1;
       return 0;
     });
-    if (sort.direction === "desc") sorted.reverse();
+    if (sort.direction === 'desc') sorted.reverse();
     return sorted;
   }, [rows, sort, columns]);
 
@@ -156,8 +160,8 @@ export function DataTable<T>({
 
   function toggleSort(key: string) {
     setSort((prev) => {
-      if (!prev || prev.key !== key) return { key, direction: "asc" };
-      if (prev.direction === "asc") return { key, direction: "desc" };
+      if (!prev || prev.key !== key) return { key, direction: 'asc' };
+      if (prev.direction === 'asc') return { key, direction: 'desc' };
       return null;
     });
   }
@@ -171,9 +175,9 @@ export function DataTable<T>({
     });
   }
 
-  function sortAriaFor(key: string): "ascending" | "descending" | "none" {
-    if (!sort || sort.key !== key) return "none";
-    return sort.direction === "asc" ? "ascending" : "descending";
+  function sortAriaFor(key: string): 'ascending' | 'descending' | 'none' {
+    if (!sort || sort.key !== key) return 'none';
+    return sort.direction === 'asc' ? 'ascending' : 'descending';
   }
 
   /**
@@ -183,17 +187,17 @@ export function DataTable<T>({
   const handleRowKeyDown = useCallback(
     (e: React.KeyboardEvent, index: number, row: T) => {
       const total = pagedRows.length;
-      if (e.key === "ArrowDown") {
+      if (e.key === 'ArrowDown') {
         e.preventDefault();
         const nextIndex = Math.min(index + 1, total - 1);
         setRovingIndex(nextIndex);
         rowRefs.current.get(nextIndex)?.focus();
-      } else if (e.key === "ArrowUp") {
+      } else if (e.key === 'ArrowUp') {
         e.preventDefault();
         const prevIndex = Math.max(index - 1, 0);
         setRovingIndex(prevIndex);
         rowRefs.current.get(prevIndex)?.focus();
-      } else if ((e.key === "Enter" || e.key === " ") && onRowActivate) {
+      } else if ((e.key === 'Enter' || e.key === ' ') && onRowActivate) {
         e.preventDefault();
         onRowActivate(row);
       }
@@ -226,20 +230,20 @@ export function DataTable<T>({
         type="button"
         onClick={() => toggleSort(col.key)}
         className={cn(
-          "inline-flex items-center gap-1 hover:underline focus:outline-none focus-visible:ring-1",
-          theme.headerFocusRing
+          'inline-flex items-center gap-1 hover:underline focus:outline-none focus-visible:ring-1',
+          theme.headerFocusRing,
         )}
       >
         {col.header}
         <span aria-hidden="true" className="text-[8px]">
-          {sort?.key === col.key ? (sort.direction === "asc" ? "▲" : "▼") : ""}
+          {sort?.key === col.key ? (sort.direction === 'asc' ? '▲' : '▼') : ''}
         </span>
       </button>
     );
   }
 
   const shouldVirtualize = pagedRows.length > virtualizeThreshold;
-  const gridTemplateColumns = visibleColumns.map((c) => c.width ?? "1fr").join(" ");
+  const gridTemplateColumns = visibleColumns.map((c) => c.width ?? '1fr').join(' ');
 
   const columnMenu = enableColumnVisibility && (
     <div className="flex justify-end px-1 pb-2">
@@ -250,8 +254,8 @@ export function DataTable<T>({
           aria-controls={menuId}
           onClick={() => setShowColumnMenu((v) => !v)}
           className={cn(
-            "text-[10px] tracking-widest uppercase border px-3 py-1.5 transition-colors duration-150 focus:outline-none focus-visible:ring-1",
-            theme.accent
+            'text-[10px] tracking-widest uppercase border px-3 py-1.5 transition-colors duration-150 focus:outline-none focus-visible:ring-1',
+            theme.accent,
           )}
         >
           Columns
@@ -260,12 +264,15 @@ export function DataTable<T>({
           <div
             id={menuId}
             role="menu"
-            className={cn("absolute right-0 mt-1 z-20 w-48 border p-2 shadow-lg", theme.menu)}
+            className={cn('absolute right-0 mt-1 z-20 w-48 border p-2 shadow-lg', theme.menu)}
           >
             {columns.map((col) => (
               <label
                 key={col.key}
-                className={cn("flex items-center gap-2 px-2 py-1.5 text-xs cursor-pointer", theme.menuLabel)}
+                className={cn(
+                  'flex items-center gap-2 px-2 py-1.5 text-xs cursor-pointer',
+                  theme.menuLabel,
+                )}
               >
                 <input
                   type="checkbox"
@@ -283,12 +290,20 @@ export function DataTable<T>({
   );
 
   const pagination = pageSize && totalPages > 1 && (
-    <div className={cn("flex items-center justify-between px-1 pt-3 text-[10px] tracking-widest uppercase", theme.pageText)}>
+    <div
+      className={cn(
+        'flex items-center justify-between px-1 pt-3 text-[10px] tracking-widest uppercase',
+        theme.pageText,
+      )}
+    >
       <button
         type="button"
         onClick={() => setPage((p) => Math.max(0, p - 1))}
         disabled={currentPage === 0}
-        className={cn("px-3 py-1.5 border disabled:opacity-40 transition-colors duration-150 focus:outline-none focus-visible:ring-1", theme.pageBtn)}
+        className={cn(
+          'px-3 py-1.5 border disabled:opacity-40 transition-colors duration-150 focus:outline-none focus-visible:ring-1',
+          theme.pageBtn,
+        )}
       >
         Previous
       </button>
@@ -299,7 +314,10 @@ export function DataTable<T>({
         type="button"
         onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
         disabled={currentPage >= totalPages - 1}
-        className={cn("px-3 py-1.5 border disabled:opacity-40 transition-colors duration-150 focus:outline-none focus-visible:ring-1", theme.pageBtn)}
+        className={cn(
+          'px-3 py-1.5 border disabled:opacity-40 transition-colors duration-150 focus:outline-none focus-visible:ring-1',
+          theme.pageBtn,
+        )}
       >
         Next
       </button>
@@ -310,11 +328,13 @@ export function DataTable<T>({
   const cardLayout = (
     <ul className="md:hidden space-y-2">
       {pagedRows.map((row) => (
-        <li key={getRowKey(row)} className={cn("border p-3 space-y-1.5", theme.card)}>
+        <li key={getRowKey(row)} className={cn('border p-3 space-y-1.5', theme.card)}>
           {visibleColumns.map((col) => (
             <div key={col.key} className="flex items-center justify-between gap-3 text-xs">
-              <span className={cn("text-[10px] tracking-widest uppercase", theme.cardLabel)}>{col.header}</span>
-              <span className={cn("text-right", theme.cellText)}>{col.accessor(row)}</span>
+              <span className={cn('text-[10px] tracking-widest uppercase', theme.cardLabel)}>
+                {col.header}
+              </span>
+              <span className={cn('text-right', theme.cellText)}>{col.accessor(row)}</span>
             </div>
           ))}
         </li>
@@ -331,18 +351,18 @@ export function DataTable<T>({
         <div
           role="table"
           aria-label={caption}
-          className={cn("hidden md:block border", theme.border)}
+          className={cn('hidden md:block border', theme.border)}
         >
           <div role="rowgroup" className="sticky top-0 z-10">
-            <div role="row" className={cn("grid", theme.header)} style={{ gridTemplateColumns }}>
+            <div role="row" className={cn('grid', theme.header)} style={{ gridTemplateColumns }}>
               {visibleColumns.map((col) => (
                 <div
                   key={col.key}
                   role="columnheader"
                   aria-sort={col.sortValue ? sortAriaFor(col.key) : undefined}
                   className={cn(
-                    "px-5 py-2.5 text-[10px] tracking-[0.18em] font-semibold uppercase whitespace-nowrap",
-                    alignClass(col.align)
+                    'px-5 py-2.5 text-[10px] tracking-[0.18em] font-semibold uppercase whitespace-nowrap',
+                    alignClass(col.align),
                   )}
                 >
                   {renderHeaderContent(col)}
@@ -364,11 +384,11 @@ export function DataTable<T>({
                   onKeyDown={(e) => handleRowKeyDown(e, i, row)}
                   onFocus={() => setRovingIndex(i)}
                   className={cn(
-                    "grid border-b transition-colors duration-100",
+                    'grid border-b transition-colors duration-100',
                     theme.border,
                     i % 2 === 0 ? theme.rowEven : theme.rowOdd,
                     theme.rowHover,
-                    onRowActivate && "cursor-pointer",
+                    onRowActivate && 'cursor-pointer',
                   )}
                   style={{ gridTemplateColumns }}
                 >
@@ -376,7 +396,12 @@ export function DataTable<T>({
                     <div
                       key={col.key}
                       role="cell"
-                      className={cn("px-5 py-3 text-xs whitespace-nowrap flex items-center", theme.cellText, alignClass(col.align), col.className)}
+                      className={cn(
+                        'px-5 py-3 text-xs whitespace-nowrap flex items-center',
+                        theme.cellText,
+                        alignClass(col.align),
+                        col.className,
+                      )}
                     >
                       {col.accessor(row)}
                     </div>
@@ -405,8 +430,8 @@ export function DataTable<T>({
                   scope="col"
                   aria-sort={col.sortValue ? sortAriaFor(col.key) : undefined}
                   className={cn(
-                    "px-5 py-2.5 text-[10px] tracking-[0.18em] font-semibold uppercase whitespace-nowrap",
-                    alignClass(col.align)
+                    'px-5 py-2.5 text-[10px] tracking-[0.18em] font-semibold uppercase whitespace-nowrap',
+                    alignClass(col.align),
                   )}
                 >
                   {renderHeaderContent(col)}
@@ -421,22 +446,27 @@ export function DataTable<T>({
                 ref={(el) => registerRowRef(el, i)}
                 tabIndex={i === rovingIndex ? 0 : -1}
                 aria-selected={onRowActivate ? undefined : undefined}
-                role={onRowActivate ? "row" : undefined}
+                role={onRowActivate ? 'row' : undefined}
                 onClick={onRowActivate ? () => onRowActivate(row) : undefined}
                 onKeyDown={(e) => handleRowKeyDown(e, i, row)}
                 onFocus={() => setRovingIndex(i)}
                 className={cn(
-                  "border-b transition-colors duration-100",
+                  'border-b transition-colors duration-100',
                   theme.border,
                   i % 2 === 0 ? theme.rowEven : theme.rowOdd,
                   theme.rowHover,
-                  onRowActivate && "cursor-pointer",
+                  onRowActivate && 'cursor-pointer',
                 )}
               >
                 {visibleColumns.map((col) => (
                   <td
                     key={col.key}
-                    className={cn("px-5 py-3 text-xs whitespace-nowrap", theme.cellText, alignClass(col.align), col.className)}
+                    className={cn(
+                      'px-5 py-3 text-xs whitespace-nowrap',
+                      theme.cellText,
+                      alignClass(col.align),
+                      col.className,
+                    )}
                   >
                     {col.accessor(row)}
                   </td>

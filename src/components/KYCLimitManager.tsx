@@ -55,7 +55,9 @@ export function KYCLimitManager({ userId }: KYCLimitManagerProps) {
       <Card className="p-4">
         <h3 className="text-lg font-semibold mb-4">KYC Verification</h3>
         <div className="mb-4">
-          <p className="text-sm text-gray-600">Status: <span className="font-medium capitalize">{kycStatus}</span></p>
+          <p className="text-sm text-gray-600">
+            Status: <span className="font-medium capitalize">{kycStatus}</span>
+          </p>
         </div>
 
         {kycStatus === 'unverified' && !showKYCForm && (
@@ -66,7 +68,7 @@ export function KYCLimitManager({ userId }: KYCLimitManagerProps) {
           <div className="space-y-2">
             <select
               value={formData.documentType}
-              onChange={e => setFormData({ ...formData, documentType: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, documentType: e.target.value })}
               className="w-full p-2 border rounded"
             >
               <option value="passport">Passport</option>
@@ -77,12 +79,14 @@ export function KYCLimitManager({ userId }: KYCLimitManagerProps) {
               type="text"
               placeholder="Document ID"
               value={formData.documentId}
-              onChange={e => setFormData({ ...formData, documentId: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, documentId: e.target.value })}
               className="w-full p-2 border rounded"
             />
             <div className="flex gap-2">
               <Button onClick={handleSubmitKYC}>Submit</Button>
-              <Button onClick={() => setShowKYCForm(false)} variant="secondary">Cancel</Button>
+              <Button onClick={() => setShowKYCForm(false)} variant="secondary">
+                Cancel
+              </Button>
             </div>
           </div>
         )}
@@ -122,7 +126,7 @@ export function KYCLimitManager({ userId }: KYCLimitManagerProps) {
             <div className="space-y-2">
               <select
                 value={requestedTier}
-                onChange={e => setRequestedTier(e.target.value as LimitTier)}
+                onChange={(e) => setRequestedTier(e.target.value as LimitTier)}
                 className="w-full p-2 border rounded"
               >
                 {limits.tier === 'tier1' && <option value="tier2">Tier 2</option>}
@@ -131,7 +135,9 @@ export function KYCLimitManager({ userId }: KYCLimitManagerProps) {
               </select>
               <div className="flex gap-2">
                 <Button onClick={handleRequestLimitIncrease}>Request</Button>
-                <Button onClick={() => setShowLimitRequest(false)} variant="secondary">Cancel</Button>
+                <Button onClick={() => setShowLimitRequest(false)} variant="secondary">
+                  Cancel
+                </Button>
               </div>
             </div>
           )}

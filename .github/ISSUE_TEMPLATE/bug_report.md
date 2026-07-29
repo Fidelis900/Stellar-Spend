@@ -24,13 +24,13 @@ labels: bug
 
 ## Environment
 
-| Field | Value |
-|-------|-------|
-| Browser | <!-- e.g. Chrome 125 / Firefox 126 --> |
-| Wallet extension | <!-- e.g. Freighter 6.0.2 / Lobstr 4.1.0 --> |
-| Wallet network | <!-- Mainnet / Testnet --> |
-| OS | <!-- e.g. macOS 14, Windows 11, Ubuntu 22 --> |
-| App version / commit | <!-- e.g. v1.2.3 or git SHA --> |
+| Field                | Value                                         |
+| -------------------- | --------------------------------------------- |
+| Browser              | <!-- e.g. Chrome 125 / Firefox 126 -->        |
+| Wallet extension     | <!-- e.g. Freighter 6.0.2 / Lobstr 4.1.0 -->  |
+| Wallet network       | <!-- Mainnet / Testnet -->                    |
+| OS                   | <!-- e.g. macOS 14, Windows 11, Ubuntu 22 --> |
+| App version / commit | <!-- e.g. v1.2.3 or git SHA -->               |
 
 ## Console errors
 
@@ -42,9 +42,9 @@ labels: bug
 
 ## Transaction details (if applicable)
 
-- Transaction hash: 
-- Order ID: 
-- Amount + currency: 
+- Transaction hash:
+- Order ID:
+- Amount + currency:
 
 ## Additional context
 

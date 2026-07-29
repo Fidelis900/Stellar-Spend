@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/cn";
-import { useFocusTrap, useFocusRestore } from "@/hooks/useFocusTrap";
+import { useEffect, useRef, useState } from 'react';
+import { cn } from '@/lib/cn';
+import { useFocusTrap, useFocusRestore } from '@/hooks/useFocusTrap';
 
 export interface TransactionPreviewData {
   amount: string;
@@ -12,7 +12,7 @@ export interface TransactionPreviewData {
   bridgeFee: string;
   payoutFee: string;
   totalFee: string;
-  feeMethod: "native" | "stablecoin";
+  feeMethod: 'native' | 'stablecoin';
   accountName: string;
   accountNumber: string;
   bankName: string;
@@ -46,10 +46,10 @@ export function TransactionPreviewModal({
   useEffect(() => {
     if (!isOpen) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !isLoading && !confirmed) onCancel();
+      if (e.key === 'Escape' && !isLoading && !confirmed) onCancel();
     };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, [isOpen, isLoading, confirmed, onCancel]);
 
   if (!isOpen || !data) return null;
@@ -104,7 +104,9 @@ export function TransactionPreviewModal({
 
           {/* Exchange Rate */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Exchange Rate</h3>
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              Exchange Rate
+            </h3>
             <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
               <div className="flex justify-between items-center">
                 <span className="text-gray-600 dark:text-gray-400">1 USDC</span>
@@ -117,7 +119,9 @@ export function TransactionPreviewModal({
 
           {/* Fee Breakdown */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Fee Breakdown</h3>
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              Fee Breakdown
+            </h3>
             <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg space-y-2">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-600 dark:text-gray-400">Bridge fee</span>
@@ -129,10 +133,12 @@ export function TransactionPreviewModal({
               </div>
               <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2 flex justify-between items-center">
                 <span className="font-semibold text-gray-900 dark:text-white">Total fees</span>
-                <span className="font-semibold text-gray-900 dark:text-white">{data.totalFee} USDC</span>
+                <span className="font-semibold text-gray-900 dark:text-white">
+                  {data.totalFee} USDC
+                </span>
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                Paid via {data.feeMethod === "native" ? "XLM" : "USDC"}
+                Paid via {data.feeMethod === 'native' ? 'XLM' : 'USDC'}
               </div>
             </div>
           </div>
@@ -143,11 +149,15 @@ export function TransactionPreviewModal({
             <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg space-y-2">
               <div>
                 <p className="text-xs text-gray-600 dark:text-gray-400">Name</p>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">{data.accountName}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  {data.accountName}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-gray-600 dark:text-gray-400">Account Number</p>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">{data.accountNumber}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  {data.accountNumber}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-gray-600 dark:text-gray-400">Bank</p>
@@ -170,9 +180,9 @@ export function TransactionPreviewModal({
             onClick={onCancel}
             disabled={isLoading || confirmed}
             className={cn(
-              "flex-1 px-4 py-2 rounded-lg font-medium transition-colors",
-              "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white",
-              "hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              'flex-1 px-4 py-2 rounded-lg font-medium transition-colors',
+              'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white',
+              'hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed',
             )}
             aria-label="Cancel transaction"
           >
@@ -182,9 +192,9 @@ export function TransactionPreviewModal({
             onClick={onEdit}
             disabled={isLoading || confirmed}
             className={cn(
-              "flex-1 px-4 py-2 rounded-lg font-medium transition-colors",
-              "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white",
-              "hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              'flex-1 px-4 py-2 rounded-lg font-medium transition-colors',
+              'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white',
+              'hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed',
             )}
             aria-label="Edit transaction details"
           >
@@ -194,13 +204,13 @@ export function TransactionPreviewModal({
             onClick={handleConfirm}
             disabled={isLoading || confirmed}
             className={cn(
-              "flex-1 px-4 py-2 rounded-lg font-medium transition-colors",
-              "bg-blue-600 text-white hover:bg-blue-700",
-              "disabled:opacity-50 disabled:cursor-not-allowed"
+              'flex-1 px-4 py-2 rounded-lg font-medium transition-colors',
+              'bg-blue-600 text-white hover:bg-blue-700',
+              'disabled:opacity-50 disabled:cursor-not-allowed',
             )}
             aria-label="Confirm transaction"
           >
-            {isLoading ? "Processing..." : "Confirm"}
+            {isLoading ? 'Processing...' : 'Confirm'}
           </button>
         </div>
       </div>

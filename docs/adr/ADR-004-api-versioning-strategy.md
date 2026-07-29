@@ -28,17 +28,20 @@ Options considered:
 A **hybrid URL-path + header** versioning strategy was adopted:
 
 **Primary (recommended):** URL-path prefix
+
 ```
 GET /api/v1/offramp/quote
 ```
 
 **Fallback (header-based):**
+
 ```
 GET /api/offramp/quote
 X-API-Version: 1
 ```
 
 **Content-type negotiation (also supported):**
+
 ```
 GET /api/offramp/quote
 Accept: application/vnd.stellarspend.v1+json
@@ -49,6 +52,7 @@ URL prefix takes precedence over headers. Requests with no version indicator def
 Version negotiation is handled by `src/lib/api-versioning/negotiator.ts`. The active version registry lives in `src/lib/api-versioning/registry.ts`.
 
 **Deprecation policy:**
+
 - Legacy unversioned routes (`/api/*`) were deprecated on **2025-01-01**.
 - They will be removed on **2026-01-01**.
 - Deprecated routes return three response headers:
@@ -59,9 +63,11 @@ Version negotiation is handled by `src/lib/api-versioning/negotiator.ts`. The ac
   ```
 
 **Version discovery:**
+
 ```
 GET /api/versions
 ```
+
 Returns all supported versions with their status and path prefix.
 
 ---
@@ -69,21 +75,24 @@ Returns all supported versions with their status and path prefix.
 ## Consequences
 
 **Positive:**
+
 - Existing clients continue to work without changes during the deprecation window.
 - Programmatic clients can pin to `/api/v1/` for guaranteed stability.
 - Version discovery endpoint enables automated client tooling to detect supported versions.
 - Deprecation headers give integrators machine-readable sunset information.
 
 **Negative / Trade-offs:**
+
 - Maintaining two parallel route trees (`/api/` and `/api/v1/`) doubles the number of route files during the transition period.
 - The hybrid approach requires clients to understand three different version-signaling mechanisms, though only one (URL prefix) is recommended.
 - Removing legacy routes in 2026 will require active communication to any remaining unversioned consumers.
 
 **Conventions:**
+
 - All new features are added only to the versioned routes (`/api/v1/`).
 - Bug fixes affecting both trees are applied to both until legacy routes are sunset.
 - Version middleware (`src/lib/api-versioning/`) handles negotiation transparently; route files do not contain versioning logic.
 
 ---
 
-*Related: [[ADR-005-environment-variable-validation]], [[ADR-003-adapter-pattern-external-services]]*
+_Related: [[ADR-005-environment-variable-validation]], [[ADR-003-adapter-pattern-external-services]]_

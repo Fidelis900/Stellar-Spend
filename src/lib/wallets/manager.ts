@@ -56,7 +56,7 @@ export class WalletManager {
   private emit(event: WalletEvent): void {
     const listeners = this.eventListeners.get(event.type);
     if (listeners) {
-      listeners.forEach(listener => {
+      listeners.forEach((listener) => {
         try {
           listener(event);
         } catch (err) {
@@ -180,7 +180,7 @@ export class WalletManager {
    * Get all available wallets
    */
   getAvailableWallets(): WalletAdapter[] {
-    return Array.from(this.adapters.values()).filter(adapter => adapter.isAvailable);
+    return Array.from(this.adapters.values()).filter((adapter) => adapter.isAvailable);
   }
 }
 

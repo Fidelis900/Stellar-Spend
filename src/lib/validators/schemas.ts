@@ -182,7 +182,7 @@ export function formatZodErrors(error: z.ZodError): FormattedValidationError[] {
 
 export function validateWithSchema<T>(
   schema: z.ZodSchema<T>,
-  data: unknown
+  data: unknown,
 ): { valid: boolean; data?: T; errors?: FormattedValidationError[] } {
   try {
     const validated = schema.parse(data);

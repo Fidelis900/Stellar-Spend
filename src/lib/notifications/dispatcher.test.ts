@@ -13,7 +13,11 @@ vi.mock('@/lib/notifications/delivery-store', () => ({
 }));
 
 import { notifyTransactionStatusUpdate } from '@/lib/notifications/service';
-import type { ChannelAdapter, DeliveryResult, NotificationPreferences } from '@/lib/notifications/types';
+import type {
+  ChannelAdapter,
+  DeliveryResult,
+  NotificationPreferences,
+} from '@/lib/notifications/types';
 import { getNotificationPreferences } from '@/lib/notifications/preferences-store';
 import {
   createNotificationDelivery,
@@ -89,7 +93,7 @@ describe('dispatcher routing', () => {
 
     await notifyTransactionStatusUpdate(
       { transaction: baseTx, previousStatus: 'pending', source: 'webhook' },
-      [emailAdapter, smsAdapter, pushAdapter]
+      [emailAdapter, smsAdapter, pushAdapter],
     );
 
     expect(emailAdapter.send).toHaveBeenCalledOnce();
@@ -97,7 +101,7 @@ describe('dispatcher routing', () => {
     expect(pushAdapter.send).not.toHaveBeenCalled();
     expect(createDeliveryMock).toHaveBeenCalledOnce();
     expect(createDeliveryMock).toHaveBeenCalledWith(
-      expect.objectContaining({ channel: 'email', status: 'sent' })
+      expect.objectContaining({ channel: 'email', status: 'sent' }),
     );
   });
 
@@ -111,7 +115,7 @@ describe('dispatcher routing', () => {
 
     await notifyTransactionStatusUpdate(
       { transaction: baseTx, previousStatus: 'pending', source: 'webhook' },
-      adapters
+      adapters,
     );
 
     for (const a of adapters) expect(a.send).toHaveBeenCalledOnce();
@@ -125,14 +129,14 @@ describe('dispatcher routing', () => {
         smsEnabled: true,
         pushEnabled: true,
         channelRouting: { completed: ['push'] },
-      })
+      }),
     );
     const emailAdapter = makeAdapter('email', { status: 'sent' });
     const pushAdapter = makeAdapter('push', { status: 'sent' });
 
     await notifyTransactionStatusUpdate(
       { transaction: baseTx, previousStatus: 'pending', source: 'webhook' },
-      [emailAdapter, pushAdapter]
+      [emailAdapter, pushAdapter],
     );
 
     expect(emailAdapter.send).not.toHaveBeenCalled();
@@ -145,7 +149,7 @@ describe('dispatcher routing', () => {
 
     await notifyTransactionStatusUpdate(
       { transaction: baseTx, previousStatus: 'pending', source: 'webhook' },
-      [emailAdapter]
+      [emailAdapter],
     );
 
     expect(emailAdapter.send).not.toHaveBeenCalled();
@@ -158,7 +162,7 @@ describe('dispatcher routing', () => {
 
     await notifyTransactionStatusUpdate(
       { transaction: baseTx, previousStatus: 'completed', source: 'webhook' },
-      [emailAdapter]
+      [emailAdapter],
     );
 
     expect(emailAdapter.send).not.toHaveBeenCalled();
@@ -170,12 +174,12 @@ describe('dispatcher routing', () => {
 
     await notifyTransactionStatusUpdate(
       { transaction: baseTx, previousStatus: 'pending', source: 'webhook' },
-      [] // no adapters
+      [], // no adapters
     );
 
     expect(createDeliveryMock).toHaveBeenCalledOnce();
     expect(createDeliveryMock).toHaveBeenCalledWith(
-      expect.objectContaining({ channel: 'sms', status: 'skipped' })
+      expect.objectContaining({ channel: 'sms', status: 'skipped' }),
     );
   });
 });
@@ -203,7 +207,7 @@ describe('retry logic', () => {
 
     const dispatchPromise = notifyTransactionStatusUpdate(
       { transaction: baseTx, previousStatus: 'pending', source: 'webhook' },
-      [emailAdapter]
+      [emailAdapter],
     );
 
     await vi.runAllTimersAsync();
@@ -215,7 +219,7 @@ describe('retry logic', () => {
     expect(retryDeliveryMock).toHaveBeenLastCalledWith(
       'delivery-1',
       expect.objectContaining({ status: 'sent' }),
-      3
+      3,
     );
   });
 
@@ -227,7 +231,7 @@ describe('retry logic', () => {
 
     const dispatchPromise = notifyTransactionStatusUpdate(
       { transaction: baseTx, previousStatus: 'pending', source: 'webhook' },
-      [emailAdapter]
+      [emailAdapter],
     );
 
     await vi.runAllTimersAsync();
@@ -238,7 +242,7 @@ describe('retry logic', () => {
     expect(retryDeliveryMock).toHaveBeenLastCalledWith(
       'delivery-1',
       expect.objectContaining({ status: 'failed' }),
-      3
+      3,
     );
   });
 });
@@ -260,7 +264,7 @@ describe('localization', () => {
 
     const dispatchPromise = notifyTransactionStatusUpdate(
       { transaction: baseTx, previousStatus: 'pending', source: 'webhook' },
-      [emailAdapter]
+      [emailAdapter],
     );
 
     await vi.runAllTimersAsync();

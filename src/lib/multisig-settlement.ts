@@ -5,9 +5,9 @@
  * Every signature collected is written to the audit log.
  */
 
-import crypto from "crypto";
-import { logger } from "@/lib/logger";
-import { pool } from "@/lib/db/client";
+import crypto from 'crypto';
+import { logger } from '@/lib/logger';
+import { pool } from '@/lib/db/client';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -56,9 +56,7 @@ export class MultisigSettlementService {
 
   constructor(config: MultisigConfig, proposalTtlMs = 24 * 60 * 60 * 1000) {
     if (config.threshold < 1 || config.threshold > config.signers.length) {
-      throw new Error(
-        `Invalid threshold ${config.threshold} for ${config.signers.length} signers`,
-      );
+      throw new Error(`Invalid threshold ${config.threshold} for ${config.signers.length} signers`);
     }
     this.config = config;
     this.proposalTtlMs = proposalTtlMs;
@@ -78,7 +76,7 @@ export class MultisigSettlementService {
   ): Promise<MultisigProposal> {
     this.assertIsSigner(proposer);
 
-    const id = `prop_${Date.now()}_${crypto.randomBytes(6).toString("hex")}`;
+    const id = `prop_${Date.now()}_${crypto.randomBytes(6).toString('hex')}`;
     const now = Date.now();
     const expiresAt = now + this.proposalTtlMs;
 
@@ -98,7 +96,7 @@ export class MultisigSettlementService {
     // Record proposer's initial signature
     await this.recordSignature(proposal, proposer, signature);
 
-    logger.info("multisig:proposed", {
+    logger.info('multisig:proposed', {
       proposalId: id,
       proposer,
       target,
@@ -112,18 +110,13 @@ export class MultisigSettlementService {
   /**
    * Add a signer's approval.  Emits an audit log entry for every signature.
    */
-  async sign(
-    proposalId: string,
-    signer: string,
-    signature: string,
-  ): Promise<ProposalStatus> {
+  async sign(proposalId: string, signer: string, signature: string): Promise<ProposalStatus> {
     this.assertIsSigner(signer);
 
     const proposal = await this.getProposal(proposalId);
     if (!proposal) throw new Error(`Proposal ${proposalId} not found`);
-    if (proposal.executed) throw new Error("Proposal already executed");
-    if (Date.now() > proposal.expiresAt)
-      throw new Error("Proposal has expired");
+    if (proposal.executed) throw new Error('Proposal already executed');
+    if (Date.now() > proposal.expiresAt) throw new Error('Proposal has expired');
     if (proposal.signatures.some((s) => s.signer === signer))
       throw new Error(`${signer} has already signed`);
 
@@ -133,7 +126,7 @@ export class MultisigSettlementService {
     const required = this.requiredThreshold(proposal.value);
     const collected = updated.signatures.length;
 
-    logger.info("multisig:signed", {
+    logger.info('multisig:signed', {
       proposalId,
       signer,
       collected,
@@ -152,14 +145,12 @@ export class MultisigSettlementService {
 
     const proposal = await this.getProposal(proposalId);
     if (!proposal) throw new Error(`Proposal ${proposalId} not found`);
-    if (proposal.executed) throw new Error("Already executed");
-    if (Date.now() > proposal.expiresAt) throw new Error("Proposal expired");
+    if (proposal.executed) throw new Error('Already executed');
+    if (Date.now() > proposal.expiresAt) throw new Error('Proposal expired');
 
     const required = this.requiredThreshold(proposal.value);
     if (proposal.signatures.length < required) {
-      throw new Error(
-        `Quorum not met: ${proposal.signatures.length}/${required}`,
-      );
+      throw new Error(`Quorum not met: ${proposal.signatures.length}/${required}`);
     }
 
     await pool.query(
@@ -167,7 +158,7 @@ export class MultisigSettlementService {
       [executor, Date.now(), proposalId],
     );
 
-    logger.info("multisig:executed", {
+    logger.info('multisig:executed', {
       proposalId,
       executor,
       value: proposal.value.toString(),
@@ -252,7 +243,7 @@ export class MultisigSettlementService {
     signer: string,
     signature: string,
   ): Promise<void> {
-    const entryId = `sig_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
+    const entryId = `sig_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
     const now = Date.now();
 
     await pool.query(
@@ -262,8 +253,8 @@ export class MultisigSettlementService {
     );
 
     // Structured audit log — every signature is permanently recorded
-    logger.info("multisig:signature_collected", {
-      auditEventType: "MULTISIG_SIGNATURE",
+    logger.info('multisig:signature_collected', {
+      auditEventType: 'MULTISIG_SIGNATURE',
       signatureId: entryId,
       proposalId: proposal.id,
       signer,

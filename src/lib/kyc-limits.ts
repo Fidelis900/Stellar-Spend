@@ -80,7 +80,17 @@ export interface LimitIncreaseRequest {
 export interface KYCAuditEvent {
   id: string;
   userId: string;
-  eventType: 'kyc_submitted' | 'kyc_verified' | 'kyc_rejected' | 'kyc_expired' | 'tier_changed' | 'limit_increase_requested' | 'limit_increase_approved' | 'limit_increase_rejected' | 'reverification_triggered' | 'provider_verified';
+  eventType:
+    | 'kyc_submitted'
+    | 'kyc_verified'
+    | 'kyc_rejected'
+    | 'kyc_expired'
+    | 'tier_changed'
+    | 'limit_increase_requested'
+    | 'limit_increase_approved'
+    | 'limit_increase_rejected'
+    | 'reverification_triggered'
+    | 'provider_verified';
   timestamp: number;
   details?: Record<string, unknown>;
 }
@@ -118,7 +128,12 @@ export function isRestrictedJurisdiction(countryCode: string): boolean {
   return getJurisdictionStatus(countryCode) === 'restricted';
 }
 
-let _corridorOverridesCache: Record<string, Record<string, { dailyLimit: number; monthlyLimit: number; transactionLimit: number }>> | undefined;
+let _corridorOverridesCache:
+  | Record<
+      string,
+      Record<string, { dailyLimit: number; monthlyLimit: number; transactionLimit: number }>
+    >
+  | undefined;
 
 function loadCorridorOverrides(): void {
   if (typeof window !== 'undefined') {
@@ -163,7 +178,12 @@ function applyCorridorOverrides(tier: LimitTier, currency?: string): Transaction
  * Set corridor-specific KYC overrides at runtime.
  * Called by the server on startup to sync corridor-config into KYC limits.
  */
-export function setCorridorOverrides(overrides: Record<string, Record<string, { dailyLimit: number; monthlyLimit: number; transactionLimit: number }>>): void {
+export function setCorridorOverrides(
+  overrides: Record<
+    string,
+    Record<string, { dailyLimit: number; monthlyLimit: number; transactionLimit: number }>
+  >,
+): void {
   _corridorOverridesCache = overrides;
   if (typeof window !== 'undefined') {
     try {
@@ -189,7 +209,11 @@ export class KYCLimitService {
     kycMap[userId] = kyc;
     this.persistKYC(kycMap);
 
-    this.recordAuditEvent({ userId, eventType: 'kyc_submitted', details: { documentType, documentId } });
+    this.recordAuditEvent({
+      userId,
+      eventType: 'kyc_submitted',
+      details: { documentType, documentId },
+    });
     return kyc;
   }
 
@@ -209,7 +233,11 @@ export class KYCLimitService {
     kycMap[userId] = kyc;
     this.persistKYC(kycMap);
 
-    this.recordAuditEvent({ userId, eventType: 'kyc_verified', details: { previousStatus: kyc.status } });
+    this.recordAuditEvent({
+      userId,
+      eventType: 'kyc_verified',
+      details: { previousStatus: kyc.status },
+    });
 
     // Upgrade to tier2 on verification
     this.initializeUserLimits(userId, 'tier2');
@@ -254,7 +282,11 @@ export class KYCLimitService {
     return limitsMap[userId] || null;
   }
 
-  static canTransact(userId: string, amount: number, currency?: string): { allowed: boolean; reason?: string } {
+  static canTransact(
+    userId: string,
+    amount: number,
+    currency?: string,
+  ): { allowed: boolean; reason?: string } {
     const limits = this.getUserLimits(userId);
     if (!limits) return { allowed: false, reason: 'User limits not initialized' };
 
@@ -272,7 +304,10 @@ export class KYCLimitService {
     }
 
     if (amount > tierLimit.transactionLimit) {
-      return { allowed: false, reason: `Transaction exceeds limit of ${tierLimit.transactionLimit}` };
+      return {
+        allowed: false,
+        reason: `Transaction exceeds limit of ${tierLimit.transactionLimit}`,
+      };
     }
     if (limits.dailyUsed + amount > tierLimit.dailyLimit) {
       return { allowed: false, reason: `Daily limit exceeded` };
@@ -326,7 +361,7 @@ export class KYCLimitService {
     const limits = this.getUserLimits(userId);
     if (!limits) return false;
 
-    const request = limits.limitIncreaseRequests.find(r => r.id === requestId);
+    const request = limits.limitIncreaseRequests.find((r) => r.id === requestId);
     if (!request) return false;
 
     request.status = 'approved';
@@ -408,7 +443,13 @@ export class KYCLimitService {
   // Document upload handling
   // ---------------------------------------------------------------------------
 
-  static uploadDocument(userId: string, documentType: string, documentId: string, fileName?: string, mimeType?: string): DocumentUpload {
+  static uploadDocument(
+    userId: string,
+    documentType: string,
+    documentId: string,
+    fileName?: string,
+    mimeType?: string,
+  ): DocumentUpload {
     const upload: DocumentUpload = {
       userId,
       documentType,
@@ -443,7 +484,7 @@ export class KYCLimitService {
 
     const totalTransactionVolume = Object.values(allLimits).reduce(
       (sum, l) => sum + l.monthlyUsed,
-      0
+      0,
     );
 
     return {
@@ -503,7 +544,10 @@ export class KYCLimitService {
     if (kyc.verifiedAt && limits.tier === 'tier3') {
       const oneYearAgo = Date.now() - 365 * 24 * 60 * 60 * 1000;
       if (kyc.verifiedAt < oneYearAgo) {
-        return { needed: true, reason: 'KYC older than 1 year — re-verification required for tier3' };
+        return {
+          needed: true,
+          reason: 'KYC older than 1 year — re-verification required for tier3',
+        };
       }
     }
 

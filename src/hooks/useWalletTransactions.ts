@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useTransition } from "react";
-import { TransactionStorage, type Transaction } from "@/lib/transaction-storage";
+import { useState, useEffect, useTransition } from 'react';
+import { TransactionStorage, type Transaction } from '@/lib/transaction-storage';
 
 export interface WalletTransactions {
   transactions: Transaction[];

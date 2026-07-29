@@ -31,7 +31,7 @@ function addLegacyDeprecationHeaders(response: NextResponse, legacyPath: string)
   response.headers.set('Sunset', '2026-01-01');
   response.headers.set(
     'Link',
-    `</api/v1/${legacyPath.replace(/^\//, '')}>; rel="successor-version", <${MIGRATION_GUIDE_URL}>; rel="deprecation"`
+    `</api/v1/${legacyPath.replace(/^\//, '')}>; rel="successor-version", <${MIGRATION_GUIDE_URL}>; rel="deprecation"`,
   );
   return response;
 }
@@ -43,10 +43,7 @@ export function authMiddleware(request: NextRequest): NextResponse | null {
   if (versionedMatch) {
     const version = versionedMatch[1];
     if (!registry.isKnown(version)) {
-      return NextResponse.json(
-        { error: 'API version not supported' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'API version not supported' }, { status: 404 });
     }
     const response = NextResponse.next();
     response.headers.set('X-API-Version', version.replace(/^v/, ''));
@@ -60,10 +57,7 @@ export function authMiddleware(request: NextRequest): NextResponse | null {
     if (version !== null) {
       if (!registry.isKnown(version)) {
         const supported = registry.getAll().map((e) => e.version);
-        return NextResponse.json(
-          { error: 'Unsupported API version', supported },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Unsupported API version', supported }, { status: 400 });
       }
       const url = request.nextUrl.clone();
       url.pathname = `/api/${version}/${subpath}`;

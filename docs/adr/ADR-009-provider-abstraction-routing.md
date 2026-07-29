@@ -20,6 +20,7 @@ As the platform scales to more corridors and higher volume, single-provider depe
 - **Expansion:** Adding a new corridor may require a different settlement provider.
 
 We need an abstraction that allows:
+
 1. Multiple bridge providers and payout providers to coexist
 2. Intelligent routing (best rate, lowest fee, availability)
 3. Per-corridor provider configuration
@@ -61,6 +62,7 @@ src/lib/offramp/adapters/provider-registry.ts
 ### Routing algorithm
 
 For each transfer:
+
 1. Fetch eligible providers for the requested corridor from `corridor-config.ts`
 2. Filter to providers that are currently healthy (health cache TTL: 30 seconds)
 3. If multiple providers are eligible, select by: lowest effective fee → lowest latency (from recent history)
@@ -95,18 +97,21 @@ interface PayoutAdapter {
 ## Consequences
 
 **Positive:**
+
 - Adding a new bridge or payout provider is a single file addition with no route changes.
 - Per-corridor provider assignment is centrally managed in `corridor-config.ts`.
 - Health-aware routing prevents routing to degraded providers.
 - Quote aggregation gives users the best available rate.
 
 **Negative / Trade-offs:**
+
 - The registry must be initialized at server startup — providers registered after a request has begun are not visible to that request.
 - Parallel quote fetching increases latency when providers are slow; timeouts must be tight (≤ 3 seconds per provider).
 - Health cache introduces up to 30 seconds of stale health data; a provider that goes down mid-window may still receive routes.
 - No mid-transaction automatic provider switch — a failed bridge transaction requires user retry.
 
 **Conventions:**
+
 - All bridge adapters live in `src/lib/offramp/adapters/`
 - Payout adapters follow the same directory pattern
 - Provider health is checked on a 30-second cached basis; cache is invalidated on error
@@ -114,4 +119,4 @@ interface PayoutAdapter {
 
 ---
 
-*Related: [[ADR-003-adapter-pattern-external-services]], [[ADR-007-onramp-architecture]]*
+_Related: [[ADR-003-adapter-pattern-external-services]], [[ADR-007-onramp-architecture]]_

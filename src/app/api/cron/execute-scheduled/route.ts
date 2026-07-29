@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPendingScheduledTransactions, executeScheduledTransaction } from '@/lib/services/scheduling.service';
+import {
+  getPendingScheduledTransactions,
+  executeScheduledTransaction,
+} from '@/lib/services/scheduling.service';
 import { logger } from '@/lib/logger';
 import { ErrorHandler } from '@/lib/error-handler';
 import { ApiError, ErrorType } from '@/lib/error-types';
@@ -22,7 +25,9 @@ export async function POST(req: NextRequest) {
         await executeScheduledTransaction(scheduled.id, '');
         logger.info(`Executed scheduled transaction ${scheduled.id}`);
       } catch (error) {
-        logger.error(`Failed to execute scheduled transaction ${scheduled.id}`, { error: String(error) });
+        logger.error(`Failed to execute scheduled transaction ${scheduled.id}`, {
+          error: String(error),
+        });
       }
     }
 

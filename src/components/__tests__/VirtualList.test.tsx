@@ -14,7 +14,7 @@ describe('VirtualList', () => {
           itemHeight={50}
           containerHeight={500}
           renderItem={(item) => <div>{item.label}</div>}
-        />
+        />,
       );
 
       // With itemHeight=50 and containerHeight=500, should render ~10 items + overscan
@@ -30,7 +30,7 @@ describe('VirtualList', () => {
           itemHeight={50}
           containerHeight={500}
           renderItem={(item) => <div>{item.label}</div>}
-        />
+        />,
       );
 
       const scrollContainer = container.querySelector('div[role="region"]');
@@ -50,7 +50,7 @@ describe('VirtualList', () => {
           containerHeight={500}
           renderItem={(item) => <div>{item.label}</div>}
           onFocusChange={(index) => index !== null && focusChanges.push(index)}
-        />
+        />,
       );
 
       const scrollContainer = screen.getByRole('region');
@@ -71,19 +71,19 @@ describe('VirtualList', () => {
           containerHeight={500}
           renderItem={(item) => <div>{item.label}</div>}
           onFocusChange={(index) => focusChanges.push(index)}
-        />
+        />,
       );
 
       const scrollContainer = screen.getByRole('region');
       await user.click(scrollContainer);
-      
+
       // Move down first
       await user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}');
-      const beforeHome = focusChanges.filter(i => i !== null).length;
+      const beforeHome = focusChanges.filter((i) => i !== null).length;
 
       // Then Home
       await user.keyboard('{Home}');
-      
+
       // Should have reset to 0 or close
       const lastFocus = focusChanges[focusChanges.length - 1];
       expect(lastFocus).toBeLessThanOrEqual(2);
@@ -100,7 +100,7 @@ describe('VirtualList', () => {
           containerHeight={500}
           renderItem={(item) => <div>{item.label}</div>}
           onFocusChange={(index) => focusChanges.push(index)}
-        />
+        />,
       );
 
       const scrollContainer = screen.getByRole('region');
@@ -122,15 +122,15 @@ describe('VirtualList', () => {
           containerHeight={500}
           renderItem={(item) => <div>{item.label}</div>}
           onFocusChange={(index) => focusChanges.push(index)}
-        />
+        />,
       );
 
       const scrollContainer = screen.getByRole('region');
       await user.click(scrollContainer);
-      
+
       await user.keyboard('{PageDown}');
       const afterPageDown = focusChanges[focusChanges.length - 1];
-      
+
       await user.keyboard('{PageUp}');
       const afterPageUp = focusChanges[focusChanges.length - 1];
 
@@ -149,7 +149,7 @@ describe('VirtualList', () => {
           containerHeight={500}
           renderItem={(item) => <div>{item.label}</div>}
           ariaLabel="Test list"
-        />
+        />,
       );
 
       const scrollContainer = container.querySelector('[role="region"]');
@@ -164,7 +164,7 @@ describe('VirtualList', () => {
           itemHeight={50}
           containerHeight={500}
           renderItem={(item, index) => <div>{index}</div>}
-        />
+        />,
       );
 
       const rows = container.querySelectorAll('[role="row"]');
@@ -181,7 +181,7 @@ describe('VirtualList', () => {
           itemHeight={50}
           containerHeight={500}
           renderItem={(item) => <div>{item.label}</div>}
-        />
+        />,
       );
 
       const scrollContainer = container.querySelector('[role="region"]');
@@ -192,16 +192,16 @@ describe('VirtualList', () => {
   describe('Performance', () => {
     it('should handle 5000 items without lag', () => {
       const start = performance.now();
-      
+
       const { container } = render(
         <VirtualList
           items={mockItems}
           itemHeight={50}
           containerHeight={500}
           renderItem={(item) => <div>{item.label}</div>}
-        />
+        />,
       );
-      
+
       const end = performance.now();
       const renderTime = end - start;
 
@@ -215,7 +215,7 @@ describe('VirtualList', () => {
 
     it('should handle rapid scroll events efficiently', async () => {
       let renderCount = 0;
-      
+
       const { container, rerender } = render(
         <VirtualList
           items={mockItems}
@@ -225,11 +225,11 @@ describe('VirtualList', () => {
             renderCount++;
             return <div>Item</div>;
           }}
-        />
+        />,
       );
 
       const scrollContainer = container.querySelector('div[role="region"]') as HTMLDivElement;
-      
+
       // Simulate rapid scrolling
       for (let i = 0; i < 100; i++) {
         fireEvent.scroll(scrollContainer, { target: { scrollTop: i * 50 } });
@@ -252,7 +252,7 @@ describe('VirtualList', () => {
           containerHeight={500}
           renderItem={(item, index) => <div role="row">{index}</div>}
           onFocusChange={(index) => focusChanges.push(index)}
-        />
+        />,
       );
 
       const rows = container.querySelectorAll('[role="row"]');
@@ -264,18 +264,18 @@ describe('VirtualList', () => {
 
     it('should auto-scroll to focused item', async () => {
       const user = userEvent.setup();
-      
+
       const { container } = render(
         <VirtualList
           items={mockItems}
           itemHeight={50}
           containerHeight={500}
           renderItem={(item) => <div>{item.label}</div>}
-        />
+        />,
       );
 
       const scrollContainer = container.querySelector('div[role="region"]') as HTMLDivElement;
-      
+
       // Navigate to end
       await user.click(scrollContainer);
       await user.keyboard('{End}');

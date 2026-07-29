@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { onCLS, onFCP, onFID, onINP, onLCP, onTTFB } from "web-vitals";
+import { useEffect } from 'react';
+import { onCLS, onFCP, onFID, onINP, onLCP, onTTFB } from 'web-vitals';
 
 /**
  * Reports Core Web Vitals to /api/monitoring/vitals.
@@ -21,7 +21,7 @@ export function useWebVitals(): void {
       // Use sendBeacon so the report survives page unload
       const body = JSON.stringify({
         name: metric.name,
-        value: Math.round(metric.name === "CLS" ? metric.value * 1000 : metric.value),
+        value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
         rating: metric.rating,
         id: metric.id,
         url: window.location.pathname,
@@ -29,14 +29,19 @@ export function useWebVitals(): void {
       });
 
       if (navigator.sendBeacon) {
-        navigator.sendBeacon("/api/monitoring/vitals", new Blob([body], { type: "application/json" }));
+        navigator.sendBeacon(
+          '/api/monitoring/vitals',
+          new Blob([body], { type: 'application/json' }),
+        );
       } else {
-        fetch("/api/monitoring/vitals", {
-          method: "POST",
+        fetch('/api/monitoring/vitals', {
+          method: 'POST',
           body,
-          headers: { "Content-Type": "application/json" },
+          headers: { 'Content-Type': 'application/json' },
           keepalive: true,
-        }).catch(() => {/* best-effort */});
+        }).catch(() => {
+          /* best-effort */
+        });
       }
     }
 

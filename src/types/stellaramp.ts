@@ -36,11 +36,11 @@ export interface StateVariant {
 }
 
 export type OfframpStep =
-  | "idle"
-  | "initiating"
-  | "awaiting-signature"
-  | "submitting"
-  | "processing"
-  | "settling"
-  | "success"
-  | "error";
+  | 'idle'
+  | 'initiating'
+  | 'awaiting-signature'
+  | 'submitting'
+  | 'processing'
+  | 'settling'
+  | 'success'
+  | 'error';

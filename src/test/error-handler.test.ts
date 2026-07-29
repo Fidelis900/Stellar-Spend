@@ -117,14 +117,18 @@ describe('ErrorHandler', () => {
 
     it('should sanitize connection strings', async () => {
       vi.stubEnv('NODE_ENV', 'development');
-      const body = await parseBody(ErrorHandler.handle(new Error('Connection failed: mongodb://user:pass@host/db')));
+      const body = await parseBody(
+        ErrorHandler.handle(new Error('Connection failed: mongodb://user:pass@host/db')),
+      );
       expect(body.message).toContain('[connection_string]');
       expect(body.message).not.toContain('mongodb://user:pass@host/db');
     });
 
     it('should sanitize API keys', async () => {
       vi.stubEnv('NODE_ENV', 'development');
-      const body = await parseBody(ErrorHandler.handle(new Error('API key abc123def456ghi789jkl012mno345pqr failed')));
+      const body = await parseBody(
+        ErrorHandler.handle(new Error('API key abc123def456ghi789jkl012mno345pqr failed')),
+      );
       expect(body.message).toContain('[api_key]');
       expect(body.message).not.toContain('abc123def456ghi789jkl012mno345pqr');
     });

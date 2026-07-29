@@ -47,7 +47,7 @@ function baseMessage(context: NotificationContext): string {
 }
 
 export function deriveNotificationEvent(
-  context: NotificationContext
+  context: NotificationContext,
 ): TransactionNotificationEvent | null {
   const current = context.transaction.status;
   if (
@@ -64,7 +64,7 @@ export function deriveNotificationEvent(
 
 export function buildNotificationTemplate(
   context: NotificationContext,
-  locale?: string
+  locale?: string,
 ): NotificationTemplate | null {
   const event = deriveNotificationEvent(context);
   if (!event) return null;

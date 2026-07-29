@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import type { Transaction } from "@/lib/transaction-storage";
-import { canFileClaim, formatUsdc, getInsuranceStatusLabel } from "../format";
+import type { Transaction } from '@/lib/transaction-storage';
+import { canFileClaim, formatUsdc, getInsuranceStatusLabel } from '../format';
 
 interface InsuranceCellProps {
   tx: Transaction;

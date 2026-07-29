@@ -1,8 +1,8 @@
 import { logger } from '@/lib/logger';
-"use client";
+('use client');
 
-import React, { Component, type ErrorInfo, type ReactNode } from "react";
-import * as Sentry from "@sentry/react";
+import React, { Component, type ErrorInfo, type ReactNode } from 'react';
+import * as Sentry from '@sentry/react';
 
 interface Props {
   children: ReactNode;
@@ -29,7 +29,7 @@ export class ErrorBoundary extends Component<Props, State> {
     });
     this.setState({ eventId: eventId ?? null });
     this.props.onError?.(error, info);
-    logger.error("ErrorBoundary", { componentStack: info.componentStack }, error);
+    logger.error('ErrorBoundary', { componentStack: info.componentStack }, error);
   }
 
   handleReset = () => {
@@ -54,7 +54,7 @@ export class ErrorBoundary extends Component<Props, State> {
       >
         <p className="text-red-400 font-medium">Something went wrong</p>
         <p className="text-[#888] text-sm max-w-sm">
-          {this.state.error?.message ?? "An unexpected error occurred."}
+          {this.state.error?.message ?? 'An unexpected error occurred.'}
         </p>
         <div className="flex gap-3">
           <button

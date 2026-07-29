@@ -1,14 +1,17 @@
-"use client";
+'use client';
 
-import Image, { ImageProps } from "next/image";
-import { memo } from "react";
-import { imageConfigs as baseImageConfigs, ImageOptimizationConfig } from "@/lib/image-optimization";
+import Image, { ImageProps } from 'next/image';
+import { memo } from 'react';
+import {
+  imageConfigs as baseImageConfigs,
+  ImageOptimizationConfig,
+} from '@/lib/image-optimization';
 
 // Extend base configs with AVIF variant
 const imageConfigs = {
   ...baseImageConfigs,
   avif: {
-    sizes: "(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1200px",
+    sizes: '(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1200px',
     quality: 80,
     priority: false,
   },
@@ -16,7 +19,7 @@ const imageConfigs = {
 
 type ImageVariant = keyof typeof imageConfigs;
 
-interface OptimizedImageProps extends Omit<ImageProps, "alt"> {
+interface OptimizedImageProps extends Omit<ImageProps, 'alt'> {
   alt: string;
   variant?: ImageVariant;
   config?: ImageOptimizationConfig;
@@ -26,7 +29,7 @@ interface OptimizedImageProps extends Omit<ImageProps, "alt"> {
  * Optimized Image component with AVIF/WebP support, LCP optimization, and lazy loading.
  */
 const OptimizedImage = memo(function OptimizedImage({
-  variant = "card",
+  variant = 'card',
   config,
   ...props
 }: OptimizedImageProps) {
@@ -45,10 +48,10 @@ const OptimizedImage = memo(function OptimizedImage({
       quality={mergedConfig.quality}
       placeholder={mergedConfig.placeholder}
       priority={isPriority}
-      loading={isPriority ? "eager" : "lazy"}
-      decoding={isPriority ? undefined : "async"}
+      loading={isPriority ? 'eager' : 'lazy'}
+      decoding={isPriority ? undefined : 'async'}
       // @ts-expect-error fetchpriority is a valid HTML attribute not yet in React types
-      fetchpriority={isPriority ? "high" : undefined}
+      fetchpriority={isPriority ? 'high' : undefined}
     />
   );
 });

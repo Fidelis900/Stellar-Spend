@@ -1,12 +1,12 @@
 import { logger } from '@/lib/logger';
-"use client";
+('use client');
 
-import { useEffect, useState } from "react";
-import { cn } from "@/lib/cn";
+import { useEffect, useState } from 'react';
+import { cn } from '@/lib/cn';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
 export default function PWAInstallPrompt() {
@@ -16,7 +16,7 @@ export default function PWAInstallPrompt() {
 
   useEffect(() => {
     // Check if app is already installed
-    if (window.matchMedia("(display-mode: standalone)").matches) {
+    if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true);
       return;
     }
@@ -33,12 +33,12 @@ export default function PWAInstallPrompt() {
       setDeferredPrompt(null);
     };
 
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    window.addEventListener("appinstalled", handleAppInstalled);
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-      window.removeEventListener("appinstalled", handleAppInstalled);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 
@@ -48,14 +48,14 @@ export default function PWAInstallPrompt() {
     try {
       await deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      
-      if (outcome === "accepted") {
+
+      if (outcome === 'accepted') {
         setIsInstalled(true);
       }
       setShowPrompt(false);
       setDeferredPrompt(null);
     } catch (err) {
-      logger.error("Installation failed:", {}, err);
+      logger.error('Installation failed:', {}, err);
     }
   };
 
@@ -79,9 +79,9 @@ export default function PWAInstallPrompt() {
               <button
                 onClick={handleInstall}
                 className={cn(
-                  "flex-1 px-3 py-2 text-xs font-semibold tracking-widest uppercase",
-                  "bg-[#c9a962] text-[#0a0a0a] rounded transition-colors duration-150",
-                  "hover:bg-[#d4b982] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]"
+                  'flex-1 px-3 py-2 text-xs font-semibold tracking-widest uppercase',
+                  'bg-[#c9a962] text-[#0a0a0a] rounded transition-colors duration-150',
+                  'hover:bg-[#d4b982] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]',
                 )}
               >
                 Install
@@ -89,9 +89,9 @@ export default function PWAInstallPrompt() {
               <button
                 onClick={handleDismiss}
                 className={cn(
-                  "flex-1 px-3 py-2 text-xs font-semibold tracking-widest uppercase",
-                  "border border-[#555555] text-[#555555] rounded transition-colors duration-150",
-                  "hover:border-[#c9a962] hover:text-[#c9a962] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#555555]"
+                  'flex-1 px-3 py-2 text-xs font-semibold tracking-widest uppercase',
+                  'border border-[#555555] text-[#555555] rounded transition-colors duration-150',
+                  'hover:border-[#c9a962] hover:text-[#c9a962] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#555555]',
                 )}
               >
                 Later

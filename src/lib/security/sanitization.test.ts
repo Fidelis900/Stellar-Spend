@@ -55,7 +55,7 @@ describe('Input Sanitization', () => {
     });
 
     it('should recursively escape object keys', () => {
-      const input = { '$set': { 'user.name': 'value' } };
+      const input = { $set: { 'user.name': 'value' } };
       const result = escapeNoSql(input) as Record<string, any>;
       expect(Object.keys(result)[0]).toBe('\\$set');
     });

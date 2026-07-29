@@ -6,24 +6,23 @@ export const maxDuration = 10;
 
 /**
  * GET /api/offramp/bridge/tx-status/[hash]
- * 
+ *
  * Polls the Soroban RPC for a transaction's status.
- * 
+ *
  * Response:
  * {
  *   status: 'SUCCESS' | 'FAILED' | 'NOT_FOUND'
  *   hash: string
  * }
  */
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ hash: string }> }
-) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ hash: string }> }) {
   const { hash } = await params;
 
   const rpcUrl = process.env.STELLAR_SOROBAN_RPC_URL;
   if (!rpcUrl) {
-    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Soroban RPC URL not configured'));
+    return ErrorHandler.handle(
+      new ApiError(ErrorType.SERVER_ERROR, 'Soroban RPC URL not configured'),
+    );
   }
 
   try {

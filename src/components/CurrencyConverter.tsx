@@ -1,20 +1,32 @@
-"use client";
+'use client';
 
-import { useMemo, useState, useCallback } from "react";
-import { cn } from "@/lib/cn";
-import { useCurrencyConverter } from "@/hooks/useCurrencyConverter";
-import { isSupportedStablecoin } from "@/lib/stablecoins";
-import { stellarSwapService, type StellarSwapQuote } from "@/lib/services/stellar-swap.service";
-import SwapPreview from "@/components/SwapPreview";
+import { useMemo, useState, useCallback } from 'react';
+import { cn } from '@/lib/cn';
+import { useCurrencyConverter } from '@/hooks/useCurrencyConverter';
+import { isSupportedStablecoin } from '@/lib/stablecoins';
+import { stellarSwapService, type StellarSwapQuote } from '@/lib/services/stellar-swap.service';
+import SwapPreview from '@/components/SwapPreview';
 
 export default function CurrencyConverter({ className }: { className?: string }) {
   const {
-    fromAmount, toAmount, fromCurrency, toCurrency,
-    rate, fees, loading, currencies, copied,
-    quoteSecondsLeft, isStale, rateUpdated,
-    handleFromAmountChange, handleToAmountChange,
-    setFromCurrency, setToCurrency,
-    swapCurrencies, copyResult,
+    fromAmount,
+    toAmount,
+    fromCurrency,
+    toCurrency,
+    rate,
+    fees,
+    loading,
+    currencies,
+    copied,
+    quoteSecondsLeft,
+    isStale,
+    rateUpdated,
+    handleFromAmountChange,
+    handleToAmountChange,
+    setFromCurrency,
+    setToCurrency,
+    swapCurrencies,
+    copyResult,
   } = useCurrencyConverter();
 
   const [swapQuote, setSwapQuote] = useState<StellarSwapQuote | null>(null);
@@ -27,7 +39,8 @@ export default function CurrencyConverter({ className }: { className?: string })
       isSupportedStablecoin(fromCurrency) &&
       isSupportedStablecoin(toCurrency) &&
       fromCurrency !== toCurrency &&
-      !!fromAmount && parseFloat(fromAmount) > 0,
+      !!fromAmount &&
+      parseFloat(fromAmount) > 0,
     [fromCurrency, toCurrency, fromAmount],
   );
 
@@ -39,7 +52,7 @@ export default function CurrencyConverter({ className }: { className?: string })
       const quote = await stellarSwapService.getQuote(fromCurrency, toCurrency, fromAmount);
       setSwapQuote(quote);
     } catch (err) {
-      setSwapError(err instanceof Error ? err.message : "Failed to get swap quote");
+      setSwapError(err instanceof Error ? err.message : 'Failed to get swap quote');
     } finally {
       setSwapLoading(false);
     }
@@ -55,21 +68,29 @@ export default function CurrencyConverter({ className }: { className?: string })
   }, [swapQuote, handleFromAmountChange, setFromCurrency]);
 
   const currencyOptions = useMemo(
-    () => currencies.map((curr) => <option key={curr} value={curr}>{curr}</option>),
+    () =>
+      currencies.map((curr) => (
+        <option key={curr} value={curr}>
+          {curr}
+        </option>
+      )),
     [currencies],
   );
 
   return (
     <div
       className={cn(
-        "rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900",
+        'rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900',
         className,
       )}
     >
       <h2 className="mb-4 text-lg font-semibold">Currency Converter</h2>
 
       {swapConfirmed && (
-        <div role="status" className="mb-4 rounded bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
+        <div
+          role="status"
+          className="mb-4 rounded bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400"
+        >
           ✓ Swap confirmed. Continue to off-ramp with your {fromCurrency}.
         </div>
       )}
@@ -136,10 +157,14 @@ export default function CurrencyConverter({ className }: { className?: string })
             disabled={swapLoading}
             className="w-full rounded border border-blue-400 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-900/20"
           >
-            {swapLoading ? "Fetching quote…" : `Swap ${fromCurrency} → ${toCurrency} on Stellar DEX`}
+            {swapLoading
+              ? 'Fetching quote…'
+              : `Swap ${fromCurrency} → ${toCurrency} on Stellar DEX`}
           </button>
           {swapError && (
-            <p role="alert" className="mt-2 text-xs text-red-500">{swapError}</p>
+            <p role="alert" className="mt-2 text-xs text-red-500">
+              {swapError}
+            </p>
           )}
         </div>
       )}
@@ -165,14 +190,20 @@ export default function CurrencyConverter({ className }: { className?: string })
             </p>
             <span
               className={cn(
-                "shrink-0 text-xs tabular-nums transition-colors",
-                rateUpdated ? "font-medium text-green-500"
-                  : isStale ? "text-amber-500"
-                  : "text-gray-400 dark:text-gray-500",
+                'shrink-0 text-xs tabular-nums transition-colors',
+                rateUpdated
+                  ? 'font-medium text-green-500'
+                  : isStale
+                    ? 'text-amber-500'
+                    : 'text-gray-400 dark:text-gray-500',
               )}
               aria-live="polite"
             >
-              {rateUpdated ? "Rate updated" : isStale ? "Rate expired" : `Refreshes in ${quoteSecondsLeft}s`}
+              {rateUpdated
+                ? 'Rate updated'
+                : isStale
+                  ? 'Rate expired'
+                  : `Refreshes in ${quoteSecondsLeft}s`}
             </span>
           </div>
         </div>
@@ -183,7 +214,8 @@ export default function CurrencyConverter({ className }: { className?: string })
           role="alert"
           className="mb-4 rounded border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-600 dark:text-amber-400"
         >
-          The displayed rate has expired. A fresh rate will load automatically — wait a moment before submitting.
+          The displayed rate has expired. A fresh rate will load automatically — wait a moment
+          before submitting.
         </div>
       )}
 
@@ -191,30 +223,32 @@ export default function CurrencyConverter({ className }: { className?: string })
       <div className="mb-4 space-y-2 rounded bg-gray-50 p-3 text-sm dark:bg-gray-800">
         <p className="font-medium text-gray-700 dark:text-gray-300">Fees</p>
         <div className="flex justify-between text-gray-600 dark:text-gray-400">
-          <span>Bridge Fee:</span><span>{fees.bridge}%</span>
+          <span>Bridge Fee:</span>
+          <span>{fees.bridge}%</span>
         </div>
         <div className="flex justify-between text-gray-600 dark:text-gray-400">
-          <span>Payout Fee:</span><span>{fees.payout}%</span>
+          <span>Payout Fee:</span>
+          <span>{fees.payout}%</span>
         </div>
       </div>
 
       <button
         onClick={copyResult}
         disabled={isStale || !toAmount}
-        title={isStale ? "Wait for the rate to refresh before copying" : undefined}
+        title={isStale ? 'Wait for the rate to refresh before copying' : undefined}
         className={cn(
-          "w-full rounded px-4 py-2 font-medium transition-colors",
-          copied ? "bg-green-500 text-white"
-            : isStale ? "cursor-not-allowed bg-gray-300 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
-            : "bg-blue-500 text-white hover:bg-blue-600",
+          'w-full rounded px-4 py-2 font-medium transition-colors',
+          copied
+            ? 'bg-green-500 text-white'
+            : isStale
+              ? 'cursor-not-allowed bg-gray-300 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+              : 'bg-blue-500 text-white hover:bg-blue-600',
         )}
       >
-        {copied ? "Copied!" : "Copy Result"}
+        {copied ? 'Copied!' : 'Copy Result'}
       </button>
 
-      {loading && (
-        <p className="mt-2 text-center text-sm text-gray-500">Updating rates…</p>
-      )}
+      {loading && <p className="mt-2 text-center text-sm text-gray-500">Updating rates…</p>}
     </div>
   );
 }

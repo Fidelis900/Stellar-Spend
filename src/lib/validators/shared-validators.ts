@@ -67,13 +67,9 @@ export const ibanValidator = z
   .min(15, 'IBAN must be at least 15 characters')
   .max(34, 'IBAN must not exceed 34 characters');
 
-export const bvnValidator = z
-  .string()
-  .regex(/^\d{11}$/, 'BVN must be exactly 11 digits');
+export const bvnValidator = z.string().regex(/^\d{11}$/, 'BVN must be exactly 11 digits');
 
-export const ninValidator = z
-  .string()
-  .regex(/^\d{11}$/, 'NIN must be exactly 11 digits');
+export const ninValidator = z.string().regex(/^\d{11}$/, 'NIN must be exactly 11 digits');
 
 export function createMinAmountValidator(min: number) {
   return amountValidator.refine((val) => parseFloat(val) >= min, `Amount must be at least ${min}`);

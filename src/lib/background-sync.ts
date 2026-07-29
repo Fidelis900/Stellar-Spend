@@ -1,19 +1,19 @@
 import { logger } from '@/lib/logger';
-"use client";
+('use client');
 
-import { useEffect, useState, useCallback } from "react";
-import type { Transaction } from "./transaction-storage";
-import { SyncStorage } from "./sync-storage";
-import { syncTransactionHistory, getSyncStatus } from "./transaction-sync-client";
+import { useEffect, useState, useCallback } from 'react';
+import type { Transaction } from './transaction-storage';
+import { SyncStorage } from './sync-storage';
+import { syncTransactionHistory, getSyncStatus } from './transaction-sync-client';
 
 interface FailedTransaction extends Transaction {
   retryCount?: number;
   lastRetryAt?: number;
 }
 
-const DB_NAME = "stellar-spend";
-const STORE_NAME = "failed-transactions";
-const SYNC_STORE_NAME = "transaction-sync-queue";
+const DB_NAME = 'stellar-spend';
+const STORE_NAME = 'failed-transactions';
+const SYNC_STORE_NAME = 'transaction-sync-queue';
 
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -23,7 +23,7 @@ function openDB(): Promise<IDBDatabase> {
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: "id" });
+        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
       }
     };
   });
@@ -51,7 +51,7 @@ export function useBackgroundSync() {
   const loadFailedTransactions = useCallback(async () => {
     try {
       const db = await openDB();
-      const transaction = db.transaction([STORE_NAME], "readonly");
+      const transaction = db.transaction([STORE_NAME], 'readonly');
       const store = transaction.objectStore(STORE_NAME);
       const request = store.getAll();
 
@@ -59,26 +59,26 @@ export function useBackgroundSync() {
         setFailedTransactions(request.result);
       };
     } catch (err) {
-      logger.error("Failed to load failed transactions:", {}, err);
+      logger.error('Failed to load failed transactions:', {}, err);
     }
   }, []);
 
   const updateSyncStatus = useCallback(() => {
     const status = getSyncStatus();
-    setSyncStatus(prev => ({
+    setSyncStatus((prev) => ({
       ...prev,
       ...status,
     }));
   }, []);
 
   useEffect(() => {
-    const supported = "serviceWorker" in navigator && "SyncManager" in window;
+    const supported = 'serviceWorker' in navigator && 'SyncManager' in window;
     setIsSupported(supported);
 
     if (supported) {
       loadFailedTransactions();
       updateSyncStatus();
-      
+
       // Update sync status every 5 seconds
       const interval = setInterval(updateSyncStatus, 5000);
       return () => clearInterval(interval);
@@ -90,7 +90,7 @@ export function useBackgroundSync() {
 
     try {
       const db = await openDB();
-      const transaction = db.transaction([STORE_NAME], "readwrite");
+      const transaction = db.transaction([STORE_NAME], 'readwrite');
       const store = transaction.objectStore(STORE_NAME);
       const failedTx: FailedTransaction = {
         ...tx,
@@ -104,31 +104,31 @@ export function useBackgroundSync() {
       // Register background sync
       const registration = await navigator.serviceWorker.ready;
       if (registration.sync) {
-        await registration.sync.register("sync-failed-transactions");
+        await registration.sync.register('sync-failed-transactions');
       }
     } catch (err) {
-      logger.error("Failed to add failed transaction:", {}, err);
+      logger.error('Failed to add failed transaction:', {}, err);
     }
   };
 
   const removeFailedTransaction = async (txId: string) => {
     try {
       const db = await openDB();
-      const transaction = db.transaction([STORE_NAME], "readwrite");
+      const transaction = db.transaction([STORE_NAME], 'readwrite');
       const store = transaction.objectStore(STORE_NAME);
       store.delete(txId);
 
       setFailedTransactions((prev) => prev.filter((tx) => tx.id !== txId));
     } catch (err) {
-      logger.error("Failed to remove failed transaction:", {}, err);
+      logger.error('Failed to remove failed transaction:', {}, err);
     }
   };
 
   const retryFailedTransaction = async (txId: string) => {
     try {
-      const response = await fetch("/api/offramp/execute-payout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/offramp/execute-payout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ transactionId: txId }),
       });
 
@@ -138,13 +138,13 @@ export function useBackgroundSync() {
       }
       return false;
     } catch (err) {
-      logger.error("Failed to retry transaction:", {}, err);
+      logger.error('Failed to retry transaction:', {}, err);
       return false;
     }
   };
 
   const triggerHistorySync = async (userAddress: string, localTransactions: Transaction[]) => {
-    setSyncStatus(prev => ({ ...prev, syncing: true }));
+    setSyncStatus((prev) => ({ ...prev, syncing: true }));
     try {
       const result = await syncTransactionHistory(localTransactions, {
         userAddress,
@@ -157,9 +157,9 @@ export function useBackgroundSync() {
         }
       }
     } catch (err) {
-      logger.error("Error syncing history:", {}, err);
+      logger.error('Error syncing history:', {}, err);
     } finally {
-      setSyncStatus(prev => ({ ...prev, syncing: false }));
+      setSyncStatus((prev) => ({ ...prev, syncing: false }));
       updateSyncStatus();
     }
   };

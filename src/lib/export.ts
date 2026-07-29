@@ -1,14 +1,17 @@
 import { logger } from '@/lib/logger';
-import type { Transaction } from "./transaction-storage";
+import type { Transaction } from './transaction-storage';
 
 // ---------------------------------------------------------------------------
 // Shared helpers
 // ---------------------------------------------------------------------------
 
 function formatDate(ts: number): string {
-  return new Date(ts).toLocaleString("en-US", {
-    month: "short", day: "numeric", year: "numeric",
-    hour: "2-digit", minute: "2-digit",
+  return new Date(ts).toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   });
 }
 
@@ -19,7 +22,7 @@ function escapeCell(v: string): string {
 
 function triggerDownload(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
+  const a = document.createElement('a');
   a.href = url;
   a.download = filename;
   a.click();
@@ -39,7 +42,7 @@ function getTimestampedFilename(basename: string, ext: string): string {
 export function filterByDateRange(
   txs: Transaction[],
   dateFrom: string,
-  dateTo: string
+  dateTo: string,
 ): Transaction[] {
   let result = txs;
   if (dateFrom) {
@@ -58,61 +61,67 @@ export function filterByDateRange(
 // ---------------------------------------------------------------------------
 
 const CSV_HEADERS = [
-  "ID", "Date", "Amount (USDC)", "Currency",
-  "Stellar Tx Hash", "Bridge Status", "Payout Order ID", "Payout Status",
-  "Bank / Institution", "Account Name", "Account Identifier",
-  "Status", "Error",
+  'ID',
+  'Date',
+  'Amount (USDC)',
+  'Currency',
+  'Stellar Tx Hash',
+  'Bridge Status',
+  'Payout Order ID',
+  'Payout Status',
+  'Bank / Institution',
+  'Account Name',
+  'Account Identifier',
+  'Status',
+  'Error',
 ];
 
-export function exportCSV(txs: Transaction[], filename = "transactions.csv"): void {
+export function exportCSV(txs: Transaction[], filename = 'transactions.csv'): void {
   const rows = [
-    CSV_HEADERS.map(escapeCell).join(","),
+    CSV_HEADERS.map(escapeCell).join(','),
     ...txs.map((tx) =>
       [
         tx.id,
         formatDate(tx.timestamp),
         tx.amount,
         tx.currency,
-        tx.stellarTxHash ?? "",
-        tx.bridgeStatus ?? "",
-        tx.payoutOrderId ?? "",
-        tx.payoutStatus ?? "",
+        tx.stellarTxHash ?? '',
+        tx.bridgeStatus ?? '',
+        tx.payoutOrderId ?? '',
+        tx.payoutStatus ?? '',
         tx.beneficiary.institution,
         tx.beneficiary.accountName,
         tx.beneficiary.accountIdentifier,
         tx.status,
-        tx.error ?? "",
+        tx.error ?? '',
       ]
         .map(escapeCell)
-        .join(",")
+        .join(','),
     ),
   ];
 
-  triggerDownload(
-    new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" }),
-    filename
-  );
+  triggerDownload(new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' }), filename);
 }
 
 // ---------------------------------------------------------------------------
 // PDF export  (no external library — opens a styled print window)
 // ---------------------------------------------------------------------------
 
-export function exportPDF(txs: Transaction[], filename = "transactions"): void {
+export function exportPDF(txs: Transaction[], filename = 'transactions'): void {
   const rows = txs
     .map(
       (tx) => `
       <tr>
         <td>${formatDate(tx.timestamp)}</td>
-        <td class="mono">${tx.stellarTxHash ?? "—"}</td>
+        <td class="mono">${tx.stellarTxHash ?? '—'}</td>
         <td>${tx.amount} USDC</td>
         <td>${tx.currency}</td>
         <td>${tx.beneficiary.institution}</td>
         <td>${tx.beneficiary.accountName}</td>
         <td class="status ${tx.status}">${tx.status.toUpperCase()}</td>
-      </tr>`
+      </tr>`,
     )
-    .join("");
+    .join('');
 
   const html = `<!DOCTYPE html>
 <html>
@@ -138,7 +147,7 @@ export function exportPDF(txs: Transaction[], filename = "transactions"): void {
 </head>
 <body>
 <h1>Stellar-Spend — Transaction History</h1>
-<p class="meta">Exported ${new Date().toLocaleString()} · ${txs.length} transaction${txs.length !== 1 ? "s" : ""}</p>
+<p class="meta">Exported ${new Date().toLocaleString()} · ${txs.length} transaction${txs.length !== 1 ? 's' : ''}</p>
 <table>
   <thead>
     <tr><th>Date</th><th>Tx Hash</th><th>Amount</th><th>Currency</th><th>Bank</th><th>Account Name</th><th>Status</th></tr>
@@ -148,20 +157,22 @@ export function exportPDF(txs: Transaction[], filename = "transactions"): void {
 </body>
 </html>`;
 
-  const win = window.open("", "_blank", "width=900,height=700");
+  const win = window.open('', '_blank', 'width=900,height=700');
   if (!win) return;
   win.document.write(html);
   win.document.close();
   win.focus();
   // Small delay so the browser renders before print dialog
-  setTimeout(() => { win.print(); }, 400);
+  setTimeout(() => {
+    win.print();
+  }, 400);
 }
 
 // ---------------------------------------------------------------------------
 // JSON export
 // ---------------------------------------------------------------------------
 
-export function exportJSON(txs: Transaction[], filename = "transactions.json"): void {
+export function exportJSON(txs: Transaction[], filename = 'transactions.json'): void {
   const data = {
     exportedAt: new Date().toISOString(),
     transactionCount: txs.length,
@@ -181,40 +192,43 @@ export function exportJSON(txs: Transaction[], filename = "transactions.json"): 
     })),
   };
 
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  triggerDownload(blob, getTimestampedFilename(filename.replace(".json", ""), "json"));
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  triggerDownload(blob, getTimestampedFilename(filename.replace('.json', ''), 'json'));
 }
 
 // ---------------------------------------------------------------------------
 // Excel export (XLSX)
 // ---------------------------------------------------------------------------
 
-export async function exportXLSX(txs: Transaction[], filename = "transactions.xlsx"): Promise<void> {
+export async function exportXLSX(
+  txs: Transaction[],
+  filename = 'transactions.xlsx',
+): Promise<void> {
   try {
-    const { utils, writeFile } = await import("xlsx");
+    const { utils, writeFile } = await import('xlsx');
 
     const data = txs.map((tx) => ({
-      "Date": formatDate(tx.timestamp),
-      "Amount (USDC)": tx.amount,
-      "Currency": tx.currency,
-      "Stellar Tx Hash": tx.stellarTxHash ?? "",
-      "Bridge Status": tx.bridgeStatus ?? "",
-      "Payout Order ID": tx.payoutOrderId ?? "",
-      "Payout Status": tx.payoutStatus ?? "",
-      "Bank / Institution": tx.beneficiary.institution,
-      "Account Name": tx.beneficiary.accountName,
-      "Account Identifier": tx.beneficiary.accountIdentifier,
-      "Status": tx.status,
-      "Error": tx.error ?? "",
+      Date: formatDate(tx.timestamp),
+      'Amount (USDC)': tx.amount,
+      Currency: tx.currency,
+      'Stellar Tx Hash': tx.stellarTxHash ?? '',
+      'Bridge Status': tx.bridgeStatus ?? '',
+      'Payout Order ID': tx.payoutOrderId ?? '',
+      'Payout Status': tx.payoutStatus ?? '',
+      'Bank / Institution': tx.beneficiary.institution,
+      'Account Name': tx.beneficiary.accountName,
+      'Account Identifier': tx.beneficiary.accountIdentifier,
+      Status: tx.status,
+      Error: tx.error ?? '',
     }));
 
     const ws = utils.json_to_sheet(data);
     const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, "Transactions");
+    utils.book_append_sheet(wb, ws, 'Transactions');
 
-    writeFile(wb, getTimestampedFilename(filename.replace(".xlsx", ""), "xlsx"));
+    writeFile(wb, getTimestampedFilename(filename.replace('.xlsx', ''), 'xlsx'));
   } catch (error) {
-    logger.error("Excel export failed:", {}, error);
-    throw new Error("Failed to export to Excel");
+    logger.error('Excel export failed:', {}, error);
+    throw new Error('Failed to export to Excel');
   }
 }

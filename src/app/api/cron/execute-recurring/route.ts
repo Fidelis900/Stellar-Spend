@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ErrorHandler } from '@/lib/error-handler';
 import { ApiError, ErrorType } from '@/lib/error-types';
-import {
-  RecurringSchedule,
-  buildRecurringNotification,
-} from '@/lib/recurring-transactions';
+import { RecurringSchedule, buildRecurringNotification } from '@/lib/recurring-transactions';
 import { logger } from '@/lib/logger';
 
 export async function POST(req: NextRequest) {

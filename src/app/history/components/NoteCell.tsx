@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import type { Transaction } from "@/lib/transaction-storage";
+import { useState } from 'react';
+import type { Transaction } from '@/lib/transaction-storage';
 
 interface NoteCellProps {
   tx: Transaction;
@@ -11,7 +11,7 @@ interface NoteCellProps {
 /** Inline-editable note cell for a transaction row. */
 export function NoteCell({ tx, onSave }: NoteCellProps) {
   const [editing, setEditing] = useState(false);
-  const [value, setValue] = useState(tx.note ?? "");
+  const [value, setValue] = useState(tx.note ?? '');
 
   const commit = () => {
     setEditing(false);
@@ -27,8 +27,8 @@ export function NoteCell({ tx, onSave }: NoteCellProps) {
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") commit();
-            if (e.key === "Escape") setEditing(false);
+            if (e.key === 'Enter') commit();
+            if (e.key === 'Escape') setEditing(false);
           }}
           className="flex-1 bg-[#0a0a0a] border border-[#c9a962] px-2 py-1 text-xs text-white focus:outline-none"
           aria-label="Edit note"
@@ -54,12 +54,12 @@ export function NoteCell({ tx, onSave }: NoteCellProps) {
   return (
     <button
       onClick={() => {
-        setValue(tx.note ?? "");
+        setValue(tx.note ?? '');
         setEditing(true);
       }}
       className="text-left text-[#777777] hover:text-[#c9a962] transition-colors duration-150 truncate max-w-[180px] block"
-      title={tx.note || "Add note"}
-      aria-label={tx.note ? `Edit note: ${tx.note}` : "Add note"}
+      title={tx.note || 'Add note'}
+      aria-label={tx.note ? `Edit note: ${tx.note}` : 'Add note'}
     >
       {tx.note || <span className="text-[#444444] italic">+ add note</span>}
     </button>

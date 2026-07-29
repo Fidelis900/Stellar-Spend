@@ -32,12 +32,19 @@ class PaycrestAdapter {
     const data = await response.json();
 
     if (!response.ok) {
-      const error = new Error(data?.message ?? `Verification failed: ${response.status}`) as PaycrestHttpError;
+      const error = new Error(
+        data?.message ?? `Verification failed: ${response.status}`,
+      ) as PaycrestHttpError;
       error.status = response.status;
       throw error;
     }
 
-    return data.accountName ?? data.data?.accountName ?? data.data?.account_name ?? String(data.data ?? '');
+    return (
+      data.accountName ??
+      data.data?.accountName ??
+      data.data?.account_name ??
+      String(data.data ?? '')
+    );
   }
 }
 

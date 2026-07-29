@@ -6,7 +6,7 @@ import type { WalletFlowState } from '@/types/stellaramp';
 
 /**
  * useWalletFlow
- * 
+ *
  * Manages the UI-related state machine for the wallet connection flow.
  * Returns the current state, progress steps, and UI variant data.
  */

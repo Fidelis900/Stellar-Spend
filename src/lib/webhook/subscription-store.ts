@@ -1,10 +1,17 @@
 import { randomUUID, createHash } from 'crypto';
 import { pool } from '../db/client';
 import type { WebhookSubscription, WebhookEvent, SubscriptionStatus } from './subscription-types';
-import { DEFAULT_SCHEMA_VERSION, isSupportedSchemaVersion, type SchemaVersion } from './schema-versions';
+import {
+  DEFAULT_SCHEMA_VERSION,
+  isSupportedSchemaVersion,
+  type SchemaVersion,
+} from './schema-versions';
 
 export class SubscriptionStoreError extends Error {
-  constructor(message: string, public readonly cause?: unknown) {
+  constructor(
+    message: string,
+    public readonly cause?: unknown,
+  ) {
     super(message);
     this.name = 'SubscriptionStoreError';
   }
@@ -57,11 +64,13 @@ export async function createSubscription(input: {
 }): Promise<WebhookSubscription> {
   const now = Date.now();
   const id = randomUUID();
-  const signingSecret = input.signingSecret ?? randomUUID().replace(/-/g, '') + randomUUID().replace(/-/g, '');
+  const signingSecret =
+    input.signingSecret ?? randomUUID().replace(/-/g, '') + randomUUID().replace(/-/g, '');
   const rateLimitMaxPerMinute = input.rateLimitMaxPerMinute ?? 60;
-  const schemaVersion = input.schemaVersion && isSupportedSchemaVersion(input.schemaVersion)
-    ? input.schemaVersion
-    : DEFAULT_SCHEMA_VERSION;
+  const schemaVersion =
+    input.schemaVersion && isSupportedSchemaVersion(input.schemaVersion)
+      ? input.schemaVersion
+      : DEFAULT_SCHEMA_VERSION;
 
   const sql = `
     INSERT INTO webhook_subscriptions
@@ -71,9 +80,14 @@ export async function createSubscription(input: {
   `;
   try {
     const result = await pool.query(sql, [
-      id, input.endpointUrl, signingSecret,
-      JSON.stringify(input.events), rateLimitMaxPerMinute,
-      input.description ?? null, schemaVersion, now,
+      id,
+      input.endpointUrl,
+      signingSecret,
+      JSON.stringify(input.events),
+      rateLimitMaxPerMinute,
+      input.description ?? null,
+      schemaVersion,
+      now,
     ]);
     return rowToSubscription(result.rows[0]);
   } catch (err) {
@@ -103,7 +117,17 @@ export async function getSubscription(id: string): Promise<WebhookSubscription |
 
 export async function updateSubscription(
   id: string,
-  updates: Partial<Pick<WebhookSubscription, 'endpointUrl' | 'events' | 'status' | 'rateLimitMaxPerMinute' | 'description' | 'schemaVersion'>>
+  updates: Partial<
+    Pick<
+      WebhookSubscription,
+      | 'endpointUrl'
+      | 'events'
+      | 'status'
+      | 'rateLimitMaxPerMinute'
+      | 'description'
+      | 'schemaVersion'
+    >
+  >,
 ): Promise<WebhookSubscription | null> {
   const setClauses: string[] = ['updated_at = $2'];
   const values: unknown[] = [];

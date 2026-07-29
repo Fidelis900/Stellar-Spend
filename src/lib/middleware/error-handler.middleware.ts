@@ -16,7 +16,7 @@ export class AppError extends Error {
   constructor(
     public code: string,
     message?: string,
-    public details?: Record<string, any>
+    public details?: Record<string, any>,
   ) {
     super(message || ERROR_MESSAGES[code] || 'Unknown error');
     this.name = 'AppError';
@@ -25,7 +25,7 @@ export class AppError extends Error {
 
 export function createErrorResponse(
   error: Error | AppError,
-  requestId: string
+  requestId: string,
 ): [NextResponse<StandardErrorResponse>, number] {
   let code = ERROR_CODES.INTERNAL_ERROR;
   let message = 'Internal server error';

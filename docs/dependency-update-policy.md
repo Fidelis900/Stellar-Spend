@@ -10,22 +10,22 @@ Renovate Bot runs on a weekly schedule and opens PRs automatically.
 
 ### Schedule
 
-| Update type | Schedule | Auto-merge |
-|-------------|----------|------------|
-| Patch updates | Monday before 06:00 UTC | ✅ Yes (after CI passes) |
-| Minor/major updates | Monday before 06:00 UTC | ❌ No — requires review |
-| Dev dependencies | Monday before 06:00 UTC | ✅ Yes |
-| Lockfile maintenance | First of month, before 04:00 UTC | ✅ Yes |
-| Security/vulnerability | Immediately | ❌ No — requires review |
+| Update type            | Schedule                         | Auto-merge               |
+| ---------------------- | -------------------------------- | ------------------------ |
+| Patch updates          | Monday before 06:00 UTC          | ✅ Yes (after CI passes) |
+| Minor/major updates    | Monday before 06:00 UTC          | ❌ No — requires review  |
+| Dev dependencies       | Monday before 06:00 UTC          | ✅ Yes                   |
+| Lockfile maintenance   | First of month, before 04:00 UTC | ✅ Yes                   |
+| Security/vulnerability | Immediately                      | ❌ No — requires review  |
 
 ### Grouped PRs
 
-| Group | Packages |
-|-------|----------|
+| Group               | Packages                             |
+| ------------------- | ------------------------------------ |
 | `stellar-core-deps` | `@stellar/*`, `@allbridge/*`, `viem` |
-| `nextjs-react` | `next`, `react`, `react-dom` |
-| `typescript-types` | `@types/*` |
-| `dev-dependencies` | All `devDependencies` |
+| `nextjs-react`      | `next`, `react`, `react-dom`         |
+| `typescript-types`  | `@types/*`                           |
+| `dev-dependencies`  | All `devDependencies`                |
 
 ### Configuration
 
@@ -35,14 +35,14 @@ See `.github/renovate.json` for the full Renovate configuration.
 
 Every dependency PR (Renovate or manual) must pass all of the following jobs in `vulnerability-scanning.yml`:
 
-| Job | Purpose |
-|-----|---------|
+| Job                  | Purpose                                                                                          |
+| -------------------- | ------------------------------------------------------------------------------------------------ |
 | `lockfile-integrity` | Verifies `package-lock.json` is in sync and uses lockfileVersion ≥ 2 (includes integrity hashes) |
-| `license-check` | Fails on disallowed licenses (GPL, AGPL, LGPL, CDDL, EPL) |
-| `provenance-check` | Runs `npm audit signatures` and flags typosquatting candidates |
-| `npm-audit` | Fails on `moderate`+ vulnerabilities |
-| `dependency-check` | Snyk deep scan at `high` severity threshold |
-| `container-scan` | Trivy scan for HIGH/CRITICAL CVEs in the Docker image |
+| `license-check`      | Fails on disallowed licenses (GPL, AGPL, LGPL, CDDL, EPL)                                        |
+| `provenance-check`   | Runs `npm audit signatures` and flags typosquatting candidates                                   |
+| `npm-audit`          | Fails on `moderate`+ vulnerabilities                                                             |
+| `dependency-check`   | Snyk deep scan at `high` severity threshold                                                      |
+| `container-scan`     | Trivy scan for HIGH/CRITICAL CVEs in the Docker image                                            |
 
 ## Disallowed Licenses
 

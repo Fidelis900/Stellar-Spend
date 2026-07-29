@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { cn } from "@/lib/cn";
-import { type LoyaltyTier, getTierConfig } from "@/lib/loyalty";
-import { useI18n } from "@/lib/i18n";
+import { useEffect, useState } from 'react';
+import { cn } from '@/lib/cn';
+import { type LoyaltyTier, getTierConfig } from '@/lib/loyalty';
+import { useI18n } from '@/lib/i18n';
 
 interface Props {
   tier: LoyaltyTier | null;
@@ -32,8 +32,8 @@ export function TierUpgradeNotification({ tier, onClose }: Props) {
   return (
     <div
       className={cn(
-        "fixed bottom-8 right-8 z-50 transition-all duration-500 transform",
-        isVisible ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0",
+        'fixed bottom-8 right-8 z-50 transition-all duration-500 transform',
+        isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0',
       )}
       role="alert"
       aria-live="polite"
@@ -46,7 +46,7 @@ export function TierUpgradeNotification({ tier, onClose }: Props) {
           {/* Celebratory Icon/Graphic */}
           <div
             className="w-16 h-16 rounded-full flex items-center justify-center animate-bounce"
-            style={{ backgroundColor: config.color + "22" }}
+            style={{ backgroundColor: config.color + '22' }}
           >
             <span className="text-3xl" style={{ color: config.color }}>
               ★
@@ -55,13 +55,10 @@ export function TierUpgradeNotification({ tier, onClose }: Props) {
 
           <div className="space-y-1">
             <h3 className="text-lg font-bold text-white uppercase tracking-tighter">
-              {t("loyalty.upgrade_title")}
+              {t('loyalty.upgrade_title')}
             </h3>
-            <p
-              className="text-2xl font-black uppercase italic"
-              style={{ color: config.color }}
-            >
-              {config.label} {t("loyalty.tier")}
+            <p className="text-2xl font-black uppercase italic" style={{ color: config.color }}>
+              {config.label} {t('loyalty.tier')}
             </p>
           </div>
 
@@ -69,7 +66,7 @@ export function TierUpgradeNotification({ tier, onClose }: Props) {
 
           <div className="space-y-2">
             <p className="text-[10px] text-[#777777] uppercase tracking-widest">
-              {t("loyalty.new_benefits_unlocked")}
+              {t('loyalty.new_benefits_unlocked')}
             </p>
             <ul className="space-y-1">
               {config.benefits.slice(0, 3).map((benefit) => (
@@ -93,18 +90,18 @@ export function TierUpgradeNotification({ tier, onClose }: Props) {
             style={{
               color: config.color,
               borderColor: config.color,
-              backgroundColor: "transparent",
+              backgroundColor: 'transparent',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = config.color;
-              e.currentTarget.style.color = "#0a0a0a";
+              e.currentTarget.style.color = '#0a0a0a';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.backgroundColor = 'transparent';
               e.currentTarget.style.color = config.color;
             }}
           >
-            {t("common.close")}
+            {t('common.close')}
           </button>
         </div>
       </div>
@@ -118,8 +115,8 @@ export function TierUpgradeNotification({ tier, onClose }: Props) {
             style={{
               top: `${Math.random() * 100}%`,
               left: `${Math.random() * 100}%`,
-              width: "4px",
-              height: "4px",
+              width: '4px',
+              height: '4px',
               backgroundColor: config.color,
               animationDelay: `${Math.random() * 2}s`,
               animationDuration: `${2 + Math.random() * 2}s`,

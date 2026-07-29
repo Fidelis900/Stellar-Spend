@@ -1,6 +1,6 @@
-import type { Preview } from "@storybook/nextjs-vite";
-import "../src/app/globals.css";
-import React from "react";
+import type { Preview } from '@storybook/nextjs-vite';
+import '../src/app/globals.css';
+import React from 'react';
 
 const preview: Preview = {
   parameters: {
@@ -11,7 +11,7 @@ const preview: Preview = {
       },
     },
     a11y: {
-      test: "todo",
+      test: 'todo',
     },
     backgrounds: {
       disable: true,
@@ -19,15 +19,15 @@ const preview: Preview = {
   },
   globalTypes: {
     theme: {
-      name: "Theme",
-      description: "Global theme for components",
-      defaultValue: "dark",
+      name: 'Theme',
+      description: 'Global theme for components',
+      defaultValue: 'dark',
       toolbar: {
-        icon: "circlehollow",
+        icon: 'circlehollow',
         items: [
-          { value: "light", icon: "circlehollow", title: "Light" },
-          { value: "dark", icon: "circle", title: "Dark" },
-          { value: "high-contrast", icon: "eye", title: "High Contrast" },
+          { value: 'light', icon: 'circlehollow', title: 'Light' },
+          { value: 'dark', icon: 'circle', title: 'Dark' },
+          { value: 'high-contrast', icon: 'eye', title: 'High Contrast' },
         ],
         showName: true,
       },
@@ -35,9 +35,9 @@ const preview: Preview = {
   },
   decorators: [
     (Story, context) => {
-      const theme = context.globals.theme || "dark";
+      const theme = context.globals.theme || 'dark';
       React.useEffect(() => {
-        document.documentElement.setAttribute("data-theme", theme);
+        document.documentElement.setAttribute('data-theme', theme);
       }, [theme]);
       return (
         <div className="bg-[var(--bg)] text-[var(--text)] min-h-screen p-8">

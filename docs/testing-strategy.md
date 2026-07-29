@@ -27,14 +27,14 @@ This document describes the full testing approach for Stellar-Spend — tooling,
 
 Stellar-Spend uses a layered test strategy:
 
-| Layer | Tool | Scope |
-|-------|------|-------|
-| Unit | Vitest + React Testing Library | Individual functions and components |
-| Integration | Vitest | Route handlers + real service logic |
-| E2E | Playwright | Full browser flows |
-| Mutation | Vitest (mutation config) | Test suite quality |
-| Accessibility | axe-core / ARIA assertions | WCAG compliance |
-| Chaos | Vitest (chaos suite) | Resilience under failure |
+| Layer         | Tool                           | Scope                               |
+| ------------- | ------------------------------ | ----------------------------------- |
+| Unit          | Vitest + React Testing Library | Individual functions and components |
+| Integration   | Vitest                         | Route handlers + real service logic |
+| E2E           | Playwright                     | Full browser flows                  |
+| Mutation      | Vitest (mutation config)       | Test suite quality                  |
+| Accessibility | axe-core / ARIA assertions     | WCAG compliance                     |
+| Chaos         | Vitest (chaos suite)           | Resilience under failure            |
 
 Run all checks:
 
@@ -66,14 +66,14 @@ npm run test:e2e       # Playwright E2E suite
 /‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
 ```
 
-| Layer | Location | Tool | When to write |
-|-------|----------|------|---------------|
-| Unit | `src/lib/**/*.test.ts`, `src/test/*.test.tsx` | Vitest + React Testing Library | Any new function, hook, or component |
-| Integration | `src/test/integration/` | Vitest | Any new or changed API route handler |
-| E2E | `e2e/` | Playwright | Critical user journeys (connect → send → complete) |
-| Contract | `contracts/*/tests/` | `cargo test` | Any Soroban contract logic change |
-| Mutation | `vitest.mutation.config.ts` | Vitest coverage | Periodic quality audits; run before releases |
-| Chaos | `src/test/chaos-engineering.test.ts` | Vitest | Resilience scenarios for external service failures |
+| Layer       | Location                                      | Tool                           | When to write                                      |
+| ----------- | --------------------------------------------- | ------------------------------ | -------------------------------------------------- |
+| Unit        | `src/lib/**/*.test.ts`, `src/test/*.test.tsx` | Vitest + React Testing Library | Any new function, hook, or component               |
+| Integration | `src/test/integration/`                       | Vitest                         | Any new or changed API route handler               |
+| E2E         | `e2e/`                                        | Playwright                     | Critical user journeys (connect → send → complete) |
+| Contract    | `contracts/*/tests/`                          | `cargo test`                   | Any Soroban contract logic change                  |
+| Mutation    | `vitest.mutation.config.ts`                   | Vitest coverage                | Periodic quality audits; run before releases       |
+| Chaos       | `src/test/chaos-engineering.test.ts`          | Vitest                         | Resilience scenarios for external service failures |
 
 **Rule of thumb:** prefer more unit tests and fewer E2E tests. If something can be tested at the unit level, do not rely solely on E2E coverage for it.
 
@@ -92,11 +92,11 @@ Unit tests use **Vitest** with `jsdom` as the environment, configured in `vitest
 
 ### File conventions
 
-| Target | Location |
-|--------|----------|
-| Library / utility | `src/lib/**/*.test.ts` |
-| React component | `src/test/*.test.tsx` or `src/app/__tests__/*.test.tsx` |
-| API route handler | `src/test/*.test.ts` |
+| Target            | Location                                                |
+| ----------------- | ------------------------------------------------------- |
+| Library / utility | `src/lib/**/*.test.ts`                                  |
+| React component   | `src/test/*.test.tsx` or `src/app/__tests__/*.test.tsx` |
+| API route handler | `src/test/*.test.ts`                                    |
 
 ### Writing a utility test
 
@@ -130,9 +130,7 @@ import { Header } from '@/components/Header';
 describe('Header', () => {
   it('renders the connect wallet button when disconnected', () => {
     render(<Header isConnected={false} onConnect={vi.fn()} />);
-    expect(
-      screen.getByRole('button', { name: /connect wallet/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /connect wallet/i })).toBeInTheDocument();
   });
 
   it('calls onConnect when the button is clicked', async () => {
@@ -231,16 +229,16 @@ src/test/integration/
 
 ### Configuration highlights (`playwright.config.ts`)
 
-| Setting | Value |
-|---------|-------|
-| Test directory | `./e2e/` |
-| Base URL | `http://localhost:3001` |
-| Browser | Chromium (Desktop Chrome) |
-| CI retries | 2 |
-| CI workers | 1 (sequential) |
-| Local workers | Unbounded (parallel) |
-| Traces | Captured on first retry |
-| Web server | `npm run dev` — auto-started if not already running |
+| Setting        | Value                                               |
+| -------------- | --------------------------------------------------- |
+| Test directory | `./e2e/`                                            |
+| Base URL       | `http://localhost:3001`                             |
+| Browser        | Chromium (Desktop Chrome)                           |
+| CI retries     | 2                                                   |
+| CI workers     | 1 (sequential)                                      |
+| Local workers  | Unbounded (parallel)                                |
+| Traces         | Captured on first retry                             |
+| Web server     | `npm run dev` — auto-started if not already running |
 
 ### Running E2E tests
 
@@ -270,9 +268,7 @@ test.describe('Off-ramp flow', () => {
   test('page loads with title and connect wallet button', async ({ page }) => {
     await page.goto('/');
     await expect(page).toHaveTitle(/Stellar-Spend/i);
-    await expect(
-      page.getByRole('button', { name: /connect wallet/i })
-    ).toBeVisible();
+    await expect(page.getByRole('button', { name: /connect wallet/i })).toBeVisible();
   });
 
   test('history page shows empty state for new user', async ({ page }) => {
@@ -307,9 +303,7 @@ import AxeBuilder from '@axe-core/playwright';
 
 test('home page has no critical accessibility violations', async ({ page }) => {
   await page.goto('/');
-  const results = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa'])
-    .analyze();
+  const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   expect(results.violations).toEqual([]);
 });
 ```
@@ -365,15 +359,15 @@ mod tests {
 
 ### What to test in contracts
 
-| Scenario | Why |
-|----------|-----|
-| Happy path for each public function | Verify intended behavior |
-| State machine transitions | Ensure only valid state changes are accepted |
-| Authorization checks | Confirm unauthorized callers are rejected |
-| Timeout boundary conditions | Verify timeout math at `timeout_ledger - 1`, `timeout_ledger`, `timeout_ledger + 1` |
-| Double-release / double-refund | Confirm mutual exclusion is enforced |
-| Deposit ID uniqueness | Confirm duplicate IDs are rejected |
-| Fee calculation tiers | Verify fee schedules at tier boundaries |
+| Scenario                            | Why                                                                                 |
+| ----------------------------------- | ----------------------------------------------------------------------------------- |
+| Happy path for each public function | Verify intended behavior                                                            |
+| State machine transitions           | Ensure only valid state changes are accepted                                        |
+| Authorization checks                | Confirm unauthorized callers are rejected                                           |
+| Timeout boundary conditions         | Verify timeout math at `timeout_ledger - 1`, `timeout_ledger`, `timeout_ledger + 1` |
+| Double-release / double-refund      | Confirm mutual exclusion is enforced                                                |
+| Deposit ID uniqueness               | Confirm duplicate IDs are rejected                                                  |
+| Fee calculation tiers               | Verify fee schedules at tier boundaries                                             |
 
 ### CI integration
 
@@ -416,11 +410,11 @@ Coverage output is written to `./coverage/` (git-ignored). Open `./coverage/inde
 
 A **mutation score** below 60% indicates the test suite is too permissive — it allows incorrect logic to pass undetected. Aim for:
 
-| Layer | Target mutation score |
-|-------|-----------------------|
-| `src/lib/` utilities | ≥ 80% |
-| API route handlers | ≥ 70% |
-| Business logic (`offramp/`, `api-keys/`) | ≥ 75% |
+| Layer                                    | Target mutation score |
+| ---------------------------------------- | --------------------- |
+| `src/lib/` utilities                     | ≥ 80%                 |
+| API route handlers                       | ≥ 70%                 |
+| Business logic (`offramp/`, `api-keys/`) | ≥ 75%                 |
 
 ### Improving mutation scores
 
@@ -486,14 +480,14 @@ Chaos tests live in `src/test/chaos-engineering.test.ts` and verify that the app
 
 ### What chaos tests cover
 
-| Scenario | Expected behaviour |
-|----------|--------------------|
-| External SDK throws unexpectedly | Route returns `500` with a structured error, no unhandled rejection |
-| Database connection drops mid-request | Graceful error response, no leaked connection |
-| Rate limiter hit | `429` response with `Retry-After` header |
-| Malformed JSON body | `400` response with actionable message |
-| Timeout on downstream service | `504` or `503` with retry guidance |
-| Missing environment variable | Startup validation error, server does not start |
+| Scenario                              | Expected behaviour                                                  |
+| ------------------------------------- | ------------------------------------------------------------------- |
+| External SDK throws unexpectedly      | Route returns `500` with a structured error, no unhandled rejection |
+| Database connection drops mid-request | Graceful error response, no leaked connection                       |
+| Rate limiter hit                      | `429` response with `Retry-After` header                            |
+| Malformed JSON body                   | `400` response with actionable message                              |
+| Timeout on downstream service         | `504` or `503` with retry guidance                                  |
+| Missing environment variable          | Startup validation error, server does not start                     |
 
 ### Example chaos test
 
@@ -530,12 +524,12 @@ describe('chaos: bridge SDK failure', () => {
 
 Coverage is collected with the V8 provider via `vitest.mutation.config.ts`.
 
-| Layer | Target |
-|-------|--------|
-| `src/lib/` utilities | ≥ 80% line coverage |
-| API route handlers | All happy-path + primary error branches |
-| React components | Key render states and user interactions |
-| E2E | Critical journey: load → connect → submit → success |
+| Layer                | Target                                              |
+| -------------------- | --------------------------------------------------- |
+| `src/lib/` utilities | ≥ 80% line coverage                                 |
+| API route handlers   | All happy-path + primary error branches             |
+| React components     | Key render states and user interactions             |
+| E2E                  | Critical journey: load → connect → submit → success |
 
 ```bash
 # Generate a coverage report
@@ -579,6 +573,7 @@ const quote = createQuoteFactory.withAmount('100').withCurrency('NGN').create();
 ```
 
 Available factories:
+
 - `createTestTransaction(overrides?)` — `Transaction` with status, amount, currency
 - `createValidStellarAddress()` — valid `G…` address string
 - `createValidBaseAddress()` — valid `0x…` EVM address string
@@ -597,7 +592,7 @@ import { http, HttpResponse } from 'msw';
 
 export const handlers = [
   http.post('https://api.paycrest.io/v1/orders', () =>
-    HttpResponse.json({ id: 'mock-order-id', status: 'pending' })
+    HttpResponse.json({ id: 'mock-order-id', status: 'pending' }),
   ),
 ];
 ```
@@ -617,19 +612,19 @@ Override a handler for a single test:
 ```ts
 server.use(
   http.post('https://api.paycrest.io/v1/orders', () =>
-    HttpResponse.json({ error: 'Insufficient liquidity' }, { status: 422 })
-  )
+    HttpResponse.json({ error: 'Insufficient liquidity' }, { status: 422 }),
+  ),
 );
 ```
 
 ### When to use `vi.mock` vs MSW
 
-| Scenario | Use |
-|----------|-----|
-| Mocking a TypeScript module (SDK, adapter class) | `vi.mock('@/lib/clients/paycrest')` |
-| Mocking an external HTTP endpoint | MSW handler |
-| Mocking `localStorage` or browser APIs | `createLocalStorageMock()` or `vi.stubGlobal` |
-| Mocking environment variables | `vi.mock('@/lib/env', ...)` |
+| Scenario                                         | Use                                           |
+| ------------------------------------------------ | --------------------------------------------- |
+| Mocking a TypeScript module (SDK, adapter class) | `vi.mock('@/lib/clients/paycrest')`           |
+| Mocking an external HTTP endpoint                | MSW handler                                   |
+| Mocking `localStorage` or browser APIs           | `createLocalStorageMock()` or `vi.stubGlobal` |
+| Mocking environment variables                    | `vi.mock('@/lib/env', ...)`                   |
 
 ### Shared fixtures for localStorage
 
@@ -743,12 +738,14 @@ beforeEach(() => localStorage.clear());
 ### 1. Name tests as specifications, not implementations
 
 Bad:
+
 ```ts
 it('works', () => { ... });
 it('test validateAmount', () => { ... });
 ```
 
 Good:
+
 ```ts
 it('returns false for an amount below the minimum (0.70 USDC)', () => { ... });
 it('returns true for a valid positive decimal amount', () => { ... });
@@ -781,6 +778,7 @@ Each test should have one reason to fail. If a test asserts three unrelated beha
 ### 4. Cover the important cases
 
 Every non-trivial function needs at minimum:
+
 - **Happy path**: valid inputs produce the expected output
 - **Boundary values**: minimum, maximum, zero, empty
 - **Error paths**: invalid inputs throw or return the correct error
@@ -800,12 +798,14 @@ describe('validateAmount', () => {
 ### 5. Assert specific values, not just truthiness
 
 Bad:
+
 ```ts
 expect(result).toBeTruthy();
 expect(fees).not.toBeNull();
 ```
 
 Good:
+
 ```ts
 expect(result).toBe(true);
 expect(fees.bridgeFee).toBe('0.40');
@@ -815,24 +815,26 @@ Specific assertions catch mutations; truthiness assertions do not.
 
 ### 6. Do not test implementation details
 
-Tests should verify *what* the code does, not *how* it does it internally. Avoid:
+Tests should verify _what_ the code does, not _how_ it does it internally. Avoid:
+
 - Asserting that a private function was called
 - Checking internal state that is not surfaced through the public interface
 - Reaching into component internals instead of querying by accessible role/label
 
 Good component test queries (via React Testing Library):
+
 ```ts
 // ✅ Query by accessible role
-screen.getByRole('button', { name: /send/i })
+screen.getByRole('button', { name: /send/i });
 
 // ✅ Query by label text
-screen.getByLabelText(/account number/i)
+screen.getByLabelText(/account number/i);
 
 // ✅ Query by visible text
-screen.getByText(/transaction complete/i)
+screen.getByText(/transaction complete/i);
 
 // ❌ Query by CSS class or test-id where ARIA is available
-screen.getByTestId('submit-btn')
+screen.getByTestId('submit-btn');
 ```
 
 ### 7. Keep tests fast and isolated
@@ -865,12 +867,12 @@ Snapshot tests are appropriate for stable UI output (receipt formatting, static 
 
 ### 10. Keep test files next to the code they test
 
-| Code location | Test location |
-|---------------|--------------|
-| `src/lib/fee-calculation.ts` | `src/test/fee-calculation.test.ts` |
-| `src/components/Header.tsx` | `src/test/Header.test.tsx` |
+| Code location                        | Test location                                        |
+| ------------------------------------ | ---------------------------------------------------- |
+| `src/lib/fee-calculation.ts`         | `src/test/fee-calculation.test.ts`                   |
+| `src/components/Header.tsx`          | `src/test/Header.test.tsx`                           |
 | `src/app/api/offramp/quote/route.ts` | `src/test/integration/api-quote.integration.test.ts` |
-| `contracts/escrow/src/lib.rs` | `contracts/escrow/tests/integration.rs` |
+| `contracts/escrow/src/lib.rs`        | `contracts/escrow/tests/integration.rs`              |
 
 ---
 
@@ -916,17 +918,18 @@ Push / PR
 ```
 
 In CI (`CI=true`), Playwright:
+
 - Uses 1 worker (sequential execution)
 - Retries each test up to 2 times before marking it failed
 - Forbids `.only` (via `forbidOnly: true`) to prevent accidental test isolation
 
 ### Artifacts
 
-| Artifact | Trigger | Location |
-|----------|---------|----------|
-| Playwright HTML report | Always | `playwright-report/` |
-| Playwright traces | On first retry | `test-results/` |
-| Coverage report | Manual run | `coverage/` |
+| Artifact               | Trigger        | Location             |
+| ---------------------- | -------------- | -------------------- |
+| Playwright HTML report | Always         | `playwright-report/` |
+| Playwright traces      | On first retry | `test-results/`      |
+| Coverage report        | Manual run     | `coverage/`          |
 
 Upload reports in CI:
 

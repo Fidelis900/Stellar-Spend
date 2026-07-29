@@ -20,9 +20,9 @@ function withRequestId<T>(response: NextResponse<T>, requestId: string): NextRes
 
 /**
  * POST /api/offramp/paycrest/order
- * 
+ *
  * Creates a Paycrest payout order.
- * 
+ *
  * Request body:
  * {
  *   amount: number (required, > 0)
@@ -38,7 +38,7 @@ function withRequestId<T>(response: NextResponse<T>, requestId: string): NextRes
  *     currency: string (required)
  *   }
  * }
- * 
+ *
  * Response:
  * {
  *   data: {
@@ -106,9 +106,7 @@ export async function POST(req: NextRequest) {
         logger.logError(err.status, err.message);
         return withRequestId(ErrorHandler.handle(err, err.status), requestId);
       }
-
-      logger.logError(500, err instanceof Error ? err.message : 'Internal server error');
-      return withRequestId(ErrorHandler.serverError(err), requestId);
-    }
-  }, { required: true });
+    },
+    { required: true },
+  );
 }

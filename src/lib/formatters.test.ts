@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { DateFormatter, formatTransaction, formatTransactionDate, defaultFormatter } from './formatters';
+import {
+  DateFormatter,
+  formatTransaction,
+  formatTransactionDate,
+  defaultFormatter,
+} from './formatters';
 import * as datetimeModule from './datetime';
 
 vi.mock('./datetime', async (importOriginal) => {
@@ -192,11 +197,7 @@ describe('formatters.ts', () => {
 
         formatTransaction(iso, 'America/New_York');
 
-        expect(mockFormatUtc).toHaveBeenCalledWith(
-          iso,
-          'en-US',
-          'America/New_York'
-        );
+        expect(mockFormatUtc).toHaveBeenCalledWith(iso, 'en-US', 'America/New_York');
       });
     });
 
@@ -214,11 +215,7 @@ describe('formatters.ts', () => {
 
         formatTransactionDate(iso, 'Europe/London');
 
-        expect(mockFormatDate).toHaveBeenCalledWith(
-          iso,
-          'en-US',
-          'Europe/London'
-        );
+        expect(mockFormatDate).toHaveBeenCalledWith(iso, 'en-US', 'Europe/London');
       });
     });
   });

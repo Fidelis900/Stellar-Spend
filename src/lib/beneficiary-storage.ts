@@ -14,7 +14,11 @@ const ENCRYPTION_KEY = process.env.BENEFICIARY_ENCRYPTION_KEY || 'default-key-ch
 
 function encrypt(data: string): string {
   const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32)), iv);
+  const cipher = crypto.createCipheriv(
+    'aes-256-cbc',
+    Buffer.from(ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32)),
+    iv,
+  );
   let encrypted = cipher.update(data, 'utf8', 'hex');
   encrypted += cipher.final('hex');
   return iv.toString('hex') + ':' + encrypted;
@@ -22,7 +26,11 @@ function encrypt(data: string): string {
 
 function decrypt(encryptedData: string): string {
   const [iv, encrypted] = encryptedData.split(':');
-  const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32)), Buffer.from(iv, 'hex'));
+  const decipher = crypto.createDecipheriv(
+    'aes-256-cbc',
+    Buffer.from(ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32)),
+    Buffer.from(iv, 'hex'),
+  );
   let decrypted = decipher.update(encrypted, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
   return decrypted;
@@ -31,13 +39,15 @@ function decrypt(encryptedData: string): string {
 export class BeneficiaryStorage {
   private static readonly STORAGE_KEY = 'stellar_spend_beneficiaries';
 
-  static saveBeneficiary(beneficiary: Omit<SavedBeneficiary, 'id' | 'createdAt' | 'encryptedData'>): SavedBeneficiary {
+  static saveBeneficiary(
+    beneficiary: Omit<SavedBeneficiary, 'id' | 'createdAt' | 'encryptedData'>,
+  ): SavedBeneficiary {
     const id = crypto.randomUUID();
     const sensitiveData = JSON.stringify({
       accountNumber: beneficiary.accountNumber,
       bankCode: beneficiary.bankCode,
     });
-    
+
     const saved: SavedBeneficiary = {
       id,
       name: beneficiary.name,
@@ -56,7 +66,7 @@ export class BeneficiaryStorage {
 
   static getBeneficiary(id: string): SavedBeneficiary | null {
     const beneficiaries = this.getAllBeneficiaries();
-    return beneficiaries.find(b => b.id === id) || null;
+    return beneficiaries.find((b) => b.id === id) || null;
   }
 
   static getAllBeneficiaries(): SavedBeneficiary[] {
@@ -67,23 +77,28 @@ export class BeneficiaryStorage {
 
   static deleteBeneficiary(id: string): boolean {
     const beneficiaries = this.getAllBeneficiaries();
-    const filtered = beneficiaries.filter(b => b.id !== id);
+    const filtered = beneficiaries.filter((b) => b.id !== id);
     if (filtered.length === beneficiaries.length) return false;
     this.persistBeneficiaries(filtered);
     return true;
   }
 
-  static updateBeneficiary(id: string, updates: Partial<Omit<SavedBeneficiary, 'id' | 'createdAt'>>): SavedBeneficiary | null {
+  static updateBeneficiary(
+    id: string,
+    updates: Partial<Omit<SavedBeneficiary, 'id' | 'createdAt'>>,
+  ): SavedBeneficiary | null {
     const beneficiaries = this.getAllBeneficiaries();
-    const index = beneficiaries.findIndex(b => b.id === id);
+    const index = beneficiaries.findIndex((b) => b.id === id);
     if (index === -1) return null;
 
     const updated = { ...beneficiaries[index], ...updates };
     if (updates.accountNumber || updates.bankCode) {
-      updated.encryptedData = encrypt(JSON.stringify({
-        accountNumber: updates.accountNumber || beneficiaries[index].accountNumber,
-        bankCode: updates.bankCode || beneficiaries[index].bankCode,
-      }));
+      updated.encryptedData = encrypt(
+        JSON.stringify({
+          accountNumber: updates.accountNumber || beneficiaries[index].accountNumber,
+          bankCode: updates.bankCode || beneficiaries[index].bankCode,
+        }),
+      );
     }
 
     beneficiaries[index] = updated;
@@ -97,7 +112,9 @@ export class BeneficiaryStorage {
     }
   }
 
-  static decryptBeneficiary(beneficiary: SavedBeneficiary): SavedBeneficiary & { accountNumber: string; bankCode: string } {
+  static decryptBeneficiary(
+    beneficiary: SavedBeneficiary,
+  ): SavedBeneficiary & { accountNumber: string; bankCode: string } {
     const decrypted = JSON.parse(decrypt(beneficiary.encryptedData));
     return {
       ...beneficiary,

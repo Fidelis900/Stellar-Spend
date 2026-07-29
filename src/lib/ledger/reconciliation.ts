@@ -3,7 +3,10 @@ import { pool } from '@/lib/db/client';
 import type { LedgerReconciliation, ReconciliationStatus } from './types';
 
 export class ReconciliationError extends Error {
-  constructor(message: string, public readonly cause?: unknown) {
+  constructor(
+    message: string,
+    public readonly cause?: unknown,
+  ) {
     super(message);
     this.name = 'ReconciliationError';
   }
@@ -30,9 +33,16 @@ export async function reconcileAccount(
 
   try {
     const result = await pool.query(sql, [
-      id, reportId, accountId, reportedBalance, ledgerBalance,
-      difference, status, status === 'reconciled' ? now : null,
-      notes ?? null, now,
+      id,
+      reportId,
+      accountId,
+      reportedBalance,
+      ledgerBalance,
+      difference,
+      status,
+      status === 'reconciled' ? now : null,
+      notes ?? null,
+      now,
     ]);
     return rowToReconciliation(result.rows[0]);
   } catch (err) {

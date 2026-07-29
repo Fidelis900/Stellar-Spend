@@ -7,11 +7,11 @@ image:
 
 resources:
   requests:
-    memory: "128Mi"
-    cpu: "50m"
+    memory: '128Mi'
+    cpu: '50m'
   limits:
-    memory: "256Mi"
-    cpu: "250m"
+    memory: '256Mi'
+    cpu: '250m'
 
 autoscaling:
   enabled: true
@@ -19,11 +19,11 @@ autoscaling:
   maxReplicas: 3
 
 podDisruptionBudget:
-  enabled: false   # single replica in staging; PDB would block rolling updates
+  enabled: false # single replica in staging; PDB would block rolling updates
 
 env:
   NODE_ENV: production
-  PORT: "3000"
+  PORT: '3000'
   NEXT_PUBLIC_ENV: staging
 
 existingSecret: stellar-spend-secrets-staging

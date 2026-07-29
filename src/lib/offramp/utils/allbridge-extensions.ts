@@ -1,6 +1,6 @@
 /**
  * Allbridge SDK Extension Methods
- * 
+ *
  * This module provides extension methods for the Allbridge Core SDK
  * to simplify common operations like fee calculation and status polling.
  */
@@ -9,7 +9,7 @@ import type { BridgeStatus } from '../types';
 
 /**
  * Get gas fee for bridge transaction, preferring stablecoin payment method
- * 
+ *
  * @param sdk - Allbridge Core SDK instance
  * @param sourceToken - Source chain token info
  * @param destinationToken - Destination chain token info
@@ -18,15 +18,11 @@ import type { BridgeStatus } from '../types';
 export async function getAllbridgeGasFee(
   sdk: any,
   sourceToken: any,
-  destinationToken: any
+  destinationToken: any,
 ): Promise<{ gasAmount: string; feeTokenAmount: string }> {
   const { Messenger, FeePaymentMethod } = await import('@allbridge/bridge-core-sdk');
-  
-  const feeOptions = await sdk.getGasFeeOptions(
-    sourceToken,
-    destinationToken,
-    Messenger.ALLBRIDGE
-  );
+
+  const feeOptions = await sdk.getGasFeeOptions(sourceToken, destinationToken, Messenger.ALLBRIDGE);
 
   // Prefer stablecoin fee (no extra XLM needed)
   if (feeOptions[FeePaymentMethod.WITH_STABLECOIN]) {
@@ -53,7 +49,7 @@ export async function getAllbridgeGasFee(
 
 /**
  * Get both native and stablecoin gas fee options for UI display
- * 
+ *
  * @param sdk - Allbridge Core SDK instance
  * @param sourceToken - Source chain token info
  * @param destinationToken - Destination chain token info
@@ -62,27 +58,29 @@ export async function getAllbridgeGasFee(
 export async function getAllbridgeGasFeeOptions(
   sdk: any,
   sourceToken: any,
-  destinationToken: any
+  destinationToken: any,
 ): Promise<{
   native: { int: string; float: string };
   stablecoin: { int: string; float: string };
 }> {
   const { Messenger, FeePaymentMethod, AmountFormat } = await import('@allbridge/bridge-core-sdk');
-  
+
   try {
     const feeOptions = await sdk.getGasFeeOptions(
       sourceToken,
       destinationToken,
-      Messenger.ALLBRIDGE
+      Messenger.ALLBRIDGE,
     );
 
     // Get native fee in both formats
     const nativeInt = feeOptions[FeePaymentMethod.WITH_NATIVE_CURRENCY]?.[AmountFormat.INT] || '0';
-    const nativeFloat = feeOptions[FeePaymentMethod.WITH_NATIVE_CURRENCY]?.[AmountFormat.FLOAT] || '0';
+    const nativeFloat =
+      feeOptions[FeePaymentMethod.WITH_NATIVE_CURRENCY]?.[AmountFormat.FLOAT] || '0';
 
     // Get stablecoin fee in both formats
     const stablecoinInt = feeOptions[FeePaymentMethod.WITH_STABLECOIN]?.[AmountFormat.INT] || '0';
-    const stablecoinFloat = feeOptions[FeePaymentMethod.WITH_STABLECOIN]?.[AmountFormat.FLOAT] || '0';
+    const stablecoinFloat =
+      feeOptions[FeePaymentMethod.WITH_STABLECOIN]?.[AmountFormat.FLOAT] || '0';
 
     return {
       native: {
@@ -105,7 +103,7 @@ export async function getAllbridgeGasFeeOptions(
 
 /**
  * Select fee parameters based on user's preferred payment method
- * 
+ *
  * @param feeOptions - Fee options object with native and stablecoin fees
  * @param method - Payment method: "native" or "stablecoin"
  * @returns Object with gasAmount and feeTokenAmount (unused fee is "0")
@@ -115,7 +113,7 @@ export function getBridgeFeeForMethod(
     native: { int: string; float: string };
     stablecoin: { int: string; float: string };
   },
-  method: 'native' | 'stablecoin'
+  method: 'native' | 'stablecoin',
 ): { gasAmount: string; feeTokenAmount: string } {
   if (method === 'stablecoin') {
     return {
@@ -133,7 +131,7 @@ export function getBridgeFeeForMethod(
 
 /**
  * Get bridge transfer status and map to standardized BridgeStatus type
- * 
+ *
  * @param sdk - Allbridge Core SDK instance
  * @param chainSymbol - Chain symbol (e.g., "SRB" for Stellar)
  * @param txHash - Transaction hash to check status for
@@ -142,17 +140,17 @@ export function getBridgeFeeForMethod(
 export async function getAllbridgeTransferStatus(
   sdk: any,
   chainSymbol: string,
-  txHash: string
+  txHash: string,
 ): Promise<{ status: BridgeStatus; txHash: string; receiveAmount?: string }> {
   try {
     const transferStatus = await sdk.getTransferStatus(chainSymbol, txHash);
 
     // Map Allbridge status strings to BridgeStatus type
     let status: BridgeStatus = 'pending';
-    
+
     if (transferStatus?.status) {
       const allbridgeStatus = transferStatus.status.toLowerCase();
-      
+
       if (allbridgeStatus === 'completed' || allbridgeStatus === 'success') {
         status = 'completed';
       } else if (allbridgeStatus === 'failed' || allbridgeStatus === 'error') {

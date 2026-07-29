@@ -45,53 +45,53 @@ describe('withIdempotency', () => {
   });
 
   it('stores the first result and replays it for the same key and payload', async () => {
-    const firstClientQuery = vi.fn()
+    const firstClientQuery = vi
+      .fn()
       .mockResolvedValueOnce({})
       .mockResolvedValueOnce({})
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({})
       .mockResolvedValueOnce({});
 
-    connectMock
-      .mockResolvedValueOnce(makeClient(firstClientQuery))
-      .mockResolvedValueOnce(
-        makeClient(
-          vi.fn()
-            .mockResolvedValueOnce({})
-            .mockResolvedValueOnce({})
-            .mockResolvedValueOnce({
-              rows: [
-                {
-                  idempotency_key: 'idem-key-1',
-                  method: 'POST',
-                  path: '/api/offramp/paycrest/order',
-                  request_hash: buildRequestHash(
-                    'POST',
-                    '/api/offramp/paycrest/order',
-                    JSON.stringify({ amount: 100, reference: 'abc' })
-                  ),
-                  status: 'completed',
-                  status_code: 200,
-                  response_body: { data: { id: 'order-1' } },
-                  response_headers: { 'content-type': 'application/json' },
-                  locked_until: null,
-                  expires_at: Date.now() + 10_000,
-                },
-              ],
-            })
-            .mockResolvedValueOnce({})
-        )
-      );
+    connectMock.mockResolvedValueOnce(makeClient(firstClientQuery)).mockResolvedValueOnce(
+      makeClient(
+        vi
+          .fn()
+          .mockResolvedValueOnce({})
+          .mockResolvedValueOnce({})
+          .mockResolvedValueOnce({
+            rows: [
+              {
+                idempotency_key: 'idem-key-1',
+                method: 'POST',
+                path: '/api/offramp/paycrest/order',
+                request_hash: buildRequestHash(
+                  'POST',
+                  '/api/offramp/paycrest/order',
+                  JSON.stringify({ amount: 100, reference: 'abc' }),
+                ),
+                status: 'completed',
+                status_code: 200,
+                response_body: { data: { id: 'order-1' } },
+                response_headers: { 'content-type': 'application/json' },
+                locked_until: null,
+                expires_at: Date.now() + 10_000,
+              },
+            ],
+          })
+          .mockResolvedValueOnce({}),
+      ),
+    );
 
     poolQueryMock.mockResolvedValueOnce({});
 
-    const handler = vi.fn().mockResolvedValue(
-      NextResponse.json({ data: { id: 'order-1' } }, { status: 200 })
-    );
+    const handler = vi
+      .fn()
+      .mockResolvedValue(NextResponse.json({ data: { id: 'order-1' } }, { status: 200 }));
 
     const firstResponse = await withIdempotency(
       makeRequest({ amount: 100, reference: 'abc' }),
-      handler
+      handler,
     );
 
     expect(firstResponse.status).toBe(200);
@@ -101,7 +101,7 @@ describe('withIdempotency', () => {
 
     const secondResponse = await withIdempotency(
       makeRequest({ reference: 'abc', amount: 100 }),
-      handler
+      handler,
     );
 
     expect(secondResponse.status).toBe(200);
@@ -114,12 +114,13 @@ describe('withIdempotency', () => {
     const conflictHash = buildRequestHash(
       'POST',
       '/api/offramp/paycrest/order',
-      JSON.stringify({ amount: 100, reference: 'original' })
+      JSON.stringify({ amount: 100, reference: 'original' }),
     );
 
     connectMock.mockResolvedValueOnce(
       makeClient(
-        vi.fn()
+        vi
+          .fn()
           .mockResolvedValueOnce({})
           .mockResolvedValueOnce({})
           .mockResolvedValueOnce({
@@ -138,14 +139,14 @@ describe('withIdempotency', () => {
               },
             ],
           })
-          .mockResolvedValueOnce({})
-      )
+          .mockResolvedValueOnce({}),
+      ),
     );
 
     const handler = vi.fn().mockResolvedValue(NextResponse.json({ ok: true }, { status: 200 }));
     const response = await withIdempotency(
       makeRequest({ amount: 200, reference: 'different' }),
-      handler
+      handler,
     );
 
     expect(response.status).toBe(409);

@@ -1,5 +1,9 @@
 import { validateAmount } from '@/lib/offramp/utils/validation';
-import { fetchPaycrestQuote, buildQuote, calculateBridgeAmount } from '@/lib/offramp/utils/quote-fetcher';
+import {
+  fetchPaycrestQuote,
+  buildQuote,
+  calculateBridgeAmount,
+} from '@/lib/offramp/utils/quote-fetcher';
 import { isSupportedCurrency } from '@/lib/currencies';
 
 export interface QuoteRequest {
@@ -35,9 +39,10 @@ export class QuoteService {
       throw new Error('feeMethod must be "USDC", "XLM", "stablecoin", or "native"');
     }
 
-    const bridgeAmount = normalizedFee === 'stablecoin'
-      ? calculateBridgeAmount(String(request.amount), 'stablecoin', STABLECOIN_FEE)
-      : String(request.amount);
+    const bridgeAmount =
+      normalizedFee === 'stablecoin'
+        ? calculateBridgeAmount(String(request.amount), 'stablecoin', STABLECOIN_FEE)
+        : String(request.amount);
 
     const paycrestQuote = await fetchPaycrestQuote(bridgeAmount, request.currency);
     return buildQuote(paycrestQuote, request.currency, normalizedFee);
@@ -57,4 +62,3 @@ export class QuoteService {
     }
   }
 }
-

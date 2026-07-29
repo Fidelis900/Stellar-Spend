@@ -32,11 +32,7 @@ export async function POST(req: NextRequest) {
         return ErrorHandler.validation('Missing backup codes');
       }
 
-      const { isValid, remainingCodes } = TwoFAService.verifyBackupCode(
-        backupCodes,
-        [],
-        code
-      );
+      const { isValid, remainingCodes } = TwoFAService.verifyBackupCode(backupCodes, [], code);
 
       if (!isValid) {
         return ErrorHandler.unauthorized('Invalid backup code');

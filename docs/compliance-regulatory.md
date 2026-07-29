@@ -26,6 +26,7 @@ User  →  Stellar-Spend (non-custodial bridge)  →  Paycrest (licensed PSP)  �
 ```
 
 Stellar-Spend's compliance obligations focus on:
+
 - Transaction monitoring and AML screening (`src/lib/compliance-screening.ts`)
 - KYC tier enforcement and limit management (`src/lib/kyc-limits.ts`)
 - Data handling under GDPR and applicable local laws
@@ -37,11 +38,11 @@ Stellar-Spend's compliance obligations focus on:
 
 KYC tiers are defined in `src/lib/kyc-limits.ts`. Default global limits:
 
-| Tier | Daily Limit (USD) | Monthly Limit (USD) | Per-Transaction Limit (USD) | Requirements |
-|------|------------------|--------------------|-----------------------------|-------------|
-| **Tier 1** | 1,000 | 10,000 | 500 | Email verification only |
-| **Tier 2** | 5,000 | 50,000 | 2,500 | Government-issued ID |
-| **Tier 3** | 50,000 | 500,000 | 25,000 | ID + proof of address + enhanced due diligence |
+| Tier       | Daily Limit (USD) | Monthly Limit (USD) | Per-Transaction Limit (USD) | Requirements                                   |
+| ---------- | ----------------- | ------------------- | --------------------------- | ---------------------------------------------- |
+| **Tier 1** | 1,000             | 10,000              | 500                         | Email verification only                        |
+| **Tier 2** | 5,000             | 50,000              | 2,500                       | Government-issued ID                           |
+| **Tier 3** | 50,000            | 500,000             | 25,000                      | ID + proof of address + enhanced due diligence |
 
 ### Corridor overrides
 
@@ -58,12 +59,12 @@ Overrides are loaded from `corridor-config` at server startup via `setCorridorOv
 
 ### KYC lifecycle states
 
-| State | Description |
-|-------|-------------|
-| `unverified` | User has not submitted documents; limited to Tier 1 |
-| `pending` | Documents submitted; under review (typically < 24 h) |
-| `verified` | Identity confirmed; tier unlocked |
-| `rejected` | Submission failed review; user notified with reason |
+| State        | Description                                          |
+| ------------ | ---------------------------------------------------- |
+| `unverified` | User has not submitted documents; limited to Tier 1  |
+| `pending`    | Documents submitted; under review (typically < 24 h) |
+| `verified`   | Identity confirmed; tier unlocked                    |
+| `rejected`   | Submission failed review; user notified with reason  |
 
 ### Limit enforcement
 
@@ -81,12 +82,12 @@ AML screening (`src/lib/compliance-screening.ts`) is applied to each transaction
 
 ### Risk levels
 
-| Level | Action |
-|-------|--------|
-| `low` | Transaction proceeds |
-| `medium` | Transaction proceeds with enhanced logging |
-| `high` | Transaction held for manual review |
-| `blocked` | Transaction rejected; user notified |
+| Level     | Action                                     |
+| --------- | ------------------------------------------ |
+| `low`     | Transaction proceeds                       |
+| `medium`  | Transaction proceeds with enhanced logging |
+| `high`    | Transaction held for manual review         |
+| `blocked` | Transaction rejected; user notified        |
 
 ### Screening data points
 
@@ -154,25 +155,25 @@ See `docs/add-a-corridor.md` for the full onboarding checklist.
 
 ### Data collected
 
-| Data Type | Purpose | Storage |
-|-----------|---------|---------|
-| Stellar public key | Transaction identification, rate limiting | DB `transactions.user_address` |
-| Beneficiary bank account & name | Fiat settlement | DB `transactions.*`, encrypted at rest |
-| IP address | Fraud detection, rate limiting | DB `audit_logs.ip_address`, `sessions.ip_address` |
-| KYC documents (type + reference ID) | Identity verification | DB `kyc_limits` store; documents held by KYC provider |
-| Transaction history | User-facing history, dispute handling | DB `transactions`; also `localStorage` in browser |
-| Session tokens | Authentication | DB `sessions` |
+| Data Type                           | Purpose                                   | Storage                                               |
+| ----------------------------------- | ----------------------------------------- | ----------------------------------------------------- |
+| Stellar public key                  | Transaction identification, rate limiting | DB `transactions.user_address`                        |
+| Beneficiary bank account & name     | Fiat settlement                           | DB `transactions.*`, encrypted at rest                |
+| IP address                          | Fraud detection, rate limiting            | DB `audit_logs.ip_address`, `sessions.ip_address`     |
+| KYC documents (type + reference ID) | Identity verification                     | DB `kyc_limits` store; documents held by KYC provider |
+| Transaction history                 | User-facing history, dispute handling     | DB `transactions`; also `localStorage` in browser     |
+| Session tokens                      | Authentication                            | DB `sessions`                                         |
 
 ### Retention periods
 
-| Data | Retention | Basis |
-|------|-----------|-------|
-| Transaction records | 7 years | AML/CTF statutory requirement (varies by jurisdiction) |
-| KYC records | 5 years after last transaction | FATF Recommendation 11; local law |
-| Audit logs | 2 years | Internal policy; security investigation |
-| Session tokens | Until expiry + 30 days | Session management |
-| IP / access logs | 12 months | Security and fraud analysis |
-| Webhook delivery logs | 90 days | Debugging |
+| Data                  | Retention                      | Basis                                                  |
+| --------------------- | ------------------------------ | ------------------------------------------------------ |
+| Transaction records   | 7 years                        | AML/CTF statutory requirement (varies by jurisdiction) |
+| KYC records           | 5 years after last transaction | FATF Recommendation 11; local law                      |
+| Audit logs            | 2 years                        | Internal policy; security investigation                |
+| Session tokens        | Until expiry + 30 days         | Session management                                     |
+| IP / access logs      | 12 months                      | Security and fraud analysis                            |
+| Webhook delivery logs | 90 days                        | Debugging                                              |
 
 Retention cleanup is handled by scheduled cron jobs. The `audit_log_retention` table records the active retention policy and last cleanup time.
 
@@ -180,13 +181,13 @@ Retention cleanup is handled by scheduled cron jobs. The `audit_log_retention` t
 
 For users in the European Economic Area (EEA) or UK, the following rights apply:
 
-| Right | How to exercise |
-|-------|----------------|
-| Access | Email `privacy@stellar-spend.com` — 30-day response |
-| Rectification | Contact support; incorrect beneficiary data can be corrected before settlement |
-| Erasure | Available for non-AML data; transaction records that must be retained for legal purposes are excluded |
-| Portability | Transaction export available via **Settings → Export History** (CSV / PDF) |
-| Objection to profiling | AML screening cannot be turned off; all other analytics profiling is opt-out |
+| Right                  | How to exercise                                                                                       |
+| ---------------------- | ----------------------------------------------------------------------------------------------------- |
+| Access                 | Email `privacy@stellar-spend.com` — 30-day response                                                   |
+| Rectification          | Contact support; incorrect beneficiary data can be corrected before settlement                        |
+| Erasure                | Available for non-AML data; transaction records that must be retained for legal purposes are excluded |
+| Portability            | Transaction export available via **Settings → Export History** (CSV / PDF)                            |
+| Objection to profiling | AML screening cannot be turned off; all other analytics profiling is opt-out                          |
 
 **Legal basis for processing:** Contract performance (transaction execution); Legitimate interests (fraud prevention, AML); Legal obligation (regulatory reporting).
 
@@ -194,11 +195,11 @@ For users in the European Economic Area (EEA) or UK, the following rights apply:
 
 ### Local law considerations
 
-| Jurisdiction | Key law | Notes |
-|--------------|---------|-------|
-| Nigeria | NDPR 2019, NITDA guidelines | 30-day breach notification |
-| Kenya | Data Protection Act 2019 | Mandatory DPA registration for data controllers |
-| Ghana | Data Protection Act 2012 (Act 843) | Mandatory Data Protection Commission registration |
+| Jurisdiction | Key law                            | Notes                                             |
+| ------------ | ---------------------------------- | ------------------------------------------------- |
+| Nigeria      | NDPR 2019, NITDA guidelines        | 30-day breach notification                        |
+| Kenya        | Data Protection Act 2019           | Mandatory DPA registration for data controllers   |
+| Ghana        | Data Protection Act 2012 (Act 843) | Mandatory Data Protection Commission registration |
 
 ---
 
@@ -235,6 +236,7 @@ A: We never store your full bank account credentials. Beneficiary account number
 All user-facing compliance text should be translated via the i18n system (`src/lib/i18n/`). Regulatory notice text is stored in locale files under `src/lib/i18n/locales/` and keyed by corridor code.
 
 When updating notice text following a legal or regulatory change:
+
 1. Update the source string in `en.json`.
 2. File translation requests for all supported locales before the change goes live.
 3. Update `lastReviewedAt` in the corridor config.
@@ -256,6 +258,6 @@ The following items require sign-off from legal counsel before production deploy
 
 ## Compliance Changelog
 
-| Date | Change | Author |
-|------|--------|--------|
+| Date       | Change                                | Author    |
+| ---------- | ------------------------------------- | --------- |
 | 2026-06-27 | Initial compliance framework document | Docs team |

@@ -25,9 +25,7 @@ const ANALYTICS_KEY = 'stellar_share_analytics';
 
 function trackShare(platform: SharePlatform): void {
   try {
-    const existing: ShareAnalytics[] = JSON.parse(
-      localStorage.getItem(ANALYTICS_KEY) ?? '[]'
-    );
+    const existing: ShareAnalytics[] = JSON.parse(localStorage.getItem(ANALYTICS_KEY) ?? '[]');
     existing.push({ platform, timestamp: Date.now() });
     localStorage.setItem(ANALYTICS_KEY, JSON.stringify(existing.slice(-100)));
   } catch {
@@ -37,12 +35,10 @@ function trackShare(platform: SharePlatform): void {
 
 export function getShareAnalytics(): Record<SharePlatform, number> {
   try {
-    const entries: ShareAnalytics[] = JSON.parse(
-      localStorage.getItem(ANALYTICS_KEY) ?? '[]'
-    );
+    const entries: ShareAnalytics[] = JSON.parse(localStorage.getItem(ANALYTICS_KEY) ?? '[]');
     return entries.reduce(
       (acc, { platform }) => ({ ...acc, [platform]: (acc[platform] ?? 0) + 1 }),
-      {} as Record<SharePlatform, number>
+      {} as Record<SharePlatform, number>,
     );
   } catch {
     return {} as Record<SharePlatform, number>;
@@ -57,7 +53,7 @@ function generateReceiptImage(
   amount: string,
   currency: string,
   txHash: string | undefined,
-  privacy: PrivacySettings
+  privacy: PrivacySettings,
 ): string {
   const canvas = document.createElement('canvas');
   canvas.width = 480;
@@ -104,11 +100,15 @@ function generateReceiptImage(
     y += 26;
   };
 
-  if (privacy.includeAmount) row('AMOUNT', `${amount}${privacy.includeCurrency ? ` ${currency}` : ''}`, true);
+  if (privacy.includeAmount)
+    row('AMOUNT', `${amount}${privacy.includeCurrency ? ` ${currency}` : ''}`, true);
   else if (privacy.includeCurrency) row('CURRENCY', currency);
 
   if (txHash) row('TX HASH', `${txHash.slice(0, 8)}...${txHash.slice(-6)}`);
-  row('DATE', new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }));
+  row(
+    'DATE',
+    new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
+  );
   row('STATUS', '✓ COMPLETED');
 
   // Footer
@@ -163,7 +163,7 @@ export function ShareButtons({ shareUrl, amount, currency, txHash, onShare }: Sh
       label: 'Email',
       color: 'bg-gray-600 hover:bg-gray-700',
       url: `mailto:?subject=Check out my Stellar-Spend transaction&body=${encodeURIComponent(
-        `${shareText}\n\nView details: ${shareUrl}`
+        `${shareText}\n\nView details: ${shareUrl}`,
       )}`,
     },
   ];

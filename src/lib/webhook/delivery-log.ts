@@ -4,7 +4,10 @@ import type { WebhookDeliveryLog } from './subscription-types';
 import type { DeliveryStatus } from './types';
 
 export class DeliveryLogError extends Error {
-  constructor(message: string, public readonly cause?: unknown) {
+  constructor(
+    message: string,
+    public readonly cause?: unknown,
+  ) {
     super(message);
     this.name = 'DeliveryLogError';
   }
@@ -33,7 +36,9 @@ export async function createTable(): Promise<void> {
   }
 }
 
-export async function logDelivery(entry: Omit<WebhookDeliveryLog, 'id' | 'createdAt'>): Promise<WebhookDeliveryLog> {
+export async function logDelivery(
+  entry: Omit<WebhookDeliveryLog, 'id' | 'createdAt'>,
+): Promise<WebhookDeliveryLog> {
   const id = randomUUID();
   const now = Date.now();
   const sql = `
@@ -44,9 +49,17 @@ export async function logDelivery(entry: Omit<WebhookDeliveryLog, 'id' | 'create
   `;
   try {
     const result = await pool.query(sql, [
-      id, entry.subscriptionId, entry.event, entry.payloadUrl,
-      entry.requestBody, entry.responseStatus, entry.responseBody,
-      entry.durationMs, entry.status, entry.attemptCount, now,
+      id,
+      entry.subscriptionId,
+      entry.event,
+      entry.payloadUrl,
+      entry.requestBody,
+      entry.responseStatus,
+      entry.responseBody,
+      entry.durationMs,
+      entry.status,
+      entry.attemptCount,
+      now,
     ]);
     return rowToDeliveryLog(result.rows[0]);
   } catch (err) {
@@ -73,7 +86,7 @@ function rowToDeliveryLog(row: Record<string, unknown>): WebhookDeliveryLog {
 export async function getDeliveryLogs(
   subscriptionId?: string,
   limit = 50,
-  offset = 0
+  offset = 0,
 ): Promise<WebhookDeliveryLog[]> {
   let sql = `SELECT * FROM webhook_delivery_logs`;
   const params: unknown[] = [];

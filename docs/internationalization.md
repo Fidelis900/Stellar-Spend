@@ -108,15 +108,15 @@ interface TranslationKeys {
 
 ### Supported languages
 
-| Code | Language  | RTL |
-|------|-----------|-----|
-| `en` | English   | No  |
-| `es` | Spanish   | No  |
-| `fr` | French    | No  |
-| `zh` | Chinese   | No  |
-| `pt` | Portuguese| No  |
-| `ar` | Arabic    | Yes |
-| `sw` | Swahili   | No  |
+| Code | Language   | RTL |
+| ---- | ---------- | --- |
+| `en` | English    | No  |
+| `es` | Spanish    | No  |
+| `fr` | French     | No  |
+| `zh` | Chinese    | No  |
+| `pt` | Portuguese | No  |
+| `ar` | Arabic     | Yes |
+| `sw` | Swahili    | No  |
 
 ### Adding a key to an existing language
 
@@ -139,9 +139,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html>
       <body>
-        <I18nProvider defaultLanguage="en">
-          {children}
-        </I18nProvider>
+        <I18nProvider defaultLanguage="en">{children}</I18nProvider>
       </body>
     </html>
   );
@@ -186,7 +184,7 @@ export function PageWrapper({ children }: { children: React.ReactNode }) {
 import { LanguageSelector } from '@/lib/i18n';
 
 // Place anywhere inside I18nProvider
-<LanguageSelector />
+<LanguageSelector />;
 ```
 
 The `LanguageSelector` component automatically reverses its own flex direction when `isRTL` is `true`.
@@ -259,7 +257,12 @@ export const pt: TranslationKeys = {
 import { en, es, fr, zh, ar, pt } from './translations'; // add pt
 
 const translations: Record<Language, TranslationKeys> = {
-  en, es, fr, zh, ar, pt, // add pt
+  en,
+  es,
+  fr,
+  zh,
+  ar,
+  pt, // add pt
 };
 ```
 
@@ -506,11 +509,14 @@ import { detectLanguage } from '@/lib/i18n/detect-language';
 Call `localStorage.setItem` whenever `setLanguage` is invoked, or extend `I18nProvider` to do it automatically:
 
 ```tsx
-const setLanguage = useCallback((lang: Language) => {
-  i18nInstance.setLanguage(lang);
-  setLanguageState(lang);
-  localStorage.setItem('stellar-spend:language', lang);
-}, [i18nInstance]);
+const setLanguage = useCallback(
+  (lang: Language) => {
+    i18nInstance.setLanguage(lang);
+    setLanguageState(lang);
+    localStorage.setItem('stellar-spend:language', lang);
+  },
+  [i18nInstance],
+);
 ```
 
 ---
@@ -581,7 +587,10 @@ const BASE_KEYS = collectKeys(en as unknown as Record<string, unknown>);
 
 describe('translation completeness', () => {
   const languages: [string, TranslationKeys][] = [
-    ['es', es], ['fr', fr], ['zh', zh], ['ar', ar],
+    ['es', es],
+    ['fr', fr],
+    ['zh', zh],
+    ['ar', ar],
   ];
 
   it.each(languages)('%s has all keys present in en', (_name, translations) => {
@@ -604,7 +613,7 @@ function renderWithProvider(defaultLanguage = 'en' as const) {
   return render(
     <I18nProvider defaultLanguage={defaultLanguage}>
       <LanguageSelector />
-    </I18nProvider>
+    </I18nProvider>,
   );
 }
 

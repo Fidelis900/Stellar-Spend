@@ -88,7 +88,9 @@ describe('ValidationService', () => {
 
   describe('Address Validation', () => {
     it('should validate Stellar address', () => {
-      const result = ValidationService.validateStellarAddress('GCFX3NWMYLTOVSC3XVFVRID47IQ5LCLF34CM4A4ADIXZXWQGORNRIE25');
+      const result = ValidationService.validateStellarAddress(
+        'GCFX3NWMYLTOVSC3XVFVRID47IQ5LCLF34CM4A4ADIXZXWQGORNRIE25',
+      );
       expect(result.valid).toBe(true);
     });
 
@@ -98,7 +100,9 @@ describe('ValidationService', () => {
     });
 
     it('should validate Base address', () => {
-      const result = ValidationService.validateBaseAddress('0xd8dA6BF26964aF9D7eEd9e03E53415D37AA96045');
+      const result = ValidationService.validateBaseAddress(
+        '0xd8dA6BF26964aF9D7eEd9e03E53415D37AA96045',
+      );
       expect(result.valid).toBe(true);
     });
 
@@ -108,12 +112,16 @@ describe('ValidationService', () => {
     });
 
     it('should validate EVM address', () => {
-      const result = ValidationService.validateEvmAddress('0xd8dA6BF26964aF9D7eEd9e03E53415D37AA96045');
+      const result = ValidationService.validateEvmAddress(
+        '0xd8dA6BF26964aF9D7eEd9e03E53415D37AA96045',
+      );
       expect(result.valid).toBe(true);
     });
 
     it('should validate legacy Stellar address', () => {
-      const result = ValidationService.validateStellarAddressLegacy('GCFX3NWMYLTOVSC3XVFVRID47IQ5LCLF34CM4A4ADIXZXWQGORNRIE25');
+      const result = ValidationService.validateStellarAddressLegacy(
+        'GCFX3NWMYLTOVSC3XVFVRID47IQ5LCLF34CM4A4ADIXZXWQGORNRIE25',
+      );
       expect(result.valid).toBe(true);
       expect(result.errors).toBeDefined();
       expect(result.errors.length).toBe(0);
@@ -246,7 +254,9 @@ describe('ValidationService', () => {
       const amountResult = ValidationService.validateAmount('100');
       expect(amountResult.valid).toBe(true);
 
-      const addressResult = ValidationService.validateStellarAddress('GABC1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890ABCDEF');
+      const addressResult = ValidationService.validateStellarAddress(
+        'GABC1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890ABCDEF',
+      );
       expect(addressResult.valid).toBe(true);
 
       const currencyResult = ValidationService.validateCurrencyCode('NGN');

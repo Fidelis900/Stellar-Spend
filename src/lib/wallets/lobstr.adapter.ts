@@ -13,10 +13,7 @@ import {
 
 interface LobstrProvider {
   connect(): Promise<{ publicKey: string }>;
-  signTransaction(
-    xdr: string,
-    opts: { networkPassphrase: string }
-  ): Promise<{ signedXdr: string }>;
+  signTransaction(xdr: string, opts: { networkPassphrase: string }): Promise<{ signedXdr: string }>;
 }
 
 export class LobstrAdapter implements WalletAdapter {
@@ -51,7 +48,7 @@ export class LobstrAdapter implements WalletAdapter {
     } catch (error) {
       throw new WalletConnectionError(
         this.friendlyError(error, 'Failed to connect to Lobstr wallet'),
-        error
+        error,
       );
     }
   }
@@ -74,7 +71,7 @@ export class LobstrAdapter implements WalletAdapter {
     } catch (error) {
       throw new WalletSigningError(
         this.friendlyError(error, 'Failed to sign transaction with Lobstr'),
-        error
+        error,
       );
     }
   }
@@ -112,10 +109,8 @@ export class LobstrAdapter implements WalletAdapter {
         return 'Connection request was declined. Please approve it in your wallet and try again.';
       if (/not connected|not installed/i.test(msg))
         return 'Lobstr wallet is not installed or unavailable. Please install it and try again.';
-      if (/timeout/i.test(msg))
-        return 'The wallet did not respond in time. Please try again.';
-      if (/locked/i.test(msg))
-        return 'Lobstr wallet is locked. Please unlock it.';
+      if (/timeout/i.test(msg)) return 'The wallet did not respond in time. Please try again.';
+      if (/locked/i.test(msg)) return 'Lobstr wallet is locked. Please unlock it.';
       if (/invalid.*network|wrong.*network/i.test(msg))
         return 'Wrong network selected. Please switch networks in Lobstr.';
     }

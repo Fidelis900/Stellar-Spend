@@ -24,7 +24,7 @@ export async function getRevenueSummary(
     `SELECT
        COALESCE(SUM(CASE WHEN entry_type = 'credit' THEN amount::numeric ELSE 0 END), 0) AS total_revenue
      FROM ledger_entries ${where}`,
-    params
+    params,
   );
 
   const byCurrencyResult = await pool.query(
@@ -32,7 +32,7 @@ export async function getRevenueSummary(
        COALESCE(SUM(CASE WHEN entry_type = 'credit' THEN amount::numeric ELSE 0 END), 0) AS total
      FROM ledger_entries ${where}
      GROUP BY currency`,
-    params
+    params,
   );
 
   const byPeriodResult = await pool.query(
@@ -44,7 +44,7 @@ export async function getRevenueSummary(
      GROUP BY period
      ORDER BY period DESC
      LIMIT 24`,
-    params
+    params,
   );
 
   const feeBreakdownResult = await pool.query(
@@ -53,7 +53,7 @@ export async function getRevenueSummary(
        COALESCE(SUM(CASE WHEN entry_type = 'credit' THEN amount::numeric ELSE 0 END), 0) AS total
      FROM ledger_entries ${where}
      GROUP BY account_id`,
-    params
+    params,
   );
 
   const breakdown: Record<string, string> = {};
@@ -78,7 +78,7 @@ export async function getRevenueSummary(
     totalPayoutFees,
     totalBridgeFees,
     byCurrency,
-    byPeriod: byPeriodResult.rows.map(r => ({
+    byPeriod: byPeriodResult.rows.map((r) => ({
       period: r.period as string,
       amount: r.amount.toString(),
       count: Number(r.count),

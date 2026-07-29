@@ -6,7 +6,7 @@ import { ApiError, ErrorType } from '@/lib/error-types';
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ orderId: string }> }
+  { params }: { params: Promise<{ orderId: string }> },
 ) {
   try {
     const { orderId } = await params;

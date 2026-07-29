@@ -1,35 +1,39 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { cn } from "@/lib/cn";
+import { useState } from 'react';
+import { cn } from '@/lib/cn';
 
 export interface KeyboardShortcut {
   keys: string[];
   description: string;
-  category: "navigation" | "form" | "transaction" | "general";
+  category: 'navigation' | 'form' | 'transaction' | 'general';
 }
 
 const KEYBOARD_SHORTCUTS: KeyboardShortcut[] = [
   // Navigation
-  { keys: ["Tab"], description: "Move to next focusable element", category: "navigation" },
-  { keys: ["Shift", "Tab"], description: "Move to previous focusable element", category: "navigation" },
-  { keys: ["Escape"], description: "Close modal or dialog", category: "navigation" },
-  { keys: ["Enter"], description: "Activate button or submit form", category: "navigation" },
-  { keys: ["Space"], description: "Toggle checkbox or activate button", category: "navigation" },
+  { keys: ['Tab'], description: 'Move to next focusable element', category: 'navigation' },
+  {
+    keys: ['Shift', 'Tab'],
+    description: 'Move to previous focusable element',
+    category: 'navigation',
+  },
+  { keys: ['Escape'], description: 'Close modal or dialog', category: 'navigation' },
+  { keys: ['Enter'], description: 'Activate button or submit form', category: 'navigation' },
+  { keys: ['Space'], description: 'Toggle checkbox or activate button', category: 'navigation' },
 
   // Form
-  { keys: ["Alt", "A"], description: "Focus amount input", category: "form" },
-  { keys: ["Alt", "C"], description: "Focus currency selector", category: "form" },
-  { keys: ["Alt", "B"], description: "Focus bank selector", category: "form" },
+  { keys: ['Alt', 'A'], description: 'Focus amount input', category: 'form' },
+  { keys: ['Alt', 'C'], description: 'Focus currency selector', category: 'form' },
+  { keys: ['Alt', 'B'], description: 'Focus bank selector', category: 'form' },
 
   // Transaction
-  { keys: ["Ctrl", "Enter"], description: "Submit transaction", category: "transaction" },
-  { keys: ["Ctrl", "Z"], description: "Undo last action", category: "transaction" },
-  { keys: ["Ctrl", "Y"], description: "Redo last action", category: "transaction" },
+  { keys: ['Ctrl', 'Enter'], description: 'Submit transaction', category: 'transaction' },
+  { keys: ['Ctrl', 'Z'], description: 'Undo last action', category: 'transaction' },
+  { keys: ['Ctrl', 'Y'], description: 'Redo last action', category: 'transaction' },
 
   // General
-  { keys: ["?"], description: "Show keyboard shortcuts", category: "general" },
-  { keys: ["Ctrl", "K"], description: "Open command palette", category: "general" },
+  { keys: ['?'], description: 'Show keyboard shortcuts', category: 'general' },
+  { keys: ['Ctrl', 'K'], description: 'Open command palette', category: 'general' },
 ];
 
 interface KeyboardShortcutsModalProps {
@@ -38,13 +42,20 @@ interface KeyboardShortcutsModalProps {
 }
 
 export function KeyboardShortcutsModal({ isOpen, onClose }: KeyboardShortcutsModalProps) {
-  const [selectedCategory, setSelectedCategory] = useState<KeyboardShortcut["category"] | "all">("all");
+  const [selectedCategory, setSelectedCategory] = useState<KeyboardShortcut['category'] | 'all'>(
+    'all',
+  );
 
   if (!isOpen) return null;
 
-  const categories: Array<KeyboardShortcut["category"]> = ["navigation", "form", "transaction", "general"];
+  const categories: Array<KeyboardShortcut['category']> = [
+    'navigation',
+    'form',
+    'transaction',
+    'general',
+  ];
   const filteredShortcuts =
-    selectedCategory === "all"
+    selectedCategory === 'all'
       ? KEYBOARD_SHORTCUTS
       : KEYBOARD_SHORTCUTS.filter((s) => s.category === selectedCategory);
 
@@ -70,12 +81,12 @@ export function KeyboardShortcutsModal({ isOpen, onClose }: KeyboardShortcutsMod
         <div className="border-b border-gray-200 dark:border-gray-700 p-6">
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => setSelectedCategory("all")}
+              onClick={() => setSelectedCategory('all')}
               className={cn(
-                "px-3 py-1 rounded-full text-sm font-medium transition-colors",
-                selectedCategory === "all"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600"
+                'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+                selectedCategory === 'all'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600',
               )}
             >
               All
@@ -85,10 +96,10 @@ export function KeyboardShortcutsModal({ isOpen, onClose }: KeyboardShortcutsMod
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
                 className={cn(
-                  "px-3 py-1 rounded-full text-sm font-medium transition-colors capitalize",
+                  'px-3 py-1 rounded-full text-sm font-medium transition-colors capitalize',
                   selectedCategory === cat
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600"
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600',
                 )}
               >
                 {cat}
@@ -113,7 +124,9 @@ export function KeyboardShortcutsModal({ isOpen, onClose }: KeyboardShortcutsMod
                   </div>
                 ))}
               </div>
-              <p className="text-gray-700 dark:text-gray-300 text-sm flex-1 pt-1">{shortcut.description}</p>
+              <p className="text-gray-700 dark:text-gray-300 text-sm flex-1 pt-1">
+                {shortcut.description}
+              </p>
             </div>
           ))}
         </div>

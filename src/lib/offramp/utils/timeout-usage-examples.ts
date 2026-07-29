@@ -16,7 +16,7 @@ export async function initializeSDKWithTimeout(initFn: () => Promise<void>) {
 // ── Bridge Quote (15s timeout) ──────────────────────────────────────────────
 
 export async function getBridgeQuoteWithTimeout(
-  quoteFn: () => Promise<{ receiveAmount: string; fee: string }>
+  quoteFn: () => Promise<{ receiveAmount: string; fee: string }>,
 ) {
   return withTimeout(quoteFn(), 15000, 'Bridge quote');
 }
@@ -24,33 +24,26 @@ export async function getBridgeQuoteWithTimeout(
 // ── Paycrest Order (20s timeout) ────────────────────────────────────────────
 
 export async function createPaycrestOrderWithTimeout(
-  orderFn: () => Promise<{ id: string; status: string }>
+  orderFn: () => Promise<{ id: string; status: string }>,
 ) {
   return withTimeout(orderFn(), 20000, 'Paycrest order');
 }
 
 // ── Build Transaction (30s timeout) ────────────────────────────────────────
 
-export async function buildTransactionWithTimeout(
-  buildFn: () => Promise<string>
-) {
+export async function buildTransactionWithTimeout(buildFn: () => Promise<string>) {
   return withTimeout(buildFn(), 30000, 'Build transaction');
 }
 
 // ── Submit Transaction (15s timeout) ────────────────────────────────────────
 
-export async function submitTransactionWithTimeout(
-  submitFn: () => Promise<{ txHash: string }>
-) {
+export async function submitTransactionWithTimeout(submitFn: () => Promise<{ txHash: string }>) {
   return withTimeout(submitFn(), 15000, 'Submit transaction');
 }
 
 // ── Real-world example combining multiple operations ────────────────────────
 
-export async function executeOfframpFlowWithTimeouts(
-  sourceAddress: string,
-  amount: string
-) {
+export async function executeOfframpFlowWithTimeouts(sourceAddress: string, amount: string) {
   try {
     // Step 1: Get quote (15s)
     const quote = await getBridgeQuoteWithTimeout(async () => {

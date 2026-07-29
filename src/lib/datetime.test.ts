@@ -155,9 +155,7 @@ describe('addDuration', () => {
   });
 
   it('adds combined duration', () => {
-    expect(addDuration(base, { days: 1, hours: 2, minutes: 30 })).toBe(
-      '2026-06-02T02:30:00.000Z'
-    );
+    expect(addDuration(base, { days: 1, hours: 2, minutes: 30 })).toBe('2026-06-02T02:30:00.000Z');
   });
 
   // DST: 2024-03-10 02:00 US/Eastern — clocks spring forward

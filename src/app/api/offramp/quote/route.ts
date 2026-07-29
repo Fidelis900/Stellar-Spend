@@ -86,8 +86,10 @@ export async function POST(request: NextRequest) {
 
       for (const [, chain] of Object.entries(chainDetails)) {
         const c = chain as any;
-        if (c.name?.toLowerCase().includes('stellar') || c.name?.toLowerCase().includes('soroban')) stellarChain = c;
-        if (c.name?.toLowerCase().includes('ethereum') || c.name?.toLowerCase().includes('base')) baseChain = c;
+        if (c.name?.toLowerCase().includes('stellar') || c.name?.toLowerCase().includes('soroban'))
+          stellarChain = c;
+        if (c.name?.toLowerCase().includes('ethereum') || c.name?.toLowerCase().includes('base'))
+          baseChain = c;
       }
 
       if (!stellarChain || !baseChain) throw new Error('Chain details unavailable');

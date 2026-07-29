@@ -32,7 +32,8 @@ export function BackupCodesDisplay({ codes, onClose }: BackupCodesDisplayProps) 
       <div className="bg-[#1a1a1a] border border-[#333333] p-6 max-w-md w-full mx-4">
         <h2 className="text-lg font-bold text-white mb-2">Save Your Backup Codes</h2>
         <p className="text-xs text-[#999999] mb-4">
-          Store these codes in a safe place. You can use them to access your account if you lose access to your 2FA device.
+          Store these codes in a safe place. You can use them to access your account if you lose
+          access to your 2FA device.
         </p>
 
         <div className="bg-[#0a0a0a] border border-[#333333] p-4 mb-4 max-h-48 overflow-y-auto">
@@ -53,9 +54,7 @@ export function BackupCodesDisplay({ codes, onClose }: BackupCodesDisplayProps) 
             onClick={handleCopy}
             className={cn(
               'flex-1 px-3 py-2 text-xs font-semibold transition-colors',
-              copied
-                ? 'bg-green-600 text-white'
-                : 'bg-[#333333] text-white hover:bg-[#444444]'
+              copied ? 'bg-green-600 text-white' : 'bg-[#333333] text-white hover:bg-[#444444]',
             )}
           >
             {copied ? '✓ Copied' : 'Copy'}

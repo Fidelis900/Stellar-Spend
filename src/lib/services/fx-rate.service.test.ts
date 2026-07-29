@@ -126,7 +126,11 @@ describe('FxRateService', () => {
     });
 
     it('throws for non-ok HTTP responses with no cache', async () => {
-      fetchSpy.mockResolvedValueOnce({ ok: false, status: 503, json: async () => ({}) } as Response);
+      fetchSpy.mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        json: async () => ({}),
+      } as Response);
 
       await expect(service.getRate('NGN')).rejects.toThrow('503');
     });

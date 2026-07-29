@@ -66,10 +66,14 @@ describe('reconcileTransaction', () => {
   });
 
   it('detects amount mismatch when Stellar and Paycrest disagree', async () => {
-    global.fetch = vi.fn()
+    global.fetch = vi
+      .fn()
       .mockResolvedValueOnce({ ok: true, json: async () => ({ successful: true }) })
       .mockResolvedValueOnce({ ok: true, json: async () => ({ result: { hash: '0xabc' } }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ data: { status: 'completed', amount: '200.00' } }) });
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: { status: 'completed', amount: '200.00' } }),
+      });
 
     const record = makeRecord({ amount: '100.00' });
     const results = await reconcileTransaction(record);
@@ -77,10 +81,14 @@ describe('reconcileTransaction', () => {
   });
 
   it('detects status mismatch between Stellar and Paycrest', async () => {
-    global.fetch = vi.fn()
+    global.fetch = vi
+      .fn()
       .mockResolvedValueOnce({ ok: true, json: async () => ({ successful: false }) })
       .mockResolvedValueOnce({ ok: true, json: async () => ({ result: { hash: '0xabc' } }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ data: { status: 'completed', amount: '100.00' } }) });
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: { status: 'completed', amount: '100.00' } }),
+      });
 
     const record = makeRecord({ amount: '100.00' });
     const results = await reconcileTransaction(record);
@@ -88,10 +96,14 @@ describe('reconcileTransaction', () => {
   });
 
   it('detects unsettled Paycrest order', async () => {
-    global.fetch = vi.fn()
+    global.fetch = vi
+      .fn()
       .mockResolvedValueOnce({ ok: true, json: async () => ({ successful: true }) })
       .mockResolvedValueOnce({ ok: true, json: async () => ({ result: { hash: '0xabc' } }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ data: { status: 'pending', amount: '100.00' } }) });
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: { status: 'pending', amount: '100.00' } }),
+      });
 
     const record = makeRecord({ amount: '100.00' });
     const results = await reconcileTransaction(record);
@@ -99,10 +111,14 @@ describe('reconcileTransaction', () => {
   });
 
   it('returns empty discrepancies for well-matched records', async () => {
-    global.fetch = vi.fn()
+    global.fetch = vi
+      .fn()
       .mockResolvedValueOnce({ ok: true, json: async () => ({ successful: true }) })
       .mockResolvedValueOnce({ ok: true, json: async () => ({ result: { hash: '0xabc' } }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ data: { status: 'completed', amount: '100.00' } }) });
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: { status: 'completed', amount: '100.00' } }),
+      });
 
     const record = makeRecord({ amount: '100.00' });
     const results = await reconcileTransaction(record);
@@ -119,8 +135,18 @@ describe('generateReconciliationReport', () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: false });
 
     const records = [
-      makeRecord({ transactionId: 'tx-1', stellarTxHash: 'hash-1', baseTxHash: '0xbase1', paycrestOrderId: 'order-1' }),
-      makeRecord({ transactionId: 'tx-2', stellarTxHash: 'hash-2', baseTxHash: '0xbase2', paycrestOrderId: 'order-2' }),
+      makeRecord({
+        transactionId: 'tx-1',
+        stellarTxHash: 'hash-1',
+        baseTxHash: '0xbase1',
+        paycrestOrderId: 'order-1',
+      }),
+      makeRecord({
+        transactionId: 'tx-2',
+        stellarTxHash: 'hash-2',
+        baseTxHash: '0xbase2',
+        paycrestOrderId: 'order-2',
+      }),
     ];
 
     const report = await generateReconciliationReport(records);

@@ -60,9 +60,11 @@ export function BatchUI({ onSubmitBatch, isLoading = false }: BatchUIProps) {
         }));
 
         // Basic validation
-        const invalidRows = parsed.filter(p => !p.accountNumber || p.amount <= 0);
+        const invalidRows = parsed.filter((p) => !p.accountNumber || p.amount <= 0);
         if (invalidRows.length > 0) {
-          setError(`Found ${invalidRows.length} invalid rows. Please check amount and account numbers.`);
+          setError(
+            `Found ${invalidRows.length} invalid rows. Please check amount and account numbers.`,
+          );
         }
 
         setBeneficiaries(parsed);
@@ -75,14 +77,14 @@ export function BatchUI({ onSubmitBatch, isLoading = false }: BatchUIProps) {
   };
 
   const removeBeneficiary = (id: string) => {
-    setBeneficiaries(prev => prev.filter(b => b.id !== id));
+    setBeneficiaries((prev) => prev.filter((b) => b.id !== id));
   };
 
   const handleSubmit = async () => {
     if (beneficiaries.length === 0) return;
     setError(null);
     setSuccess(null);
-    
+
     try {
       await onSubmitBatch(beneficiaries);
       setSuccess('Batch submitted successfully!');
@@ -93,8 +95,20 @@ export function BatchUI({ onSubmitBatch, isLoading = false }: BatchUIProps) {
 
   const downloadTemplate = () => {
     const template = [
-      { Name: 'John Doe', Account: '1234567890', Institution: 'First Bank', Amount: 5000, Currency: 'NGN' },
-      { Name: 'Jane Smith', Account: '0987654321', Institution: 'GTBank', Amount: 25.50, Currency: 'USD' },
+      {
+        Name: 'John Doe',
+        Account: '1234567890',
+        Institution: 'First Bank',
+        Amount: 5000,
+        Currency: 'NGN',
+      },
+      {
+        Name: 'Jane Smith',
+        Account: '0987654321',
+        Institution: 'GTBank',
+        Amount: 25.5,
+        Currency: 'USD',
+      },
     ];
     const ws = XLSX.utils.json_to_sheet(template);
     const wb = XLSX.utils.book_new();
@@ -103,9 +117,23 @@ export function BatchUI({ onSubmitBatch, isLoading = false }: BatchUIProps) {
   };
 
   const batchColumns: DataTableColumn<BatchBeneficiary>[] = [
-    { key: 'name', header: 'Beneficiary', sortValue: (b) => b.name, accessor: (b) => <span className="font-medium">{b.name}</span> },
-    { key: 'accountNumber', header: 'Account', accessor: (b) => <span className="font-mono">{b.accountNumber}</span> },
-    { key: 'institution', header: 'Institution', sortValue: (b) => b.institution, accessor: (b) => b.institution },
+    {
+      key: 'name',
+      header: 'Beneficiary',
+      sortValue: (b) => b.name,
+      accessor: (b) => <span className="font-medium">{b.name}</span>,
+    },
+    {
+      key: 'accountNumber',
+      header: 'Account',
+      accessor: (b) => <span className="font-mono">{b.accountNumber}</span>,
+    },
+    {
+      key: 'institution',
+      header: 'Institution',
+      sortValue: (b) => b.institution,
+      accessor: (b) => b.institution,
+    },
     {
       key: 'amount',
       header: 'Amount',
@@ -123,7 +151,9 @@ export function BatchUI({ onSubmitBatch, isLoading = false }: BatchUIProps) {
       align: 'center',
       sortValue: (b) => b.status,
       accessor: (b) => (
-        <Badge variant={b.status === 'success' ? 'success' : b.status === 'failed' ? 'error' : 'default'}>
+        <Badge
+          variant={b.status === 'success' ? 'success' : b.status === 'failed' ? 'error' : 'default'}
+        >
           {b.status}
         </Badge>
       ),
@@ -150,7 +180,9 @@ export function BatchUI({ onSubmitBatch, isLoading = false }: BatchUIProps) {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div>
             <h3 className="text-xl font-bold">Batch Payouts</h3>
-            <p className="text-sm text-gray-500">Upload a CSV or Excel file to send to multiple beneficiaries at once.</p>
+            <p className="text-sm text-gray-500">
+              Upload a CSV or Excel file to send to multiple beneficiaries at once.
+            </p>
           </div>
           <div className="flex gap-2">
             <Button variant="secondary" size="sm" onClick={downloadTemplate}>
@@ -160,13 +192,26 @@ export function BatchUI({ onSubmitBatch, isLoading = false }: BatchUIProps) {
               <span className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium">
                 Upload File
               </span>
-              <input type="file" className="hidden" accept=".csv,.xlsx,.xls" onChange={handleFileUpload} />
+              <input
+                type="file"
+                className="hidden"
+                accept=".csv,.xlsx,.xls"
+                onChange={handleFileUpload}
+              />
             </label>
           </div>
         </div>
 
-        {error && <Alert variant="error" className="mb-4">{error}</Alert>}
-        {success && <Alert variant="success" className="mb-4">{success}</Alert>}
+        {error && (
+          <Alert variant="error" className="mb-4">
+            {error}
+          </Alert>
+        )}
+        {success && (
+          <Alert variant="success" className="mb-4">
+            {success}
+          </Alert>
+        )}
 
         {beneficiaries.length > 0 ? (
           <div className="space-y-4">
@@ -190,13 +235,15 @@ export function BatchUI({ onSubmitBatch, isLoading = false }: BatchUIProps) {
               </div>
               <div>
                 <p className="text-xs text-gray-500 uppercase font-bold">Estimated Fees</p>
-                <p className="text-lg font-bold text-blue-600">{stats.estimatedFee.toFixed(2)} USDC</p>
+                <p className="text-lg font-bold text-blue-600">
+                  {stats.estimatedFee.toFixed(2)} USDC
+                </p>
               </div>
             </div>
 
-            <Button 
-              className="w-full" 
-              onClick={handleSubmit} 
+            <Button
+              className="w-full"
+              onClick={handleSubmit}
               isLoading={isLoading}
               disabled={beneficiaries.length === 0 || !!error}
             >

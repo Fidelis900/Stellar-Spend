@@ -52,20 +52,16 @@ vi.mock('@/lib/webhook/dlq', () => ({
 
 describe('webhookQueries.webhookDelivery', () => {
   it('throws when unauthenticated', async () => {
-    await expect(
-      webhookQueries.webhookDelivery({}, { id: 'del_1' }, anonCtx()),
-    ).rejects.toThrow(/Unauthorized/);
+    await expect(webhookQueries.webhookDelivery({}, { id: 'del_1' }, anonCtx())).rejects.toThrow(
+      /Unauthorized/,
+    );
   });
 
   it('calls getRecord with provided id', async () => {
     const { getRecord } = await import('@/lib/webhook/delivery-store');
     (getRecord as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ id: 'del_1' });
 
-    const result = await webhookQueries.webhookDelivery(
-      {},
-      { id: 'del_1' },
-      authedCtx(),
-    );
+    const result = await webhookQueries.webhookDelivery({}, { id: 'del_1' }, authedCtx());
     expect(result).toEqual({ id: 'del_1' });
     expect(getRecord).toHaveBeenCalledWith('del_1');
   });
@@ -73,9 +69,9 @@ describe('webhookQueries.webhookDelivery', () => {
 
 describe('webhookQueries.webhookDeliveries', () => {
   it('throws when unauthenticated', async () => {
-    await expect(
-      webhookQueries.webhookDeliveries({}, {}, anonCtx()),
-    ).rejects.toThrow(/Unauthorized/);
+    await expect(webhookQueries.webhookDeliveries({}, {}, anonCtx())).rejects.toThrow(
+      /Unauthorized/,
+    );
   });
 
   it('defaults to pending status and respects limit 50', async () => {
@@ -92,25 +88,21 @@ describe('webhookQueries.webhookDeliveries', () => {
 
 describe('webhookQueries.webhookStats', () => {
   it('throws when unauthenticated', async () => {
-    await expect(
-      webhookQueries.webhookStats({}, {}, anonCtx()),
-    ).rejects.toThrow(/Unauthorized/);
+    await expect(webhookQueries.webhookStats({}, {}, anonCtx())).rejects.toThrow(/Unauthorized/);
   });
 
   it('aggregates counts from all status buckets + dlq', async () => {
     const { getRecordsByStatus } = await import('@/lib/webhook/delivery-store');
     const { list } = await import('@/lib/webhook/dlq');
 
-    (getRecordsByStatus as ReturnType<typeof vi.fn>).mockImplementation(
-      (status: string) => {
-        const map: Record<string, unknown[]> = {
-          pending: [1, 2],
-          delivered: [3, 4, 5],
-          failed: [6],
-        };
-        return Promise.resolve(map[status] ?? []);
-      },
-    );
+    (getRecordsByStatus as ReturnType<typeof vi.fn>).mockImplementation((status: string) => {
+      const map: Record<string, unknown[]> = {
+        pending: [1, 2],
+        delivered: [3, 4, 5],
+        failed: [6],
+      };
+      return Promise.resolve(map[status] ?? []);
+    });
     (list as ReturnType<typeof vi.fn>).mockResolvedValueOnce([7, 8]);
 
     const result = await webhookQueries.webhookStats({}, {}, authedCtx());
@@ -120,9 +112,7 @@ describe('webhookQueries.webhookStats', () => {
 
 describe('webhookQueries.dlqEntries', () => {
   it('throws when unauthenticated', async () => {
-    await expect(
-      webhookQueries.dlqEntries({}, {}, anonCtx()),
-    ).rejects.toThrow(/Unauthorized/);
+    await expect(webhookQueries.dlqEntries({}, {}, anonCtx())).rejects.toThrow(/Unauthorized/);
   });
 
   it('slices results to provided limit', async () => {
@@ -142,9 +132,9 @@ describe('webhookQueries.dispute', () => {
   beforeEach(() => vi.resetModules());
 
   it('throws when caller lacks admin role', async () => {
-    await expect(
-      webhookQueries.dispute({}, { id: 'd_1' }, authedCtx()),
-    ).rejects.toThrow(/Forbidden/);
+    await expect(webhookQueries.dispute({}, { id: 'd_1' }, authedCtx())).rejects.toThrow(
+      /Forbidden/,
+    );
   });
 
   it('calls getDisputeById for admin', async () => {
@@ -172,11 +162,7 @@ describe('webhookMutations.replayWebhook', () => {
     const { replay } = await import('@/lib/webhook/dlq');
     (replay as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ id: 'dlq_1' });
 
-    const result = await webhookMutations.replayWebhook(
-      {},
-      { dlqEntryId: 'dlq_1' },
-      adminCtx(),
-    );
+    const result = await webhookMutations.replayWebhook({}, { dlqEntryId: 'dlq_1' }, adminCtx());
     expect(replay).toHaveBeenCalledWith('dlq_1');
     expect(result).toEqual({ id: 'dlq_1' });
   });
@@ -201,7 +187,10 @@ describe('webhookMutations.retryWebhookDelivery', () => {
   it('updates delivery status to pending for admin', async () => {
     const { getRecord, updateRecord } = await import('@/lib/webhook/delivery-store');
     (getRecord as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ id: 'del_1' });
-    (updateRecord as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ id: 'del_1', status: 'pending' });
+    (updateRecord as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      id: 'del_1',
+      status: 'pending',
+    });
 
     const result = await webhookMutations.retryWebhookDelivery(
       {},
@@ -221,11 +210,7 @@ describe('webhookMutations.createDispute', () => {
 
   it('throws when unauthenticated', async () => {
     await expect(
-      webhookMutations.createDispute(
-        {},
-        { transactionId: 'tx_1', reason: 'fraud' },
-        anonCtx(),
-      ),
+      webhookMutations.createDispute({}, { transactionId: 'tx_1', reason: 'fraud' }, anonCtx()),
     ).rejects.toThrow(/Unauthorized/);
   });
 

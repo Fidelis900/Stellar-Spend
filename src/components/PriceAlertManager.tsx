@@ -1,11 +1,11 @@
 import { logger } from '@/lib/logger';
-"use client";
+('use client');
 
-import { useState, useEffect, useCallback } from "react";
-import { PriceAlert, AlertStatus } from "@/lib/price-alerts";
-import { Button, Card } from "@/components/design-system";
-import { useStellarWallet } from "@/hooks/useStellarWallet";
-import { useToast } from "@/contexts/ToastContext";
+import { useState, useEffect, useCallback } from 'react';
+import { PriceAlert, AlertStatus } from '@/lib/price-alerts';
+import { Button, Card } from '@/components/design-system';
+import { useStellarWallet } from '@/hooks/useStellarWallet';
+import { useToast } from '@/contexts/ToastContext';
 
 interface PriceAlertManagerProps {
   onAlertTriggered?: (alerts: PriceAlert[]) => void;
@@ -14,34 +14,32 @@ interface PriceAlertManagerProps {
 const SNOOZE_DURATION = 30 * 60 * 1000; // 30 minutes
 
 function sendBrowserNotification(alert: PriceAlert) {
-  if (typeof window === "undefined" || !("Notification" in window)) return;
-  if (Notification.permission === "granted") {
-    new Notification("Stellar-Spend Price Alert", {
+  if (typeof window === 'undefined' || !('Notification' in window)) return;
+  if (Notification.permission === 'granted') {
+    new Notification('Stellar-Spend Price Alert', {
       body: `${alert.currency} rate is now ${alert.alertType} ${alert.targetPrice}`,
-      icon: "/icons/icon-192x192.png",
+      icon: '/icons/icon-192x192.png',
     });
-  } else if (Notification.permission !== "denied") {
+  } else if (Notification.permission !== 'denied') {
     Notification.requestPermission().then((p) => {
-      if (p === "granted") sendBrowserNotification(alert);
+      if (p === 'granted') sendBrowserNotification(alert);
     });
   }
 }
 
-export function PriceAlertManager({
-  onAlertTriggered,
-}: PriceAlertManagerProps) {
+export function PriceAlertManager({ onAlertTriggered }: PriceAlertManagerProps) {
   const { wallet, isConnected } = useStellarWallet();
   const { showToast } = useToast();
   const [alerts, setAlerts] = useState<PriceAlert[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingAlert, setEditingAlert] = useState<PriceAlert | null>(null);
-  const [activeTab, setActiveTab] = useState<"active" | "history">("active");
+  const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
   const [snoozedUntil, setSnoozedUntil] = useState<Record<string, number>>({});
   const [formData, setFormData] = useState({
-    currency: "NGN",
-    targetPrice: "",
-    alertType: "above" as "above" | "below",
+    currency: 'NGN',
+    targetPrice: '',
+    alertType: 'above' as 'above' | 'below',
     recurring: false,
   });
 
@@ -49,16 +47,14 @@ export function PriceAlertManager({
     if (!wallet?.publicKey) return;
     setIsLoading(true);
     try {
-      const res = await fetch(
-        `/api/offramp/price-alerts?userAddress=${wallet.publicKey}`,
-      );
+      const res = await fetch(`/api/offramp/price-alerts?userAddress=${wallet.publicKey}`);
       if (res.ok) {
         const data = await res.json();
         setAlerts(data.alerts || []);
       }
     } catch (error) {
-      logger.error("Failed to fetch alerts:", {}, error);
-      showToast("Failed to load price alerts", "error");
+      logger.error('Failed to fetch alerts:', {}, error);
+      showToast('Failed to load price alerts', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +74,7 @@ export function PriceAlertManager({
 
     const interval = setInterval(async () => {
       try {
-        const res = await fetch("/api/offramp/rate");
+        const res = await fetch('/api/offramp/rate');
         const data = await res.json();
         const currentRate = data.rate;
         const currentCurrency = data.currency;
@@ -86,12 +82,11 @@ export function PriceAlertManager({
         // Simple client-side check for immediate notification
         // In a real app, the server would handle this via push notifications
         alerts.forEach((alert) => {
-          if (alert.status !== "active" || alert.currency !== currentCurrency)
-            return;
+          if (alert.status !== 'active' || alert.currency !== currentCurrency) return;
 
           const isTriggered =
-            (alert.alertType === "above" && currentRate >= alert.targetPrice) ||
-            (alert.alertType === "below" && currentRate <= alert.targetPrice);
+            (alert.alertType === 'above' && currentRate >= alert.targetPrice) ||
+            (alert.alertType === 'below' && currentRate <= alert.targetPrice);
 
           if (isTriggered) {
             const snoozeExpiry = snoozedUntil[alert.id];
@@ -104,19 +99,12 @@ export function PriceAlertManager({
           }
         });
       } catch (error) {
-        logger.error("Price check failed:", {}, error);
+        logger.error('Price check failed:', {}, error);
       }
     }, 60000);
 
     return () => clearInterval(interval);
-  }, [
-    isConnected,
-    wallet?.publicKey,
-    alerts,
-    snoozedUntil,
-    onAlertTriggered,
-    fetchAlerts,
-  ]);
+  }, [isConnected, wallet?.publicKey, alerts, snoozedUntil, onAlertTriggered, fetchAlerts]);
 
   const handleCreateOrUpdate = async () => {
     if (!formData.targetPrice || !wallet?.publicKey) return;
@@ -130,65 +118,61 @@ export function PriceAlertManager({
     try {
       const url = editingAlert
         ? `/api/offramp/price-alerts/${editingAlert.id}`
-        : "/api/offramp/price-alerts";
+        : '/api/offramp/price-alerts';
 
       const res = await fetch(url, {
-        method: editingAlert ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
+        method: editingAlert ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
       if (res.ok) {
-        showToast(
-          `Alert ${editingAlert ? "updated" : "created"} successfully`,
-          "success",
-        );
+        showToast(`Alert ${editingAlert ? 'updated' : 'created'} successfully`, 'success');
         fetchAlerts();
         setFormData({
-          currency: "NGN",
-          targetPrice: "",
-          alertType: "above",
+          currency: 'NGN',
+          targetPrice: '',
+          alertType: 'above',
           recurring: false,
         });
         setShowForm(false);
         setEditingAlert(null);
       } else {
         const data = await res.json();
-        showToast(data.error || "Failed to save alert", "error");
+        showToast(data.error || 'Failed to save alert', 'error');
       }
     } catch (error) {
-      showToast("An error occurred while saving the alert", "error");
+      showToast('An error occurred while saving the alert', 'error');
     }
   };
 
   const handleDelete = async (id: string) => {
     try {
       const res = await fetch(`/api/offramp/price-alerts/${id}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
       if (res.ok) {
-        showToast("Alert deleted", "success");
+        showToast('Alert deleted', 'success');
         fetchAlerts();
       }
     } catch (error) {
-      showToast("Failed to delete alert", "error");
+      showToast('Failed to delete alert', 'error');
     }
   };
 
   const handleToggle = async (alert: PriceAlert) => {
-    const nextStatus: AlertStatus =
-      alert.status === "active" ? "inactive" : "active";
+    const nextStatus: AlertStatus = alert.status === 'active' ? 'inactive' : 'active';
     try {
       const res = await fetch(`/api/offramp/price-alerts/${alert.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: nextStatus }),
       });
       if (res.ok) {
         fetchAlerts();
       }
     } catch (error) {
-      showToast("Failed to update alert", "error");
+      showToast('Failed to update alert', 'error');
     }
   };
 
@@ -206,20 +190,18 @@ export function PriceAlertManager({
   const handleSnooze = (id: string) => {
     const until = Date.now() + SNOOZE_DURATION;
     setSnoozedUntil((prev) => ({ ...prev, [id]: until }));
-    showToast("Alert snoozed for 30 minutes", "info");
+    showToast('Alert snoozed for 30 minutes', 'info');
   };
 
-  const activeAlerts = alerts.filter((a) => a.status !== "triggered");
-  const history = alerts.filter((a) => a.status === "triggered");
+  const activeAlerts = alerts.filter((a) => a.status !== 'triggered');
+  const history = alerts.filter((a) => a.status === 'triggered');
   const triggeredCount = history.length;
 
   if (!isConnected) {
     return (
       <Card className="p-4">
         <h3 className="text-lg font-semibold mb-2">Price Alerts</h3>
-        <p className="text-sm text-gray-500">
-          Connect your wallet to manage price alerts.
-        </p>
+        <p className="text-sm text-gray-500">Connect your wallet to manage price alerts.</p>
       </Card>
     );
   }
@@ -237,32 +219,26 @@ export function PriceAlertManager({
 
       {/* Tabs */}
       <div className="flex gap-2 mb-4 border-b">
-        {(["active", "history"] as const).map((tab) => (
+        {(['active', 'history'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`pb-2 px-1 text-sm capitalize ${activeTab === tab ? "border-b-2 border-blue-600 font-medium" : "text-gray-500"}`}
+            className={`pb-2 px-1 text-sm capitalize ${activeTab === tab ? 'border-b-2 border-blue-600 font-medium' : 'text-gray-500'}`}
           >
-            {tab}{" "}
-            {tab === "history" && triggeredCount > 0
-              ? `(${triggeredCount})`
-              : ""}
+            {tab} {tab === 'history' && triggeredCount > 0 ? `(${triggeredCount})` : ''}
           </button>
         ))}
       </div>
 
-      {activeTab === "active" && (
+      {activeTab === 'active' && (
         <>
           <div className="space-y-2 mb-4 max-h-[300px] overflow-y-auto">
-            {isLoading && (
-              <p className="text-sm text-gray-500">Loading alerts...</p>
-            )}
+            {isLoading && <p className="text-sm text-gray-500">Loading alerts...</p>}
             {!isLoading && activeAlerts.length === 0 && (
               <p className="text-sm text-gray-500">No active alerts.</p>
             )}
             {activeAlerts.map((alert) => {
-              const isSnoozed =
-                snoozedUntil[alert.id] && Date.now() < snoozedUntil[alert.id];
+              const isSnoozed = snoozedUntil[alert.id] && Date.now() < snoozedUntil[alert.id];
               return (
                 <div
                   key={alert.id}
@@ -270,7 +246,7 @@ export function PriceAlertManager({
                 >
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm">
-                      {alert.currency} {alert.alertType === "above" ? "≥" : "≤"}{" "}
+                      {alert.currency} {alert.alertType === 'above' ? '≥' : '≤'}{' '}
                       {alert.targetPrice.toLocaleString()}
                     </p>
                     <div className="flex items-center gap-2">
@@ -280,9 +256,7 @@ export function PriceAlertManager({
                         ) : (
                           <span
                             className={
-                              alert.status === "active"
-                                ? "text-green-600"
-                                : "text-gray-400"
+                              alert.status === 'active' ? 'text-green-600' : 'text-gray-400'
                             }
                           >
                             {alert.status}
@@ -297,18 +271,10 @@ export function PriceAlertManager({
                     </div>
                   </div>
                   <div className="flex gap-1 shrink-0">
-                    <Button
-                      onClick={() => handleToggle(alert)}
-                      variant="secondary"
-                      size="sm"
-                    >
-                      {alert.status === "active" ? "Pause" : "Resume"}
+                    <Button onClick={() => handleToggle(alert)} variant="secondary" size="sm">
+                      {alert.status === 'active' ? 'Pause' : 'Resume'}
                     </Button>
-                    <Button
-                      onClick={() => handleEdit(alert)}
-                      variant="secondary"
-                      size="sm"
-                    >
+                    <Button onClick={() => handleEdit(alert)} variant="secondary" size="sm">
                       Edit
                     </Button>
                     <Button
@@ -333,15 +299,11 @@ export function PriceAlertManager({
 
           {showForm ? (
             <div className="space-y-2 border-t pt-4">
-              <h4 className="text-sm font-medium">
-                {editingAlert ? "Edit Alert" : "New Alert"}
-              </h4>
+              <h4 className="text-sm font-medium">{editingAlert ? 'Edit Alert' : 'New Alert'}</h4>
               <div className="grid grid-cols-2 gap-2">
                 <select
                   value={formData.currency}
-                  onChange={(e) =>
-                    setFormData({ ...formData, currency: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                   className="w-full p-2 border rounded text-sm bg-white dark:bg-gray-900"
                 >
                   <option value="NGN">NGN (Nigeria)</option>
@@ -354,7 +316,7 @@ export function PriceAlertManager({
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      alertType: e.target.value as "above" | "below",
+                      alertType: e.target.value as 'above' | 'below',
                     })
                   }
                   className="w-full p-2 border rounded text-sm bg-white dark:bg-gray-900"
@@ -367,25 +329,19 @@ export function PriceAlertManager({
                 type="number"
                 placeholder="Target Rate"
                 value={formData.targetPrice}
-                onChange={(e) =>
-                  setFormData({ ...formData, targetPrice: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, targetPrice: e.target.value })}
                 className="w-full p-2 border rounded text-sm bg-white dark:bg-gray-900"
               />
               <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
                   checked={formData.recurring}
-                  onChange={(e) =>
-                    setFormData({ ...formData, recurring: e.target.checked })
-                  }
+                  onChange={(e) => setFormData({ ...formData, recurring: e.target.checked })}
                 />
                 Recurring alert (don't disable after trigger)
               </label>
               <div className="flex gap-2">
-                <Button onClick={handleCreateOrUpdate}>
-                  {editingAlert ? "Update" : "Create"}
-                </Button>
+                <Button onClick={handleCreateOrUpdate}>{editingAlert ? 'Update' : 'Create'}</Button>
                 <Button
                   onClick={() => {
                     setShowForm(false);
@@ -403,7 +359,7 @@ export function PriceAlertManager({
         </>
       )}
 
-      {activeTab === "history" && (
+      {activeTab === 'history' && (
         <div className="space-y-2 max-h-[300px] overflow-y-auto">
           {history.length === 0 && (
             <p className="text-sm text-gray-500">No triggered alerts yet.</p>
@@ -416,14 +372,12 @@ export function PriceAlertManager({
               <div className="flex justify-between items-start">
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm">
-                    {alert.currency} {alert.alertType === "above" ? "≥" : "≤"}{" "}
+                    {alert.currency} {alert.alertType === 'above' ? '≥' : '≤'}{' '}
                     {alert.targetPrice.toLocaleString()}
                   </p>
                   <p className="text-xs text-gray-500">
-                    Triggered{" "}
-                    {alert.triggeredAt
-                      ? new Date(alert.triggeredAt).toLocaleString()
-                      : "—"}
+                    Triggered{' '}
+                    {alert.triggeredAt ? new Date(alert.triggeredAt).toLocaleString() : '—'}
                   </p>
                 </div>
                 <button
@@ -441,8 +395,7 @@ export function PriceAlertManager({
                   <ul className="text-[10px] text-amber-700 dark:text-amber-500">
                     {alert.triggerHistory.slice(0, 3).map((h, i) => (
                       <li key={i}>
-                        {new Date(h.timestamp).toLocaleString()}: Rate was{" "}
-                        {h.priceAtTrigger}
+                        {new Date(h.timestamp).toLocaleString()}: Rate was {h.priceAtTrigger}
                       </li>
                     ))}
                   </ul>

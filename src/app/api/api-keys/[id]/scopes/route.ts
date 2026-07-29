@@ -6,10 +6,7 @@ import { pool } from '@/lib/db/client';
 import { SCOPE_CATALOG, type Scope } from '@/lib/api-keys/scopes';
 import { auditLoggingService } from '@/lib/audit-logging';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const unauthorized = requireApiKeyAdmin(request);
   if (unauthorized) return unauthorized;
 
@@ -32,10 +29,7 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const unauthorized = requireApiKeyAdmin(request);
   if (unauthorized) return unauthorized;
 
@@ -55,7 +49,9 @@ export async function PUT(
   const validScopeKeys = Object.keys(SCOPE_CATALOG);
   for (const s of body.scopes) {
     if (!validScopeKeys.includes(s)) {
-      return ErrorHandler.validation(`Invalid scope: "${s}". Valid scopes: ${validScopeKeys.join(', ')}`);
+      return ErrorHandler.validation(
+        `Invalid scope: "${s}". Valid scopes: ${validScopeKeys.join(', ')}`,
+      );
     }
   }
 
@@ -67,7 +63,7 @@ export async function PUT(
 
     const result = await pool.query(
       `UPDATE api_keys SET scopes = $1::jsonb, updated_at = $2 WHERE id = $3 RETURNING *`,
-      [JSON.stringify(body.scopes), Date.now(), id]
+      [JSON.stringify(body.scopes), Date.now(), id],
     );
 
     if (result.rows.length === 0) {
@@ -75,16 +71,11 @@ export async function PUT(
     }
 
     const authHeader = request.headers.get('authorization') || '';
-    await auditLoggingService.logAction(
-      'api_key.scopes_updated',
-      'api_key',
-      'success',
-      {
-        resourceId: id,
-        actionDetails: `Scopes updated from [${existing.scopes.join(', ')}] to [${body.scopes.join(', ')}]`,
-        ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim(),
-      }
-    );
+    await auditLoggingService.logAction('api_key.scopes_updated', 'api_key', 'success', {
+      resourceId: id,
+      actionDetails: `Scopes updated from [${existing.scopes.join(', ')}] to [${body.scopes.join(', ')}]`,
+      ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim(),
+    });
 
     return NextResponse.json({
       data: {

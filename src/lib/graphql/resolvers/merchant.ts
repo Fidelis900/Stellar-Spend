@@ -11,11 +11,7 @@ import { requireAuth, requireRole } from '../auth-guards';
 // ─── Query Resolvers ──────────────────────────────────────────────────────────
 
 export const merchantQueries = {
-  async screeningResult(
-    _: unknown,
-    { address }: { address: string },
-    ctx: GraphQLContext,
-  ) {
+  async screeningResult(_: unknown, { address }: { address: string }, ctx: GraphQLContext) {
     requireAuth(ctx);
     const { screenAddress } = await import('../../compliance-screening');
     const result = await screenAddress({ address, addressType: 'stellar' });
@@ -53,11 +49,7 @@ export const merchantQueries = {
 export const merchantMutations = {
   async addScreeningOverride(
     _: unknown,
-    {
-      address,
-      verdict,
-      reason,
-    }: { address: string; verdict: string; reason: string },
+    { address, verdict, reason }: { address: string; verdict: string; reason: string },
     ctx: GraphQLContext,
   ) {
     requireRole(ctx, 'ops');
@@ -66,11 +58,7 @@ export const merchantMutations = {
     return true;
   },
 
-  async removeScreeningOverride(
-    _: unknown,
-    { address }: { address: string },
-    ctx: GraphQLContext,
-  ) {
+  async removeScreeningOverride(_: unknown, { address }: { address: string }, ctx: GraphQLContext) {
     requireRole(ctx, 'ops');
     const { removeScreeningOverride } = await import('../../compliance-screening');
     removeScreeningOverride(address);
@@ -82,10 +70,7 @@ export const merchantMutations = {
 
 export const merchantSubscriptions = {
   screeningAlert: {
-    subscribe: async function* (
-      _: unknown,
-      { address }: { address: string },
-    ) {
+    subscribe: async function* (_: unknown, { address }: { address: string }) {
       const { screenAddress } = await import('../../compliance-screening');
       while (true) {
         await new Promise((r) => setTimeout(r, 60000));

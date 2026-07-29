@@ -35,12 +35,17 @@ export async function POST(request: Request) {
     const secret = resolveProviderWebhookSecret(provider);
     if (!secret) {
       logger.error('Onramp webhook secret not configured for provider', { provider });
-      return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Webhook not configured for this provider'));
+      return ErrorHandler.handle(
+        new ApiError(ErrorType.SERVER_ERROR, 'Webhook not configured for this provider'),
+      );
     }
 
     const verification = await verifyHmacSignature(rawBody, signature, secret);
     if (!verification.valid) {
-      logger.warn('Onramp webhook signature verification failed', { provider, reason: verification.reason });
+      logger.warn('Onramp webhook signature verification failed', {
+        provider,
+        reason: verification.reason,
+      });
       return ErrorHandler.unauthorized(verification.reason ?? 'Invalid signature');
     }
 

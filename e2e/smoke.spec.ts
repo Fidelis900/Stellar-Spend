@@ -24,7 +24,11 @@ const SMOKE_ALERT_WEBHOOK = process.env.SMOKE_ALERT_WEBHOOK ?? '';
 
 // ── Alert stub ───────────────────────────────────────────────────────────────
 
-async function alertOnFailure(request: APIRequestContext, testName: string, error: string): Promise<void> {
+async function alertOnFailure(
+  request: APIRequestContext,
+  testName: string,
+  error: string,
+): Promise<void> {
   if (!SMOKE_ALERT_WEBHOOK) return;
   try {
     await request.post(SMOKE_ALERT_WEBHOOK, {
@@ -73,7 +77,9 @@ test.describe('Production Smoke Tests', () => {
     expect(res.status(), 'rate endpoint must return 200').toBe(200);
 
     const data = await res.json();
-    expect(typeof data.rate === 'number' && data.rate > 0, 'rate must be a positive number').toBe(true);
+    expect(typeof data.rate === 'number' && data.rate > 0, 'rate must be a positive number').toBe(
+      true,
+    );
   });
 
   // ── [4] Quote (read-only; 502 acceptable in sandbox) ──────────────────────
@@ -92,8 +98,12 @@ test.describe('Production Smoke Tests', () => {
   });
 
   // ── [5] Gas fee options ────────────────────────────────────────────────────
-  test('[5] GET /api/offramp/bridge/gas-fee-options responds without server error', async ({ request }) => {
-    const res = await request.get(`${BASE_URL}/api/offramp/bridge/gas-fee-options`, { timeout: 10_000 });
+  test('[5] GET /api/offramp/bridge/gas-fee-options responds without server error', async ({
+    request,
+  }) => {
+    const res = await request.get(`${BASE_URL}/api/offramp/bridge/gas-fee-options`, {
+      timeout: 10_000,
+    });
     expect(res.status(), 'gas-fee-options must not return a 5xx error').toBeLessThan(500);
   });
 
@@ -103,7 +113,7 @@ test.describe('Production Smoke Tests', () => {
     await expect(page).toHaveTitle(/Stellar-Spend/i);
     await expect(
       page.getByRole('button', { name: /connect wallet/i }),
-      'Connect Wallet button must be visible'
+      'Connect Wallet button must be visible',
     ).toBeVisible();
   });
 
@@ -123,7 +133,7 @@ test.describe('Production Smoke Tests', () => {
   test('[8] Service worker registers successfully', async ({ page }) => {
     await page.goto(`${BASE_URL}/`, { waitUntil: 'networkidle', timeout: 30_000 });
     const registered = await page.evaluate(() =>
-      navigator.serviceWorker.getRegistrations().then((r) => r.length > 0)
+      navigator.serviceWorker.getRegistrations().then((r) => r.length > 0),
     );
     expect(registered, 'service worker must be registered').toBe(true);
   });
@@ -131,11 +141,7 @@ test.describe('Production Smoke Tests', () => {
   // ── Alert hook: fire on any test failure ───────────────────────────────────
   test.afterEach(async ({ request }, testInfo) => {
     if (testInfo.status !== 'passed') {
-      await alertOnFailure(
-        request,
-        testInfo.title,
-        testInfo.error?.message ?? 'unknown error'
-      );
+      await alertOnFailure(request, testInfo.title, testInfo.error?.message ?? 'unknown error');
     }
   });
 });

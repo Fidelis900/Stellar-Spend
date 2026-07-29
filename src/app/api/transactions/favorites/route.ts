@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 
     const tx = TransactionStorage.getById(transactionId);
     if (!tx) {
-      return ErrorHandler.notFound("Transaction");
+      return ErrorHandler.notFound('Transaction');
     }
 
     TransactionStorage.toggleFavorite(transactionId);

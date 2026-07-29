@@ -37,16 +37,17 @@ export class OnrampService {
   async getQuote(request: OnrampQuoteRequest): Promise<OnrampQuoteResponse> {
     const providers = onrampProviderRegistry.getProvidersForCorridor(
       request.fiatCurrency,
-      request.destinationToken
+      request.destinationToken,
     );
 
     if (providers.length === 0) {
-      throw new Error(`No provider available for ${request.fiatCurrency} → ${request.destinationToken}`);
+      throw new Error(
+        `No provider available for ${request.fiatCurrency} → ${request.destinationToken}`,
+      );
     }
 
-    const providerName = request.provider && providers.includes(request.provider)
-      ? request.provider
-      : providers[0];
+    const providerName =
+      request.provider && providers.includes(request.provider) ? request.provider : providers[0];
 
     const adapter = onrampProviderRegistry.getProvider(providerName);
     if (!adapter) throw new Error(`Provider ${providerName} not found`);
@@ -60,7 +61,9 @@ export class OnrampService {
 
     const bridgeFee = (parseFloat(providerQuote.destinationAmount) * 0.005).toFixed(6);
     const totalFee = (parseFloat(providerQuote.fee) + parseFloat(bridgeFee)).toFixed(6);
-    const destinationAmount = (parseFloat(providerQuote.destinationAmount) - parseFloat(bridgeFee)).toFixed(6);
+    const destinationAmount = (
+      parseFloat(providerQuote.destinationAmount) - parseFloat(bridgeFee)
+    ).toFixed(6);
 
     return {
       quoteId: uuidv4(),
@@ -222,4 +225,3 @@ export class OnrampService {
     }
   }
 }
-

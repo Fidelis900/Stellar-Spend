@@ -8,13 +8,18 @@ export function geoMiddleware(request: NextRequest): NextResponse | null {
   const { pathname } = request.nextUrl;
 
   const geo = resolveGeo(request);
-  if (geo.country && !geo.overridden && isRestrictedJurisdiction(geo.country) && GATED_PATH_RE.test(pathname)) {
+  if (
+    geo.country &&
+    !geo.overridden &&
+    isRestrictedJurisdiction(geo.country) &&
+    GATED_PATH_RE.test(pathname)
+  ) {
     return NextResponse.json(
       {
         error: 'Service unavailable in your region',
         country: geo.country,
       },
-      { status: 451 }
+      { status: 451 },
     );
   }
 

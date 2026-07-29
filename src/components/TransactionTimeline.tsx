@@ -14,16 +14,57 @@ export interface TimelineStage {
 }
 
 const DEFAULT_STAGES: TimelineStage[] = [
-  { id: 'initiating',         label: 'Initiating',         description: 'Preparing transaction details',         chain: 'App',      estimatedSeconds: 5   },
-  { id: 'awaiting-signature', label: 'Awaiting Signature', description: 'Approve in your Stellar wallet',        chain: 'Stellar',  estimatedSeconds: 30  },
-  { id: 'submitting',         label: 'Stellar Submit',     description: 'Broadcasting to Stellar network',       chain: 'Stellar',  estimatedSeconds: 10  },
-  { id: 'processing',         label: 'Bridge Transfer',    description: 'Allbridge bridging USDC to Base chain', chain: 'Allbridge',estimatedSeconds: 120 },
-  { id: 'settling',           label: 'Fiat Payout',        description: 'Paycrest settling to bank account',     chain: 'Paycrest', estimatedSeconds: 60  },
-  { id: 'success',            label: 'Complete',           description: 'Funds sent to your bank',               chain: 'Bank',     estimatedSeconds: 0   },
+  {
+    id: 'initiating',
+    label: 'Initiating',
+    description: 'Preparing transaction details',
+    chain: 'App',
+    estimatedSeconds: 5,
+  },
+  {
+    id: 'awaiting-signature',
+    label: 'Awaiting Signature',
+    description: 'Approve in your Stellar wallet',
+    chain: 'Stellar',
+    estimatedSeconds: 30,
+  },
+  {
+    id: 'submitting',
+    label: 'Stellar Submit',
+    description: 'Broadcasting to Stellar network',
+    chain: 'Stellar',
+    estimatedSeconds: 10,
+  },
+  {
+    id: 'processing',
+    label: 'Bridge Transfer',
+    description: 'Allbridge bridging USDC to Base chain',
+    chain: 'Allbridge',
+    estimatedSeconds: 120,
+  },
+  {
+    id: 'settling',
+    label: 'Fiat Payout',
+    description: 'Paycrest settling to bank account',
+    chain: 'Paycrest',
+    estimatedSeconds: 60,
+  },
+  {
+    id: 'success',
+    label: 'Complete',
+    description: 'Funds sent to your bank',
+    chain: 'Bank',
+    estimatedSeconds: 0,
+  },
 ];
 
 const ACTIVE_STEPS: OfframpStep[] = [
-  'initiating', 'awaiting-signature', 'submitting', 'processing', 'settling', 'success',
+  'initiating',
+  'awaiting-signature',
+  'submitting',
+  'processing',
+  'settling',
+  'success',
 ];
 
 interface TransactionTimelineProps {
@@ -48,7 +89,10 @@ function useStageCountdown(step: OfframpStep, stages: TimelineStage[]): number {
 
     const id = setInterval(() => {
       setRemaining((prev) => {
-        if (prev <= 1) { clearInterval(id); return 0; }
+        if (prev <= 1) {
+          clearInterval(id);
+          return 0;
+        }
         return prev - 1;
       });
     }, 1000);
@@ -77,7 +121,11 @@ export function TransactionTimeline({
 
   const activeIdx = ACTIVE_STEPS.indexOf(step);
   // Progress percentage (0–100)
-  const progressPct = isError ? 0 : isSuccess ? 100 : Math.round((activeIdx / (ACTIVE_STEPS.length - 1)) * 100);
+  const progressPct = isError
+    ? 0
+    : isSuccess
+      ? 100
+      : Math.round((activeIdx / (ACTIVE_STEPS.length - 1)) * 100);
 
   return (
     <div
@@ -88,7 +136,9 @@ export function TransactionTimeline({
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
-        <p className="text-[10px] text-[#777777] tracking-[0.2em] uppercase">Transaction Progress</p>
+        <p className="text-[10px] text-[#777777] tracking-[0.2em] uppercase">
+          Transaction Progress
+        </p>
         {!isTerminal && eta > 0 && (
           <span className="text-[10px] text-[#c9a962] tracking-widest tabular-nums">
             {formatEta(eta)} remaining
@@ -107,7 +157,7 @@ export function TransactionTimeline({
         <div
           className={cn(
             'h-full transition-all duration-700',
-            isError ? 'bg-red-500' : isSuccess ? 'bg-green-500' : 'bg-[#c9a962]'
+            isError ? 'bg-red-500' : isSuccess ? 'bg-green-500' : 'bg-[#c9a962]',
           )}
           style={{ width: `${progressPct}%` }}
         />
@@ -133,7 +183,7 @@ export function TransactionTimeline({
                   'relative flex items-start gap-3 px-3 py-2 transition-all duration-300',
                   isActive && 'bg-[#c9a962]/5 border-l-2 border-[#c9a962] -ml-px',
                   isErrorStage && 'bg-red-500/5 border-l-2 border-red-500 -ml-px',
-                  !isActive && !isErrorStage && 'border-l-2 border-transparent -ml-px'
+                  !isActive && !isErrorStage && 'border-l-2 border-transparent -ml-px',
                 )}
               >
                 {/* Stage dot */}
@@ -141,7 +191,13 @@ export function TransactionTimeline({
                   {isCompleted ? (
                     <div className="w-3 h-3 rounded-full bg-green-500 flex items-center justify-center">
                       <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 8 8">
-                        <path stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M1.5 4l1.5 1.5 3-3" />
+                        <path
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M1.5 4l1.5 1.5 3-3"
+                        />
                       </svg>
                     </div>
                   ) : isActive ? (
@@ -163,19 +219,21 @@ export function TransactionTimeline({
                           isCompleted && 'text-green-500/70',
                           isActive && 'text-white',
                           isErrorStage && 'text-red-400',
-                          isPending && 'text-[#444444]'
+                          isPending && 'text-[#444444]',
                         )}
                       >
                         {stage.label}
                       </span>
                       {stage.chain && (
-                        <span className={cn(
-                          'text-[8px] px-1 py-0.5 border tracking-widest uppercase',
-                          isCompleted && 'border-green-500/20 text-green-500/40',
-                          isActive && 'border-[#c9a962]/30 text-[#c9a962]/60',
-                          isErrorStage && 'border-red-500/20 text-red-400/50',
-                          isPending && 'border-[#2a2a2a] text-[#333333]'
-                        )}>
+                        <span
+                          className={cn(
+                            'text-[8px] px-1 py-0.5 border tracking-widest uppercase',
+                            isCompleted && 'border-green-500/20 text-green-500/40',
+                            isActive && 'border-[#c9a962]/30 text-[#c9a962]/60',
+                            isErrorStage && 'border-red-500/20 text-red-400/50',
+                            isPending && 'border-[#2a2a2a] text-[#333333]',
+                          )}
+                        >
                           {stage.chain}
                         </span>
                       )}

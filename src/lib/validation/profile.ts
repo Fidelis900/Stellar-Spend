@@ -1,4 +1,4 @@
-import { combine, maxLength, minLength, pattern, VALID, type ValidationResult } from "./rules";
+import { combine, maxLength, minLength, pattern, VALID, type ValidationResult } from './rules';
 
 export const DISPLAY_NAME_MIN = 2;
 export const DISPLAY_NAME_MAX = 40;
@@ -16,8 +16,8 @@ export function validateDisplayName(value: string): ValidationResult {
   if (trimmed.length === 0) return VALID;
 
   return combine(
-    minLength(trimmed, DISPLAY_NAME_MIN, "Display name"),
-    maxLength(trimmed, DISPLAY_NAME_MAX, "Display name"),
+    minLength(trimmed, DISPLAY_NAME_MIN, 'Display name'),
+    maxLength(trimmed, DISPLAY_NAME_MAX, 'Display name'),
     pattern(
       trimmed,
       DISPLAY_NAME_PATTERN,

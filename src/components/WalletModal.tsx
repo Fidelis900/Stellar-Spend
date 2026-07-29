@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/cn";
-import type { WalletType } from "@/lib/stellar/wallet-adapter";
-import { useFocusTrap, useFocusRestore } from "@/hooks/useFocusTrap";
+import { useEffect, useRef, useState } from 'react';
+import { cn } from '@/lib/cn';
+import type { WalletType } from '@/lib/stellar/wallet-adapter';
+import { useFocusTrap, useFocusRestore } from '@/hooks/useFocusTrap';
 
 export interface WalletModalProps {
   isOpen: boolean;
@@ -24,10 +24,10 @@ interface WalletOption {
 
 const WALLET_OPTIONS: WalletOption[] = [
   {
-    type: "freighter",
-    name: "Freighter",
-    description: "Official Stellar browser extension wallet",
-    installUrl: "https://www.freighter.app/",
+    type: 'freighter',
+    name: 'Freighter',
+    description: 'Official Stellar browser extension wallet',
+    installUrl: 'https://www.freighter.app/',
     icon: (
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
         <rect width="32" height="32" rx="8" fill="#5B4FE9" />
@@ -49,10 +49,10 @@ const WALLET_OPTIONS: WalletOption[] = [
     ),
   },
   {
-    type: "lobstr",
-    name: "LOBSTR",
-    description: "Popular Stellar wallet with mobile & browser support",
-    installUrl: "https://lobstr.co/",
+    type: 'lobstr',
+    name: 'LOBSTR',
+    description: 'Popular Stellar wallet with mobile & browser support',
+    installUrl: 'https://lobstr.co/',
     icon: (
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
         <rect width="32" height="32" rx="8" fill="#1A1A2E" />
@@ -62,11 +62,7 @@ const WALLET_OPTIONS: WalletOption[] = [
           strokeWidth="1.5"
           fill="none"
         />
-        <path
-          d="M16 10L22 13.5V20.5L16 24L10 20.5V13.5L16 10Z"
-          fill="#00D4FF"
-          fillOpacity="0.2"
-        />
+        <path d="M16 10L22 13.5V20.5L16 24L10 20.5V13.5L16 10Z" fill="#00D4FF" fillOpacity="0.2" />
         <circle cx="16" cy="17" r="3" fill="#00D4FF" />
       </svg>
     ),
@@ -100,10 +96,10 @@ export function WalletModal({
   useEffect(() => {
     if (!isOpen) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !isConnecting) onClose();
+      if (e.key === 'Escape' && !isConnecting) onClose();
     };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, [isOpen, isConnecting, onClose]);
 
   if (!isOpen) return null;
@@ -140,13 +136,18 @@ export function WalletModal({
             disabled={isConnecting}
             aria-label="Close wallet modal"
             className={cn(
-              "p-1.5 text-[#777777] hover:text-white transition-colors duration-150",
-              "focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]",
-              isConnecting && "opacity-40 cursor-not-allowed"
+              'p-1.5 text-[#777777] hover:text-white transition-colors duration-150',
+              'focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]',
+              isConnecting && 'opacity-40 cursor-not-allowed',
             )}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <path
+                d="M12 4L4 12M4 4L12 12"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
             </svg>
           </button>
         </div>
@@ -166,14 +167,14 @@ export function WalletModal({
                 aria-label={`Connect with ${wallet.name}`}
                 aria-busy={isThisConnecting}
                 className={cn(
-                  "flex items-center gap-4 w-full px-4 py-4 border text-left",
-                  "transition-all duration-150",
-                  "focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]",
+                  'flex items-center gap-4 w-full px-4 py-4 border text-left',
+                  'transition-all duration-150',
+                  'focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]',
                   isThisConnecting
-                    ? "border-[#c9a962] bg-[#c9a962]/10 animate-pulse"
+                    ? 'border-[#c9a962] bg-[#c9a962]/10 animate-pulse'
                     : isOtherConnecting
-                    ? "border-[#222222] bg-[#0a0a0a] opacity-40 cursor-not-allowed"
-                    : "border-[#333333] bg-[#0a0a0a] hover:border-[#c9a962]/60 hover:bg-[#c9a962]/5"
+                      ? 'border-[#222222] bg-[#0a0a0a] opacity-40 cursor-not-allowed'
+                      : 'border-[#333333] bg-[#0a0a0a] hover:border-[#c9a962]/60 hover:bg-[#c9a962]/5',
                 )}
               >
                 {/* Icon */}
@@ -244,7 +245,12 @@ export function WalletModal({
               className="text-red-400/60 hover:text-red-400 transition-colors shrink-0"
             >
               <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                <path
+                  d="M12 4L4 12M4 4L12 12"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
               </svg>
             </button>
           </div>
@@ -252,9 +258,7 @@ export function WalletModal({
 
         {/* Footer: install links */}
         <div className="px-6 py-4 border-t border-[#222222] flex items-center justify-between">
-          <p className="text-[10px] text-[#555555] tracking-wide">
-            Don&apos;t have a wallet?
-          </p>
+          <p className="text-[10px] text-[#555555] tracking-wide">Don&apos;t have a wallet?</p>
           <div className="flex gap-3">
             {WALLET_OPTIONS.map((w) => (
               <a
@@ -263,8 +267,8 @@ export function WalletModal({
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(
-                  "text-[10px] tracking-widest uppercase text-[#c9a962]",
-                  "hover:underline focus:outline-none focus-visible:underline"
+                  'text-[10px] tracking-widest uppercase text-[#c9a962]',
+                  'hover:underline focus:outline-none focus-visible:underline',
                 )}
                 aria-label={`Install ${w.name}`}
               >

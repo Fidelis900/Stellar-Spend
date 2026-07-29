@@ -72,10 +72,7 @@ async function parseJsonResponse(response: Response): Promise<unknown> {
 /**
  * Make a typed GET request
  */
-export async function apiGet<T = unknown>(
-  url: string,
-  config?: ApiRequestConfig,
-): Promise<T> {
+export async function apiGet<T = unknown>(url: string, config?: ApiRequestConfig): Promise<T> {
   return apiRequest<T>(url, {
     ...config,
     method: 'GET',
@@ -130,10 +127,7 @@ export async function apiPut<T = unknown>(
 /**
  * Make a typed DELETE request
  */
-export async function apiDelete<T = unknown>(
-  url: string,
-  config?: ApiRequestConfig,
-): Promise<T> {
+export async function apiDelete<T = unknown>(url: string, config?: ApiRequestConfig): Promise<T> {
   return apiRequest<T>(url, {
     ...config,
     method: 'DELETE',
@@ -147,16 +141,8 @@ export async function apiDelete<T = unknown>(
  * const user = await apiRequest<User>('/api/users/123', { method: 'GET' });
  * const created = await apiPost<User>('/api/users', { name: 'John' });
  */
-async function apiRequest<T = unknown>(
-  url: string,
-  config: ApiRequestConfig = {},
-): Promise<T> {
-  const {
-    method = 'GET',
-    headers = {},
-    body,
-    timeout = 30000,
-  } = config;
+async function apiRequest<T = unknown>(url: string, config: ApiRequestConfig = {}): Promise<T> {
+  const { method = 'GET', headers = {}, body, timeout = 30000 } = config;
 
   const fetchInit: RequestInit = {
     method,

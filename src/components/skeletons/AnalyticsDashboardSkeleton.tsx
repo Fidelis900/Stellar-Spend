@@ -1,4 +1,4 @@
-import { SkeletonBase } from "./SkeletonBase";
+import { SkeletonBase } from './SkeletonBase';
 
 /**
  * Skeleton for AnalyticsDashboard while analytics data is being fetched.
@@ -7,11 +7,7 @@ import { SkeletonBase } from "./SkeletonBase";
  */
 export function AnalyticsDashboardSkeleton() {
   return (
-    <div
-      aria-label="Loading analytics"
-      aria-busy="true"
-      className="space-y-6"
-    >
+    <div aria-label="Loading analytics" aria-busy="true" className="space-y-6">
       {/* Period selector */}
       <div className="flex gap-2">
         <SkeletonBase width={110} height={36} aria-label="Loading period option…" />
@@ -22,10 +18,7 @@ export function AnalyticsDashboardSkeleton() {
       {/* Metric cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div
-            key={i}
-            className="bg-white p-4 rounded-lg border flex flex-col gap-2"
-          >
+          <div key={i} className="bg-white p-4 rounded-lg border flex flex-col gap-2">
             <SkeletonBase width="60%" height={12} aria-label="Loading metric label…" />
             <SkeletonBase width="80%" height={24} aria-label="Loading metric value…" />
           </div>
@@ -52,7 +45,12 @@ export function AnalyticsDashboardSkeleton() {
 
       {/* Currency breakdown */}
       <div className="bg-white p-6 rounded-lg border">
-        <SkeletonBase width={180} height={18} className="mb-4" aria-label="Loading section title…" />
+        <SkeletonBase
+          width={180}
+          height={18}
+          className="mb-4"
+          aria-label="Loading section title…"
+        />
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex items-center justify-between">
@@ -71,7 +69,12 @@ export function AnalyticsDashboardSkeleton() {
 
       {/* Fee analysis */}
       <div className="bg-white p-6 rounded-lg border">
-        <SkeletonBase width={140} height={18} className="mb-4" aria-label="Loading section title…" />
+        <SkeletonBase
+          width={140}
+          height={18}
+          className="mb-4"
+          aria-label="Loading section title…"
+        />
         <div className="grid grid-cols-2 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="flex flex-col gap-1.5">
@@ -84,13 +87,15 @@ export function AnalyticsDashboardSkeleton() {
 
       {/* Spending patterns */}
       <div className="bg-white p-6 rounded-lg border">
-        <SkeletonBase width={180} height={18} className="mb-4" aria-label="Loading section title…" />
+        <SkeletonBase
+          width={180}
+          height={18}
+          className="mb-4"
+          aria-label="Loading section title…"
+        />
         <div className="space-y-2">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div
-              key={i}
-              className="flex items-center justify-between py-2 border-b"
-            >
+            <div key={i} className="flex items-center justify-between py-2 border-b">
               <div className="flex flex-col gap-1.5">
                 <SkeletonBase width={100} height={14} aria-label="Loading date…" />
                 <SkeletonBase width={140} height={11} aria-label="Loading transaction count…" />

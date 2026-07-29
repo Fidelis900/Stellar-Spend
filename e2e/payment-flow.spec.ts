@@ -120,94 +120,140 @@ async function seedTransactionHistory(page: Page): Promise<void> {
 async function routeOfframpApis(page: Page): Promise<void> {
   // Health
   await page.route('**/api/health**', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json',
-      body: JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }) }),
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }),
+    }),
   );
 
   // Currencies
   await page.route('**/api/offramp/currencies**', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json',
-      body: JSON.stringify({ data: [
-        { code: 'NGN', name: 'Nigerian Naira', symbol: '₦' },
-        { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh' },
-      ] }) }),
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        data: [
+          { code: 'NGN', name: 'Nigerian Naira', symbol: '₦' },
+          { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh' },
+        ],
+      }),
+    }),
   );
 
   // Rate
   await page.route('**/api/offramp/rate**', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json',
-      body: JSON.stringify({ rate: 1582, currency: 'NGN' }) }),
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ rate: 1582, currency: 'NGN' }),
+    }),
   );
 
   // Quote
   await page.route('**/api/offramp/quote**', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json',
-      body: JSON.stringify(MOCK_QUOTE) }),
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(MOCK_QUOTE),
+    }),
   );
 
   // Verify account
   await page.route('**/api/offramp/verify-account**', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json',
-      body: JSON.stringify({ accountName: TEST_PAYMENT.recipient.accountName }) }),
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ accountName: TEST_PAYMENT.recipient.accountName }),
+    }),
   );
 
   // Gas fee options
   await page.route('**/api/offramp/bridge/gas-fee-options**', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json',
-      body: JSON.stringify({ feeOptions: {
-        stablecoin: { int: '500000', float: '0.50' },
-        native: { int: '1000000', float: '1.00' },
-      } }) }),
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        feeOptions: {
+          stablecoin: { int: '500000', float: '0.50' },
+          native: { int: '1000000', float: '1.00' },
+        },
+      }),
+    }),
   );
 
   // Institutions
   await page.route('**/api/offramp/institutions/**', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json',
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
       body: JSON.stringify([
         { code: 'ACCESS', name: 'Access Bank' },
         { code: 'GTB', name: 'GTBank' },
-      ]) }),
+      ]),
+    }),
   );
 
   // Build bridge transaction
   await page.route('**/api/offramp/bridge/build-tx**', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json',
-      body: JSON.stringify(MOCK_BUILD_TX) }),
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(MOCK_BUILD_TX),
+    }),
   );
 
   // Submit Soroban
   await page.route('**/api/offramp/bridge/submit-soroban**', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json',
-      body: JSON.stringify(MOCK_SUBMIT_RESULT) }),
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(MOCK_SUBMIT_RESULT),
+    }),
   );
 
   // Bridge status (always returns completed quickly in tests)
   await page.route('**/api/offramp/bridge/status/**', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json',
-      body: JSON.stringify({ status: 'completed', receiveAmount: '99.5' }) }),
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ status: 'completed', receiveAmount: '99.5' }),
+    }),
   );
 
   await page.route('**/api/offramp/bridge/tx-status/**', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json',
-      body: JSON.stringify({ status: 'SUCCESS', hash: MOCK_SUBMIT_RESULT.txHash }) }),
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ status: 'SUCCESS', hash: MOCK_SUBMIT_RESULT.txHash }),
+    }),
   );
 
   // Create payout order
   await page.route('**/api/offramp/paycrest/order**', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json',
-      body: JSON.stringify(MOCK_PAYOUT_ORDER) }),
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(MOCK_PAYOUT_ORDER),
+    }),
   );
 
   // Execute payout
   await page.route('**/api/offramp/execute-payout**', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json',
-      body: JSON.stringify({ success: true }) }),
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true }),
+    }),
   );
 
   // Payout status polling
   await page.route('**/api/offramp/status/**', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json',
-      body: JSON.stringify(MOCK_ORDER_STATUS_SETTLED) }),
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(MOCK_ORDER_STATUS_SETTLED),
+    }),
   );
 }
 
@@ -257,14 +303,18 @@ test.describe('Payment Flow — Core Happy Path (P0)', () => {
 
     // After connecting, the wallet address or a "connected" indicator should appear
     // Accept either a truncated address, "Connected", or the absence of a connect button
-    const connectBtnGone = await page.getByRole('button', { name: /connect wallet/i })
-      .isVisible({ timeout: 3_000 }).catch(() => false);
+    const connectBtnGone = await page
+      .getByRole('button', { name: /connect wallet/i })
+      .isVisible({ timeout: 3_000 })
+      .catch(() => false);
 
     // One of: button is gone (replaced with connected state), OR wallet address shown
     const walletAddressEl = page.getByText(/GB[A-Z0-9]{54}/);
     const addressVisible = await walletAddressEl.isVisible({ timeout: 2_000 }).catch(() => false);
     const truncatedAddress = page.getByText(/GBBD.*LFLA5/);
-    const truncatedVisible = await truncatedAddress.isVisible({ timeout: 1_000 }).catch(() => false);
+    const truncatedVisible = await truncatedAddress
+      .isVisible({ timeout: 1_000 })
+      .catch(() => false);
 
     // Either the connect button is gone or a wallet indicator is present
     expect(!connectBtnGone || addressVisible || truncatedVisible).toBe(true);
@@ -279,8 +329,7 @@ test.describe('Payment Flow — Core Happy Path (P0)', () => {
 
     // Fill in amount — try multiple common placeholder/label patterns
     const amountInput =
-      page.getByPlaceholder(/enter amount/i).first()
-      ?? page.getByLabel(/amount/i).first();
+      page.getByPlaceholder(/enter amount/i).first() ?? page.getByLabel(/amount/i).first();
 
     if (await amountInput.isVisible({ timeout: 3_000 }).catch(() => false)) {
       await amountInput.fill(TEST_PAYMENT.amount);
@@ -364,18 +413,20 @@ test.describe('Payment Flow — Core Happy Path (P0)', () => {
     await connectWallet(page);
 
     // Try to fill bank account fields if they exist
-    const accountInput = page.getByLabel(/account number/i).or(
-      page.getByPlaceholder(/account number/i),
-    ).first();
+    const accountInput = page
+      .getByLabel(/account number/i)
+      .or(page.getByPlaceholder(/account number/i))
+      .first();
 
     if (await accountInput.isVisible({ timeout: 3_000 }).catch(() => false)) {
       await accountInput.fill(TEST_PAYMENT.recipient.accountIdentifier);
       await expect(accountInput).toHaveValue(TEST_PAYMENT.recipient.accountIdentifier);
     }
 
-    const bankCodeInput = page.getByLabel(/bank code/i).or(
-      page.getByPlaceholder(/bank code/i),
-    ).first();
+    const bankCodeInput = page
+      .getByLabel(/bank code/i)
+      .or(page.getByPlaceholder(/bank code/i))
+      .first();
 
     if (await bankCodeInput.isVisible({ timeout: 1_000 }).catch(() => false)) {
       await bankCodeInput.fill(TEST_PAYMENT.recipient.institution);
@@ -386,7 +437,9 @@ test.describe('Payment Flow — Core Happy Path (P0)', () => {
 
   // ── Test 7: Full offramp flow — connect → quote → confirm ───────────────
 
-  test('complete payment flow: connect wallet → enter amount → get quote → confirm', async ({ page }) => {
+  test('complete payment flow: connect wallet → enter amount → get quote → confirm', async ({
+    page,
+  }) => {
     await page.goto(BASE_URL);
     await page.waitForLoadState('networkidle');
 
@@ -409,9 +462,10 @@ test.describe('Payment Flow — Core Happy Path (P0)', () => {
     }
 
     // Step 4 — enter beneficiary
-    const accountInput = page.getByPlaceholder(/account number/i).or(
-      page.getByLabel(/account number/i),
-    ).first();
+    const accountInput = page
+      .getByPlaceholder(/account number/i)
+      .or(page.getByLabel(/account number/i))
+      .first();
     if (await accountInput.isVisible({ timeout: 2_000 }).catch(() => false)) {
       await accountInput.fill(TEST_PAYMENT.recipient.accountIdentifier);
       await page.waitForTimeout(200);
@@ -462,9 +516,10 @@ test.describe('Payment Flow — Core Happy Path (P0)', () => {
     await connectWallet(page);
 
     // Navigate to history — try link or route
-    const historyLink = page.getByRole('link', { name: /history/i }).or(
-      page.getByRole('button', { name: /history/i }),
-    ).first();
+    const historyLink = page
+      .getByRole('link', { name: /history/i })
+      .or(page.getByRole('button', { name: /history/i }))
+      .first();
 
     if (await historyLink.isVisible({ timeout: 3_000 }).catch(() => false)) {
       await historyLink.click();
@@ -475,9 +530,10 @@ test.describe('Payment Flow — Core Happy Path (P0)', () => {
     }
 
     // History page or section should be visible
-    const historySection = page.getByTestId('transaction-history').or(
-      page.getByRole('main'),
-    ).first();
+    const historySection = page
+      .getByTestId('transaction-history')
+      .or(page.getByRole('main'))
+      .first();
     await expect(historySection).toBeVisible({ timeout: 5_000 });
 
     // The seeded transaction amount "50" should appear
@@ -510,9 +566,10 @@ test.describe('Payment Flow — Core Happy Path (P0)', () => {
 
       // Either an inline validation error, or the quote API was not called
       // (API mock would have returned 400 for negative amount)
-      const errorEl = page.getByRole('alert').or(
-        page.getByText(/invalid|negative|must be/i),
-      ).first();
+      const errorEl = page
+        .getByRole('alert')
+        .or(page.getByText(/invalid|negative|must be/i))
+        .first();
 
       const hasError = await errorEl.isVisible({ timeout: 2_000 }).catch(() => false);
       if (hasError) {

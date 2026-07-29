@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useCallback, useRef } from "react";
-import type { FunnelStep } from "@/lib/funnel";
+import { useCallback, useRef } from 'react';
+import type { FunnelStep } from '@/lib/funnel';
 
-const STORAGE_KEY = "funnel_session";
+const STORAGE_KEY = 'funnel_session';
 
 interface FunnelSession {
   sessionId: string;
@@ -25,26 +25,23 @@ function getSessionId(): string {
 export function useFunnelTracking() {
   const sessionRef = useRef<FunnelSession | null>(null);
 
-  const getOrCreateSession = useCallback(
-    (step: FunnelStep): FunnelSession => {
-      if (step === "wallet_connect" || !sessionRef.current) {
-        const session: FunnelSession = {
-          sessionId: getSessionId(),
-          startedAt: Date.now(),
-          steps: [],
-        };
-        sessionRef.current = session;
-        try {
-          sessionStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-        } catch {
-          // sessionStorage unavailable (SSR / private mode)
-        }
-        return session;
+  const getOrCreateSession = useCallback((step: FunnelStep): FunnelSession => {
+    if (step === 'wallet_connect' || !sessionRef.current) {
+      const session: FunnelSession = {
+        sessionId: getSessionId(),
+        startedAt: Date.now(),
+        steps: [],
+      };
+      sessionRef.current = session;
+      try {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+      } catch {
+        // sessionStorage unavailable (SSR / private mode)
       }
-      return sessionRef.current;
-    },
-    []
-  );
+      return session;
+    }
+    return sessionRef.current;
+  }, []);
 
   const trackStep = useCallback(
     (step: FunnelStep, metadata?: Record<string, unknown>) => {
@@ -53,33 +50,33 @@ export function useFunnelTracking() {
       session.steps.push(entry);
 
       const payload = {
-        category: "Funnel",
+        category: 'Funnel',
         action: step,
         sessionId: session.sessionId,
         metadata,
         timestamp: new Date(entry.ts).toISOString(),
       };
 
-      if (process.env.NODE_ENV === "development") {
-        console.log("[Funnel]", payload);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Funnel]', payload);
       }
 
       // Fire-and-forget to the analytics endpoint
-      if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+      if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
         navigator.sendBeacon(
-          "/api/monitoring/vitals",
-          new Blob([JSON.stringify(payload)], { type: "application/json" })
+          '/api/monitoring/vitals',
+          new Blob([JSON.stringify(payload)], { type: 'application/json' }),
         );
       } else {
-        fetch("/api/monitoring/vitals", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        fetch('/api/monitoring/vitals', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
           keepalive: true,
         }).catch(() => {});
       }
     },
-    [getOrCreateSession]
+    [getOrCreateSession],
   );
 
   return { trackStep };

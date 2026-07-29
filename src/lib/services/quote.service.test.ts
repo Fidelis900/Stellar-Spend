@@ -28,7 +28,7 @@ describe('QuoteService', () => {
           amount: '-100',
           currency: 'NGN',
           feeMethod: 'USDC',
-        })
+        }),
       ).rejects.toThrow();
     });
 
@@ -38,7 +38,7 @@ describe('QuoteService', () => {
           amount: '100',
           currency: 'INVALID',
           feeMethod: 'USDC',
-        })
+        }),
       ).rejects.toThrow();
     });
 

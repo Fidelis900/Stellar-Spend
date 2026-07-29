@@ -26,10 +26,10 @@ export const options = {
     },
   },
   thresholds: {
-    'http_req_duration': ['p(95)<800', 'p(99)<2000'],
-    'http_req_failed': ['rate<0.05'],
-    'peak_errors': ['rate<0.05'],
-    'peak_api_duration': ['p(95)<800'],
+    http_req_duration: ['p(95)<800', 'p(99)<2000'],
+    http_req_failed: ['rate<0.05'],
+    peak_errors: ['rate<0.05'],
+    peak_api_duration: ['p(95)<800'],
   },
 };
 

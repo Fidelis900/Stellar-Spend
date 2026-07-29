@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { useClipboard } from "@/hooks/useClipboard";
-import { useToast } from "@/contexts/ToastContext";
+import { useEffect } from 'react';
+import { useClipboard } from '@/hooks/useClipboard';
+import { useToast } from '@/contexts/ToastContext';
 
 interface CopyButtonProps {
   text: string;
@@ -12,16 +12,21 @@ interface CopyButtonProps {
   keyboardShortcut?: string;
 }
 
-export function CopyButton({ text, label = "Copy", className = "", keyboardShortcut }: CopyButtonProps) {
+export function CopyButton({
+  text,
+  label = 'Copy',
+  className = '',
+  keyboardShortcut,
+}: CopyButtonProps) {
   const { isCopied, copy } = useClipboard();
   const { showToast } = useToast();
 
   const handleCopy = async () => {
     const success = await copy(text);
     if (success) {
-      showToast("Copied to clipboard", "success");
+      showToast('Copied to clipboard', 'success');
     } else {
-      showToast("Failed to copy — please copy manually", "error");
+      showToast('Failed to copy — please copy manually', 'error');
     }
   };
 
@@ -37,8 +42,8 @@ export function CopyButton({ text, label = "Copy", className = "", keyboardShort
       }
     };
 
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [keyboardShortcut, text]);
 
@@ -46,13 +51,13 @@ export function CopyButton({ text, label = "Copy", className = "", keyboardShort
     <button
       onClick={handleCopy}
       className={`inline-flex items-center gap-1.5 px-2 py-1 text-xs border border-line hover:border-accent transition-colors rounded ${className}`}
-      aria-label={isCopied ? "Copied!" : `${label}: ${text}`}
+      aria-label={isCopied ? 'Copied!' : `${label}: ${text}`}
       title={
         isCopied
-          ? "Copied!"
+          ? 'Copied!'
           : keyboardShortcut
-          ? `Copy to clipboard (Ctrl+Shift+${keyboardShortcut.toUpperCase()})`
-          : "Copy to clipboard"
+            ? `Copy to clipboard (Ctrl+Shift+${keyboardShortcut.toUpperCase()})`
+            : 'Copy to clipboard'
       }
     >
       {isCopied ? (
@@ -83,7 +88,7 @@ export function CopyButton({ text, label = "Copy", className = "", keyboardShort
           />
         </svg>
       )}
-      {label && <span>{isCopied ? "Copied" : label}</span>}
+      {label && <span>{isCopied ? 'Copied' : label}</span>}
     </button>
   );
 }

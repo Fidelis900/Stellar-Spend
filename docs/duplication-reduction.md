@@ -162,22 +162,27 @@ function MyComponent() {
 ## Patterns Eliminated
 
 ### 1. Polling Logic Duplication
+
 **Before**: `usePollBridgeStatus` and `usePollPayoutStatus` had 80% identical code
 **After**: Single `useGenericPolling` hook with configuration
 
 ### 2. Form Validation Duplication
+
 **Before**: Each form component had its own validation state management
 **After**: Shared `useFormValidation` hook and `withFormValidation` HOC
 
 ### 3. API Request Duplication
+
 **Before**: Each component/service had its own fetch wrapper
 **After**: Centralized `apiGet`, `apiPost`, `apiDelete` utilities
 
 ### 4. Loading State Duplication
+
 **Before**: Each component managed its own loading state
 **After**: Shared `useLoading` hook
 
 ### 5. Error Handling Duplication
+
 **Before**: Try-catch blocks scattered throughout
 **After**: Shared `useErrorHandling` hook
 
