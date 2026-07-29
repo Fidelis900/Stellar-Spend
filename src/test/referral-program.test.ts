@@ -187,17 +187,13 @@ describe('Referral program integration tests (#845)', () => {
         rows: [makeReward({ status: 'completed' })],
       });
 
-      await expect(distributeReward('rreward_1')).rejects.toThrow(
-        'Reward already processed',
-      );
+      await expect(distributeReward('rreward_1')).rejects.toThrow('Reward already processed');
     });
 
     it('distributeReward throws if reward id does not exist', async () => {
       mockPoolQuery.mockResolvedValueOnce({ rows: [] });
 
-      await expect(distributeReward('nonexistent_id')).rejects.toThrow(
-        'Referral reward not found',
-      );
+      await expect(distributeReward('nonexistent_id')).rejects.toThrow('Referral reward not found');
     });
   });
 
@@ -403,9 +399,7 @@ describe('Referral program integration tests (#845)', () => {
 
     it('respects the limit parameter', async () => {
       mockPoolQuery.mockResolvedValueOnce({
-        rows: [
-          { user_id: 'user_a', total_referrals: '5', total_rewards_earned: '25' },
-        ],
+        rows: [{ user_id: 'user_a', total_referrals: '5', total_rewards_earned: '25' }],
       });
 
       const leaderboard = await getReferralLeaderboard(1);

@@ -1,5 +1,5 @@
 import { logger } from '@/lib/logger';
-'use client';
+('use client');
 
 import { useState, useEffect } from 'react';
 import { useI18n } from '@/lib/i18n';
@@ -141,11 +141,15 @@ export function ReferralDashboard({ userId }: ReferralDashboardProps) {
 
   return (
     <div className="border border-[#333333] bg-[#111111] p-5 space-y-4">
-      <h2 className="text-sm font-semibold text-white tracking-wider uppercase">{t('referral.title')}</h2>
+      <h2 className="text-sm font-semibold text-white tracking-wider uppercase">
+        {t('referral.title')}
+      </h2>
 
       {/* Referral Code & Sharing */}
       <div className="space-y-3 p-4 bg-[#0a0a0a] border border-[#222222]">
-        <div className="text-[10px] text-[#777777] uppercase tracking-widest">{t('referral.your_code')}</div>
+        <div className="text-[10px] text-[#777777] uppercase tracking-widest">
+          {t('referral.your_code')}
+        </div>
         {referralCode ? (
           <div className="space-y-3">
             <div className="flex gap-2">
@@ -162,24 +166,24 @@ export function ReferralDashboard({ userId }: ReferralDashboardProps) {
               <button
                 onClick={copyCode}
                 className={cn(
-                  "px-6 py-2 border font-bold text-[10px] uppercase tracking-widest transition-all",
-                  copied === 'code' 
-                    ? "bg-[#c9a962] text-[#0a0a0a] border-[#c9a962]" 
-                    : "border-[#c9a962] text-[#c9a962] hover:bg-[#c9a962] hover:text-[#0a0a0a]"
+                  'px-6 py-2 border font-bold text-[10px] uppercase tracking-widest transition-all',
+                  copied === 'code'
+                    ? 'bg-[#c9a962] text-[#0a0a0a] border-[#c9a962]'
+                    : 'border-[#c9a962] text-[#c9a962] hover:bg-[#c9a962] hover:text-[#0a0a0a]',
                 )}
               >
                 {copied === 'code' ? t('referral.copied') : t('referral.copy')}
               </button>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-2">
               <button
                 onClick={copyLink}
                 className={cn(
-                  "flex-1 px-4 py-2.5 border text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2",
+                  'flex-1 px-4 py-2.5 border text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2',
                   copied === 'link'
-                    ? "bg-[#333333] text-white border-[#555555]"
-                    : "border-[#333333] text-[#777777] hover:border-[#c9a962] hover:text-[#c9a962]"
+                    ? 'bg-[#333333] text-white border-[#555555]'
+                    : 'border-[#333333] text-[#777777] hover:border-[#c9a962] hover:text-[#c9a962]',
                 )}
               >
                 <span>{copied === 'link' ? t('referral.copied') : t('referral.copy_link')}</span>
@@ -222,7 +226,9 @@ export function ReferralDashboard({ userId }: ReferralDashboardProps) {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-12 space-y-4">
           <div className="w-8 h-8 border-2 border-[#c9a962]/20 border-t-[#c9a962] rounded-full animate-spin" />
-          <div className="text-[10px] text-[#555555] uppercase tracking-widest">{t('common.loading')}</div>
+          <div className="text-[10px] text-[#555555] uppercase tracking-widest">
+            {t('common.loading')}
+          </div>
         </div>
       ) : (
         <div className="animate-in fade-in duration-500">
@@ -231,26 +237,44 @@ export function ReferralDashboard({ userId }: ReferralDashboardProps) {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="border border-[#222222] p-4 bg-[#161616] hover:border-[#333333] transition-colors">
-                  <div className="text-[10px] text-[#777777] uppercase tracking-widest mb-1">{t('referral.total_referrals')}</div>
-                  <div className="text-2xl text-white font-black tabular-nums">{stats.total_referrals}</div>
+                  <div className="text-[10px] text-[#777777] uppercase tracking-widest mb-1">
+                    {t('referral.total_referrals')}
+                  </div>
+                  <div className="text-2xl text-white font-black tabular-nums">
+                    {stats.total_referrals}
+                  </div>
                 </div>
                 <div className="border border-[#222222] p-4 bg-[#161616] hover:border-[#333333] transition-colors">
-                  <div className="text-[10px] text-[#777777] uppercase tracking-widest mb-1">{t('referral.total_rewards')}</div>
-                  <div className="text-2xl text-[#c9a962] font-black tabular-nums">${stats.total_rewards}</div>
+                  <div className="text-[10px] text-[#777777] uppercase tracking-widest mb-1">
+                    {t('referral.total_rewards')}
+                  </div>
+                  <div className="text-2xl text-[#c9a962] font-black tabular-nums">
+                    ${stats.total_rewards}
+                  </div>
                 </div>
                 <div className="border border-[#222222] p-4 bg-[#161616] hover:border-[#333333] transition-colors">
-                  <div className="text-[10px] text-[#777777] uppercase tracking-widest mb-1">{t('referral.completed')}</div>
-                  <div className="text-2xl text-green-400 font-black tabular-nums">{stats.completed_referrals}</div>
+                  <div className="text-[10px] text-[#777777] uppercase tracking-widest mb-1">
+                    {t('referral.completed')}
+                  </div>
+                  <div className="text-2xl text-green-400 font-black tabular-nums">
+                    {stats.completed_referrals}
+                  </div>
                 </div>
                 <div className="border border-[#222222] p-4 bg-[#161616] hover:border-[#333333] transition-colors">
-                  <div className="text-[10px] text-[#777777] uppercase tracking-widest mb-1">{t('referral.pending')}</div>
-                  <div className="text-2xl text-yellow-400 font-black tabular-nums">{stats.pending_referrals}</div>
+                  <div className="text-[10px] text-[#777777] uppercase tracking-widest mb-1">
+                    {t('referral.pending')}
+                  </div>
+                  <div className="text-2xl text-yellow-400 font-black tabular-nums">
+                    {stats.pending_referrals}
+                  </div>
                 </div>
               </div>
               {stats.total_referrals > 0 && (
                 <div className="border border-[#222222] p-4 bg-[#0a0a0a] space-y-3">
                   <div className="flex justify-between items-end">
-                    <div className="text-[10px] text-[#777777] uppercase tracking-widest">{t('referral.conversion_rate')}</div>
+                    <div className="text-[10px] text-[#777777] uppercase tracking-widest">
+                      {t('referral.conversion_rate')}
+                    </div>
                     <div className="text-lg text-white font-black">
                       {(stats.conversion_rate * 100).toFixed(1)}%
                     </div>
@@ -275,18 +299,30 @@ export function ReferralDashboard({ userId }: ReferralDashboardProps) {
                 </div>
               ) : (
                 history.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between border border-[#222222] p-4 bg-[#161616] hover:bg-[#1a1a1a] transition-colors">
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between border border-[#222222] p-4 bg-[#161616] hover:bg-[#1a1a1a] transition-colors"
+                  >
                     <div className="space-y-1">
-                      <div className="text-xs text-white font-mono font-bold">{item.referred_user_id.slice(0, 12)}…</div>
+                      <div className="text-xs text-white font-mono font-bold">
+                        {item.referred_user_id.slice(0, 12)}…
+                      </div>
                       <div className="text-[9px] text-[#555555] font-mono uppercase">
                         {new Date(item.created_at).toLocaleDateString()}
                       </div>
                     </div>
                     <div className="text-right space-y-1">
-                      <div className={cn("text-[10px] font-black uppercase tracking-widest", statusColor(item.status))}>
+                      <div
+                        className={cn(
+                          'text-[10px] font-black uppercase tracking-widest',
+                          statusColor(item.status),
+                        )}
+                      >
                         {item.status}
                       </div>
-                      <div className="text-[10px] text-[#c9a962] font-mono font-bold">${item.reward_amount} {t('referral.reward')}</div>
+                      <div className="text-[10px] text-[#c9a962] font-mono font-bold">
+                        ${item.reward_amount} {t('referral.reward')}
+                      </div>
                     </div>
                   </div>
                 ))
@@ -306,35 +342,46 @@ export function ReferralDashboard({ userId }: ReferralDashboardProps) {
                   <div
                     key={entry.userId}
                     className={cn(
-                      "flex items-center justify-between border p-4 transition-all",
-                      entry.userId === userId 
-                        ? 'border-[#c9a962] bg-[#c9a962]/5 shadow-[inset_0_0_10px_rgba(201,169,98,0.1)]' 
-                        : 'border-[#222222] bg-[#161616] hover:bg-[#1a1a1a]'
+                      'flex items-center justify-between border p-4 transition-all',
+                      entry.userId === userId
+                        ? 'border-[#c9a962] bg-[#c9a962]/5 shadow-[inset_0_0_10px_rgba(201,169,98,0.1)]'
+                        : 'border-[#222222] bg-[#161616] hover:bg-[#1a1a1a]',
                     )}
                   >
                     <div className="flex items-center gap-4">
                       <span
                         className={cn(
-                          "text-lg font-black w-8 italic",
+                          'text-lg font-black w-8 italic',
                           entry.rank === 1
                             ? 'text-yellow-400 drop-shadow-[0_0_5px_rgba(250,204,21,0.5)]'
                             : entry.rank === 2
-                            ? 'text-[#c0c0c0]'
-                            : entry.rank === 3
-                            ? 'text-[#cd7f32]'
-                            : 'text-[#555555]'
+                              ? 'text-[#c0c0c0]'
+                              : entry.rank === 3
+                                ? 'text-[#cd7f32]'
+                                : 'text-[#555555]',
                         )}
                       >
                         #{entry.rank}
                       </span>
                       <div className="space-y-0.5">
-                        <div className={cn("text-xs font-bold", entry.userId === userId ? 'text-[#c9a962]' : 'text-white')}>
-                          {entry.userId === userId ? t('referral.you') : `${entry.userId.slice(0, 10)}…`}
+                        <div
+                          className={cn(
+                            'text-xs font-bold',
+                            entry.userId === userId ? 'text-[#c9a962]' : 'text-white',
+                          )}
+                        >
+                          {entry.userId === userId
+                            ? t('referral.you')
+                            : `${entry.userId.slice(0, 10)}…`}
                         </div>
-                        <div className="text-[9px] text-[#555555] uppercase tracking-widest">{entry.totalReferrals} {t('referral.total_referrals')}</div>
+                        <div className="text-[9px] text-[#555555] uppercase tracking-widest">
+                          {entry.totalReferrals} {t('referral.total_referrals')}
+                        </div>
                       </div>
                     </div>
-                    <div className="text-sm text-[#c9a962] font-black tabular-nums">${entry.totalRewardsEarned}</div>
+                    <div className="text-sm text-[#c9a962] font-black tabular-nums">
+                      ${entry.totalRewardsEarned}
+                    </div>
                   </div>
                 ))
               )}
@@ -345,4 +392,3 @@ export function ReferralDashboard({ userId }: ReferralDashboardProps) {
     </div>
   );
 }
-

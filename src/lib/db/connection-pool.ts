@@ -1,5 +1,5 @@
-import { Pool, PoolConfig } from "pg";
-import { logger } from "../logger";
+import { Pool, PoolConfig } from 'pg';
+import { logger } from '../logger';
 
 export interface PoolStats {
   totalCount: number;
@@ -33,12 +33,12 @@ export class ConnectionPoolManager {
 
     const pool = new Pool(poolConfig);
 
-    pool.on("error", (err) => {
-      logger.error("Unexpected error on idle client", { error: err });
+    pool.on('error', (err) => {
+      logger.error('Unexpected error on idle client', { error: err });
     });
 
     this.pools.set(key, pool);
-    logger.info("Connection pool created", {
+    logger.info('Connection pool created', {
       connectionString: key.substring(0, 50),
       maxConnections: poolConfig.max,
     });
@@ -87,7 +87,7 @@ export class ConnectionPoolManager {
     if (pool) {
       await pool.end();
       this.pools.delete(connectionString);
-      logger.info("Connection pool closed", { connectionString });
+      logger.info('Connection pool closed', { connectionString });
     }
   }
 
@@ -99,7 +99,7 @@ export class ConnectionPoolManager {
       await pool.end();
       this.pools.delete(key);
     }
-    logger.info("All connection pools closed");
+    logger.info('All connection pools closed');
   }
 }
 

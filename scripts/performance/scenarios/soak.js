@@ -26,11 +26,11 @@ export const options = {
   },
   thresholds: {
     // Tighter latency expectations for sustained load
-    'http_req_duration': ['p(95)<600', 'p(99)<1200'],
-    'http_req_failed': ['rate<0.01'],
-    'soak_errors': ['rate<0.01'],
+    http_req_duration: ['p(95)<600', 'p(99)<1200'],
+    http_req_failed: ['rate<0.01'],
+    soak_errors: ['rate<0.01'],
     // Memory / pool leaks manifest as rising p99
-    'soak_api_duration': ['p(99)<1500'],
+    soak_api_duration: ['p(99)<1500'],
   },
 };
 

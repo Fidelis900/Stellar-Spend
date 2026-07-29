@@ -16,7 +16,7 @@ describe('TransactionStorage', () => {
       value: localStorageMock,
       writable: true,
     });
-    
+
     // Clear storage before each test
     TransactionStorage.clear();
   });
@@ -56,7 +56,7 @@ describe('TransactionStorage', () => {
 
       const all = TransactionStorage.getAll();
       expect(all).toHaveLength(50);
-      
+
       // Should keep the 50 most recent (tx54 to tx5)
       expect(all[0].id).toBe('tx54');
       expect(all[49].id).toBe('tx5');
@@ -93,7 +93,7 @@ describe('TransactionStorage', () => {
       TransactionStorage.update('tx1', { amount: '200', stellarTxHash: 'hash123' });
 
       const all = TransactionStorage.getAll();
-      const updated = all.find(tx => tx.id === 'tx1');
+      const updated = all.find((tx) => tx.id === 'tx1');
       expect(updated?.amount).toBe('200');
       expect(updated?.stellarTxHash).toBe('hash123');
     });
@@ -111,11 +111,11 @@ describe('TransactionStorage', () => {
     });
 
     it('should handle partial updates correctly', () => {
-      const transaction = createTestTransaction({ 
-        id: 'tx1', 
-        amount: '100', 
+      const transaction = createTestTransaction({
+        id: 'tx1',
+        amount: '100',
         status: 'pending',
-        currency: 'USDC'
+        currency: 'USDC',
       });
       TransactionStorage.save(transaction);
 
@@ -164,8 +164,8 @@ describe('TransactionStorage', () => {
 
         const user1Txs = TransactionStorage.getByUser(user1Address);
         expect(user1Txs).toHaveLength(2);
-        expect(user1Txs.map(tx => tx.id)).toContain('tx1');
-        expect(user1Txs.map(tx => tx.id)).toContain('tx3');
+        expect(user1Txs.map((tx) => tx.id)).toContain('tx1');
+        expect(user1Txs.map((tx) => tx.id)).toContain('tx3');
       });
 
       it('should be case-insensitive', () => {
@@ -176,7 +176,9 @@ describe('TransactionStorage', () => {
 
         const lowercase = TransactionStorage.getByUser(address.toLowerCase());
         const uppercase = TransactionStorage.getByUser(address.toUpperCase());
-        const mixed = TransactionStorage.getByUser('gabc1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcde');
+        const mixed = TransactionStorage.getByUser(
+          'gabc1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcde',
+        );
 
         expect(lowercase).toHaveLength(1);
         expect(uppercase).toHaveLength(1);
@@ -263,17 +265,17 @@ describe('TransactionStorage', () => {
 
       it('should generate IDs with expected format', () => {
         const id = TransactionStorage.generateId();
-        
+
         // Should start with 'tx_'
         expect(id).toMatch(/^tx_/);
-        
+
         // Should contain timestamp and random string
         expect(id).toMatch(/^tx_\d+_[a-z0-9]+$/);
       });
 
       it('should generate many unique IDs', () => {
         const ids = new Set<string>();
-        
+
         for (let i = 0; i < 100; i++) {
           ids.add(TransactionStorage.generateId());
         }

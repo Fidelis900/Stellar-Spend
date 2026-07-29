@@ -21,15 +21,15 @@ Two identical environments — **blue** (port 3000) and **green** (port 3001) �
 
 ## Files
 
-| File | Purpose |
-|------|---------|
-| `docker-compose.blue.yml` | Blue environment (port 3000) |
-| `docker-compose.green.yml` | Green environment (port 3001) |
-| `scripts/blue-green-deploy.sh` | Deploy new version to inactive slot |
-| `scripts/rollback.sh` | Roll back to the previous slot |
-| `scripts/rollback-drill.sh` | Periodic rollback drill with RTO assertion |
-| `.active-env` | Tracks which slot is currently active (auto-managed) |
-| `.deploy-history` | Append-only deploy history log (auto-managed) |
+| File                           | Purpose                                              |
+| ------------------------------ | ---------------------------------------------------- |
+| `docker-compose.blue.yml`      | Blue environment (port 3000)                         |
+| `docker-compose.green.yml`     | Green environment (port 3001)                        |
+| `scripts/blue-green-deploy.sh` | Deploy new version to inactive slot                  |
+| `scripts/rollback.sh`          | Roll back to the previous slot                       |
+| `scripts/rollback-drill.sh`    | Periodic rollback drill with RTO assertion           |
+| `.active-env`                  | Tracks which slot is currently active (auto-managed) |
+| `.deploy-history`              | Append-only deploy history log (auto-managed)        |
 
 ## Deploy a New Version
 
@@ -42,6 +42,7 @@ chmod +x scripts/blue-green-deploy.sh scripts/rollback.sh scripts/rollback-drill
 ```
 
 The script:
+
 1. Builds the new Docker image
 2. Starts the inactive environment
 3. Runs health checks against `/api/health` (up to 10 retries × 5 s)
@@ -56,6 +57,7 @@ If health checks or smoke tests fail, the new environment is stopped, the active
 ## Automatic Rollback
 
 Auto-rollback is built into `blue-green-deploy.sh`. If either the health check or smoke tests fail on the new slot, the script:
+
 - Stops the new (failing) environment
 - Leaves the current active environment untouched
 - Records `FAILED_HEALTH` or `FAILED_SMOKE` in `.deploy-history`
@@ -116,6 +118,7 @@ Notification events: `Deploy started`, `Deploy SUCCESS/FAILURE`, `Rollback start
 The scripts write the active slot name to `.active-env`. In a real production setup, integrate the traffic switch step with your load balancer:
 
 **Nginx example** — update `proxy_pass` and reload:
+
 ```nginx
 upstream stellar_spend {
     server localhost:3000;  # change to 3001 for green

@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ErrorHandler } from '@/lib/error-handler';
 import { merchantService } from '@/lib/services/merchant.service';
+import { createMerchantSchema, formatZodErrors } from '@/lib/validators/schemas';
+import { z } from 'zod';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 // GET /api/merchant — get merchant profile by userId query param
 export async function GET(request: NextRequest) {
   const userId = request.nextUrl.searchParams.get('userId');
-  if (!userId) return ErrorHandler.validation('userId query param is required');
+  if (!userId || userId.trim() === '') {
+    return ErrorHandler.validation('userId query param is required');
+  }
 
   try {
     const merchant = await merchantService.getMerchantByUserId(userId);
@@ -18,17 +23,22 @@ export async function GET(request: NextRequest) {
 
 // POST /api/merchant — create merchant account
 export async function POST(request: NextRequest) {
-  let body: Record<string, unknown>;
+  let rawBody: unknown;
   try {
-    body = await request.json();
+    rawBody = await request.json();
   } catch {
     return ErrorHandler.validation('Invalid JSON body');
   }
 
-  const { userId, businessName, businessEmail } = body as Record<string, string>;
-  if (!userId || !businessName || !businessEmail) {
-    return ErrorHandler.validation('userId, businessName, and businessEmail are required');
+  const parsed = createMerchantSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    const errors = formatZodErrors(parsed.error);
+    return ErrorHandler.handle(
+      new ApiError(ErrorType.VALIDATION, errors[0].message, 400, { errors }),
+    );
   }
+
+  const { userId, businessName, businessEmail } = parsed.data;
 
   try {
     const merchant = await merchantService.createMerchant(userId, businessName, businessEmail);

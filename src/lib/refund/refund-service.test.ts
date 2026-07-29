@@ -23,7 +23,12 @@ const baseTx: Transaction = {
   amount: '100',
   currency: 'NGN',
   status: 'failed',
-  beneficiary: { institution: 'GTB', accountIdentifier: '1234567890', accountName: 'John', currency: 'NGN' },
+  beneficiary: {
+    institution: 'GTB',
+    accountIdentifier: '1234567890',
+    accountName: 'John',
+    currency: 'NGN',
+  },
 };
 
 describe('isRefundEligible', () => {
@@ -80,6 +85,9 @@ describe('processRefund', () => {
     const result = await processRefund('tx_1', 'payment_failed');
     expect(result.success).toBe(true);
     expect(result.refundAmount).toBe('100');
-    expect(dal.update).toHaveBeenCalledWith('tx_1', expect.objectContaining({ payoutStatus: 'refunded' }));
+    expect(dal.update).toHaveBeenCalledWith(
+      'tx_1',
+      expect.objectContaining({ payoutStatus: 'refunded' }),
+    );
   });
 });

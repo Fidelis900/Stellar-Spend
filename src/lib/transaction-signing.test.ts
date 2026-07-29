@@ -60,7 +60,7 @@ describe('TransactionSigningService', () => {
         transactionId,
         userAddress,
         signature,
-        publicKey
+        publicKey,
       );
 
       expect(result).toMatchObject({
@@ -77,7 +77,7 @@ describe('TransactionSigningService', () => {
 
       expect(mockPool.query).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO transaction_signatures'),
-        [result.id, transactionId, userAddress, signature, publicKey, 'ed25519', 1000000]
+        [result.id, transactionId, userAddress, signature, publicKey, 'ed25519', 1000000],
       );
 
       expect(mockLogger.info).toHaveBeenCalledWith(
@@ -87,7 +87,7 @@ describe('TransactionSigningService', () => {
           transactionId,
           userId: userAddress,
           algorithm: 'ed25519',
-        })
+        }),
       );
     });
 
@@ -99,13 +99,13 @@ describe('TransactionSigningService', () => {
         'GA1234567890123456789012345678901234567890123456789012',
         'c'.repeat(128),
         'd'.repeat(64),
-        'ecdsa'
+        'ecdsa',
       );
 
       expect(result.algorithm).toBe('ecdsa');
       expect(mockPool.query).toHaveBeenCalledWith(
         expect.any(String),
-        expect.arrayContaining(['ecdsa'])
+        expect.arrayContaining(['ecdsa']),
       );
     });
 
@@ -117,29 +117,19 @@ describe('TransactionSigningService', () => {
           'tx_789',
           'GA1234567890123456789012345678901234567890123456789012',
           'e'.repeat(128),
-          'f'.repeat(64)
-        )
+          'f'.repeat(64),
+        ),
       ).rejects.toThrow('Database error');
     });
 
     it('should generate unique signature IDs', async () => {
       mockPool.query.mockResolvedValue({ rows: [] });
 
-      const sig1 = await service.signTransaction(
-        'tx_1',
-        'user1',
-        'a'.repeat(128),
-        'b'.repeat(64)
-      );
+      const sig1 = await service.signTransaction('tx_1', 'user1', 'a'.repeat(128), 'b'.repeat(64));
 
       mockCrypto.randomBytes.mockReturnValueOnce(Buffer.from('87654321', 'hex'));
 
-      const sig2 = await service.signTransaction(
-        'tx_2',
-        'user2',
-        'c'.repeat(128),
-        'd'.repeat(64)
-      );
+      const sig2 = await service.signTransaction('tx_2', 'user2', 'c'.repeat(128), 'd'.repeat(64));
 
       expect(sig1.id).not.toBe(sig2.id);
     });
@@ -169,25 +159,23 @@ describe('TransactionSigningService', () => {
 
       expect(result).toBe(true);
 
-      expect(mockPool.query).toHaveBeenNthCalledWith(
-        1,
-        expect.stringContaining('SELECT'),
-        [signatureId]
-      );
+      expect(mockPool.query).toHaveBeenNthCalledWith(1, expect.stringContaining('SELECT'), [
+        signatureId,
+      ]);
       expect(mockPool.query).toHaveBeenNthCalledWith(
         2,
         expect.stringContaining('UPDATE transaction_signatures'),
-        expect.arrayContaining([1000000, true, signatureId])
+        expect.arrayContaining([1000000, true, signatureId]),
       );
       expect(mockPool.query).toHaveBeenNthCalledWith(
         3,
         expect.stringContaining('INSERT INTO signature_verification_logs'),
-        expect.arrayContaining([signatureId, 'verified'])
+        expect.arrayContaining([signatureId, 'verified']),
       );
 
       expect(mockLogger.info).toHaveBeenCalledWith(
         'Signature verified',
-        expect.objectContaining({ signatureId, isValid: true })
+        expect.objectContaining({ signatureId, isValid: true }),
       );
     });
 
@@ -214,15 +202,13 @@ describe('TransactionSigningService', () => {
 
       expect(result).toBe(false);
 
-      expect(mockPool.query).toHaveBeenNthCalledWith(
-        1,
-        expect.stringContaining('SELECT'),
-        [signatureId]
-      );
+      expect(mockPool.query).toHaveBeenNthCalledWith(1, expect.stringContaining('SELECT'), [
+        signatureId,
+      ]);
       expect(mockPool.query).toHaveBeenNthCalledWith(
         2,
         expect.stringContaining('UPDATE transaction_signatures'),
-        expect.arrayContaining([1000000, false, signatureId])
+        expect.arrayContaining([1000000, false, signatureId]),
       );
     });
 
@@ -282,7 +268,7 @@ describe('TransactionSigningService', () => {
 
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Signature verification error',
-        expect.objectContaining({ signatureId })
+        expect.objectContaining({ signatureId }),
       );
     });
 
@@ -358,10 +344,9 @@ describe('TransactionSigningService', () => {
         verifiedAt: undefined,
       });
 
-      expect(mockPool.query).toHaveBeenCalledWith(
-        expect.stringContaining('SELECT'),
-        [transactionId]
-      );
+      expect(mockPool.query).toHaveBeenCalledWith(expect.stringContaining('SELECT'), [
+        transactionId,
+      ]);
     });
 
     it('should return empty array when no signatures found', async () => {
@@ -437,10 +422,7 @@ describe('TransactionSigningService', () => {
         verifiedAt: 1000100,
       });
 
-      expect(mockPool.query).toHaveBeenCalledWith(
-        expect.stringContaining('SELECT'),
-        [signatureId]
-      );
+      expect(mockPool.query).toHaveBeenCalledWith(expect.stringContaining('SELECT'), [signatureId]);
     });
 
     it('should return null for non-existent signature', async () => {
@@ -517,10 +499,7 @@ describe('TransactionSigningService', () => {
         verifiedBy: undefined,
       });
 
-      expect(mockPool.query).toHaveBeenCalledWith(
-        expect.stringContaining('SELECT'),
-        [signatureId]
-      );
+      expect(mockPool.query).toHaveBeenCalledWith(expect.stringContaining('SELECT'), [signatureId]);
     });
 
     it('should return empty array when no logs found', async () => {
@@ -569,7 +548,7 @@ describe('TransactionSigningService', () => {
       const result = (service as any).verifySignatureData(
         validSignature,
         validPublicKey,
-        'ed25519'
+        'ed25519',
       );
 
       expect(result).toBe(true);
@@ -582,7 +561,7 @@ describe('TransactionSigningService', () => {
       const result = (service as any).verifySignatureData(
         invalidSignature,
         validPublicKey,
-        'ed25519'
+        'ed25519',
       );
 
       expect(result).toBe(false);
@@ -595,7 +574,7 @@ describe('TransactionSigningService', () => {
       const result = (service as any).verifySignatureData(
         invalidSignature,
         validPublicKey,
-        'ed25519'
+        'ed25519',
       );
 
       expect(result).toBe(false);
@@ -608,7 +587,7 @@ describe('TransactionSigningService', () => {
       const result = (service as any).verifySignatureData(
         invalidSignature,
         validPublicKey,
-        'ed25519'
+        'ed25519',
       );
 
       expect(result).toBe(false);
@@ -621,7 +600,7 @@ describe('TransactionSigningService', () => {
       const result = (service as any).verifySignatureData(
         validSignature,
         invalidPublicKey,
-        'ed25519'
+        'ed25519',
       );
 
       expect(result).toBe(false);
@@ -634,7 +613,7 @@ describe('TransactionSigningService', () => {
       const result = (service as any).verifySignatureData(
         validSignature,
         invalidPublicKey,
-        'ed25519'
+        'ed25519',
       );
 
       expect(result).toBe(false);
@@ -647,7 +626,7 @@ describe('TransactionSigningService', () => {
       const result = (service as any).verifySignatureData(
         validSignature,
         invalidPublicKey,
-        'ed25519'
+        'ed25519',
       );
 
       expect(result).toBe(false);
@@ -657,11 +636,7 @@ describe('TransactionSigningService', () => {
       const validSignature = 'a'.repeat(128);
       const validPublicKey = 'b'.repeat(64);
 
-      const result = (service as any).verifySignatureData(
-        validSignature,
-        validPublicKey,
-        'rsa'
-      );
+      const result = (service as any).verifySignatureData(validSignature, validPublicKey, 'rsa');
 
       expect(result).toBe(false);
     });
@@ -670,11 +645,7 @@ describe('TransactionSigningService', () => {
       const validSignature = 'a'.repeat(128);
       const validPublicKey = 'b'.repeat(64);
 
-      const result = (service as any).verifySignatureData(
-        validSignature,
-        validPublicKey,
-        ''
-      );
+      const result = (service as any).verifySignatureData(validSignature, validPublicKey, '');
 
       expect(result).toBe(false);
     });
@@ -690,7 +661,7 @@ describe('TransactionSigningService', () => {
         transactionId,
         'user1',
         'a'.repeat(128),
-        'b'.repeat(64)
+        'b'.repeat(64),
       );
 
       mockPool.query.mockResolvedValueOnce({ rows: [] });
@@ -698,7 +669,7 @@ describe('TransactionSigningService', () => {
         transactionId,
         'user2',
         'c'.repeat(128),
-        'd'.repeat(64)
+        'd'.repeat(64),
       );
 
       // Retrieve all signatures
@@ -734,7 +705,7 @@ describe('TransactionSigningService', () => {
       const signatures = await service.getTransactionSignatures(transactionId);
 
       expect(signatures).toHaveLength(2);
-      expect(signatures.map(s => s.userAddress)).toEqual(['user1', 'user2']);
+      expect(signatures.map((s) => s.userAddress)).toEqual(['user1', 'user2']);
     });
 
     it('should track complete signature lifecycle', async () => {

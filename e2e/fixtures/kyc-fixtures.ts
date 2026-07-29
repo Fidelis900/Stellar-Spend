@@ -73,8 +73,7 @@ export const KYC_REJECTION_REASONS = {
   nameMismatch: {
     reason: 'Name mismatch',
     code: 'name_mismatch',
-    description:
-      'The name on your document does not match the name on your account.',
+    description: 'The name on your document does not match the name on your account.',
   },
 } as const;
 

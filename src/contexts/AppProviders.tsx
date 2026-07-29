@@ -25,9 +25,7 @@ export function AppProviders({ children }: AppProvidersProps) {
     <I18nProvider>
       <ErrorBoundary>
         <ThemeProvider>
-          <ToastProvider>
-            {children}
-          </ToastProvider>
+          <ToastProvider>{children}</ToastProvider>
         </ThemeProvider>
       </ErrorBoundary>
     </I18nProvider>

@@ -10,9 +10,9 @@ This guide covers everything needed to integrate with the Paycrest API within St
 
 Two secrets are required. Both are server-only and must never be prefixed with `NEXT_PUBLIC_`.
 
-| Variable | Description |
-|---|---|
-| `PAYCREST_API_KEY` | Sender API key from the Paycrest dashboard |
+| Variable                  | Description                                   |
+| ------------------------- | --------------------------------------------- |
+| `PAYCREST_API_KEY`        | Sender API key from the Paycrest dashboard    |
 | `PAYCREST_WEBHOOK_SECRET` | Signing secret for verifying webhook payloads |
 
 Add them to `.env.local`:
@@ -47,14 +47,14 @@ Requests time out after **15 seconds**. A timeout surfaces as a `PaycrestHttpErr
 
 ### Available Endpoints (via `PaycrestAdapter`)
 
-| Method | Paycrest Endpoint | Adapter Method |
-|---|---|---|
-| `GET` | `/sender/currencies` | `getCurrencies()` |
-| `GET` | `/sender/institutions/:currency` | `getInstitutions(currency)` |
-| `POST` | `/sender/verify-account` | `verifyAccount(institution, accountIdentifier)` |
-| `GET` | `/rates/:token/:amount/:currency` | `getRate(token, amount, currency, options?)` |
-| `POST` | `/sender/orders` | `createOrder(request)` |
-| `GET` | `/sender/orders/:orderId` | `getOrderStatus(orderId)` |
+| Method | Paycrest Endpoint                 | Adapter Method                                  |
+| ------ | --------------------------------- | ----------------------------------------------- |
+| `GET`  | `/sender/currencies`              | `getCurrencies()`                               |
+| `GET`  | `/sender/institutions/:currency`  | `getInstitutions(currency)`                     |
+| `POST` | `/sender/verify-account`          | `verifyAccount(institution, accountIdentifier)` |
+| `GET`  | `/rates/:token/:amount/:currency` | `getRate(token, amount, currency, options?)`    |
+| `POST` | `/sender/orders`                  | `createOrder(request)`                          |
+| `GET`  | `/sender/orders/:orderId`         | `getOrderStatus(orderId)`                       |
 
 ---
 
@@ -133,6 +133,7 @@ Always return `200` with `{ "received": true }` after successful processing. Pay
 ```
 
 **Field notes:**
+
 - `amount` — USDC amount to send. Floored to 6 decimal places (never rounded up) to ensure the deposit is never short.
 - `rate` — FX rate locked at quote time. Rounded to 6 decimal places.
 - `reference` — must be unique per order; used for idempotency.
@@ -170,13 +171,13 @@ After receiving `receiveAddress`, the server transfers USDC on Base to that addr
 
 Paycrest emits the following webhook events, which map to internal statuses:
 
-| Webhook Event | Internal `PayoutStatus` |
-|---|---|
-| `payment_order.pending` | `pending` |
-| `payment_order.validated` | `validated` |
-| `payment_order.settled` | `settled` |
-| `payment_order.refunded` | `refunded` |
-| `payment_order.expired` | `expired` |
+| Webhook Event             | Internal `PayoutStatus` |
+| ------------------------- | ----------------------- |
+| `payment_order.pending`   | `pending`               |
+| `payment_order.validated` | `validated`             |
+| `payment_order.settled`   | `settled`               |
+| `payment_order.refunded`  | `refunded`              |
+| `payment_order.expired`   | `expired`               |
 
 **Terminal states:** `settled`, `refunded`, `expired` — stop polling when any of these is reached.
 
@@ -198,19 +199,19 @@ All Paycrest API errors are wrapped in `PaycrestHttpError`:
 
 ```ts
 class PaycrestHttpError extends Error {
-  status: number;   // HTTP status from Paycrest (or 502/504 for network/timeout)
+  status: number; // HTTP status from Paycrest (or 502/504 for network/timeout)
   details: unknown; // Raw Paycrest error body
 }
 ```
 
-| Status | Cause |
-|---|---|
-| `400` | Validation error (bad request body) |
-| `401` | Invalid or missing `API-Key` |
-| `404` | Order not found |
-| `429` | Paycrest rate limit exceeded |
-| `502` | Network error reaching Paycrest |
-| `504` | Request timed out (>15 s) |
+| Status | Cause                               |
+| ------ | ----------------------------------- |
+| `400`  | Validation error (bad request body) |
+| `401`  | Invalid or missing `API-Key`        |
+| `404`  | Order not found                     |
+| `429`  | Paycrest rate limit exceeded        |
+| `502`  | Network error reaching Paycrest     |
+| `504`  | Request timed out (>15 s)           |
 
 ### Route-Level Error Handling
 
@@ -254,11 +255,11 @@ npm test
 
 ### What's Covered
 
-| Test File | Coverage |
-|---|---|
-| `paycrest-adapter.test.ts` | `mapPaycrestStatus`, `getCurrencies`, `getInstitutions`, `verifyAccount`, `getRate` |
-| `paycrest-order.test.ts` | `POST /api/offramp/paycrest/order` — happy path, validation errors, HTTP error propagation |
-| `webhooks-paycrest.test.ts` | `POST /api/webhooks/paycrest` — signature verification, payload parsing |
+| Test File                   | Coverage                                                                                   |
+| --------------------------- | ------------------------------------------------------------------------------------------ |
+| `paycrest-adapter.test.ts`  | `mapPaycrestStatus`, `getCurrencies`, `getInstitutions`, `verifyAccount`, `getRate`        |
+| `paycrest-order.test.ts`    | `POST /api/offramp/paycrest/order` — happy path, validation errors, HTTP error propagation |
+| `webhooks-paycrest.test.ts` | `POST /api/webhooks/paycrest` — signature verification, payload parsing                    |
 
 ### Mocking the Adapter in Tests
 
@@ -335,6 +336,7 @@ providerRegistry.configureRoutes([
 ### Health Probes
 
 Each provider exposes a `getHealth()` method that the registry calls periodically. The registry tracks:
+
 - `ok`: whether the provider responded
 - `latencyMs`: response time
 - `lastChecked`: timestamp of last check

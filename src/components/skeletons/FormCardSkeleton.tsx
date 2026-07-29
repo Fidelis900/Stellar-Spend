@@ -1,4 +1,4 @@
-import { SkeletonBase } from "./SkeletonBase";
+import { SkeletonBase } from './SkeletonBase';
 
 /**
  * Full-form skeleton shown while the form is initialising

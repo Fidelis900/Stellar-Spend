@@ -130,7 +130,7 @@ export function WalletErrorDisplay({
       className={cn(
         'relative px-4 py-3 border border-red-500/30 bg-red-500/10 rounded',
         'flex items-start gap-3',
-        className
+        className,
       )}
       role="alert"
       aria-live="polite"
@@ -140,9 +140,7 @@ export function WalletErrorDisplay({
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <p className="text-[12px] font-medium text-red-400">
-          {error.message}
-        </p>
+        <p className="text-[12px] font-medium text-red-400">{error.message}</p>
         {getErrorSuggestion()}
       </div>
 
@@ -154,7 +152,7 @@ export function WalletErrorDisplay({
             className={cn(
               'text-[10px] tracking-widest uppercase text-red-400',
               'hover:text-red-300 transition-colors',
-              'focus:outline-none focus-visible:underline'
+              'focus:outline-none focus-visible:underline',
             )}
           >
             {actionLabel}

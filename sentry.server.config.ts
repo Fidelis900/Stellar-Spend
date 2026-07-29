@@ -1,38 +1,19 @@
 /**
- * Sentry Server Configuration with OpenTelemetry Integration
+ * Sentry server-side (Node.js) configuration.
+ *
+ * Extends the shared base from `src/lib/sentryShared` with server-only
+ * integrations: OpenTelemetry trace correlation and CPU profiling.
+ *
+ * Loaded automatically by `@sentry/nextjs` for the Node.js runtime.
  */
 
-import * as Sentry from '@sentry/node';
-import { nodeProfilingIntegration } from '@sentry/profiling-node';
-import { OpenTelemetryIntegration } from '@sentry/opentelemetry';
+import * as Sentry from '@sentry/nextjs';
 
-// Initialize Sentry with OpenTelemetry integration
+import { sharedSentryOptions } from '@/lib/sentryShared';
+
 Sentry.init({
-  dsn: process.env.SENTRY_DSN,
-  environment: process.env.NODE_ENV || 'development',
-  release: process.env.npm_package_version || '1.0.0',
-  
-  // Enable performance monitoring
-  tracesSampleRate: parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE || '0.1'),
-  profilesSampleRate: parseFloat(process.env.SENTRY_PROFILES_SAMPLE_RATE || '0.1'),
-  
-  // Integrations
-  integrations: [
-    // OpenTelemetry integration for trace correlation
-    new OpenTelemetryIntegration({
-      spanProcessor: {
-        onSpan: (span) => {
-          // Add Sentry-specific attributes to spans
-          const transaction = Sentry.getCurrentHub().getScope()?.getTransaction();
-          if (transaction) {
-            span.setAttribute('sentry.transaction', transaction.name);
-          }
-        },
-      },
-    }),
-    nodeProfilingIntegration(),
-  ],
-});
+  ...sharedSentryOptions,
 
-// Export configured Sentry
-export default Sentry;
+  // Server-side profiling sample rate (subset of traced transactions)
+  profilesSampleRate: parseFloat(process.env.SENTRY_PROFILES_SAMPLE_RATE ?? '0.1'),
+});

@@ -57,7 +57,7 @@ export function calculateRefundAmount(tx: Transaction, partial = false): string 
 export async function processRefund(
   transactionId: string,
   reason: RefundReason,
-  partial = false
+  partial = false,
 ): Promise<RefundResult> {
   const timestamp = new Date().toISOString();
 
@@ -70,11 +70,25 @@ export async function processRefund(
   }
 
   if (!tx) {
-    return { transactionId, success: false, refundAmount: '0', reason, error: 'Transaction not found', timestamp };
+    return {
+      transactionId,
+      success: false,
+      refundAmount: '0',
+      reason,
+      error: 'Transaction not found',
+      timestamp,
+    };
   }
 
   if (!isRefundEligible(tx)) {
-    return { transactionId, success: false, refundAmount: '0', reason, error: 'Transaction not eligible for refund', timestamp };
+    return {
+      transactionId,
+      success: false,
+      refundAmount: '0',
+      reason,
+      error: 'Transaction not eligible for refund',
+      timestamp,
+    };
   }
 
   const refundAmount = calculateRefundAmount(tx, partial);
@@ -132,9 +146,7 @@ export async function processEligibleRefunds(userAddress?: string): Promise<Refu
   }
 
   const eligible = transactions.filter(isRefundEligible);
-  const results = await Promise.all(
-    eligible.map((tx) => processRefund(tx.id, 'payment_failed'))
-  );
+  const results = await Promise.all(eligible.map((tx) => processRefund(tx.id, 'payment_failed')));
   return results;
 }
 
@@ -142,5 +154,5 @@ export async function processEligibleRefunds(userAddress?: string): Promise<Refu
  * Emits a refund notification (structured log; extend with email/webhook as needed).
  */
 function emitRefundNotification(notification: RefundNotification): void {
-    logger.info('refund.processed', { ...notification });
+  logger.info('refund.processed', { ...notification });
 }

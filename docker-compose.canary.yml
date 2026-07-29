@@ -7,9 +7,9 @@
 
 services:
   app:
-    image: "stellar-spend:${IMAGE_TAG:-latest}"
+    image: 'stellar-spend:${IMAGE_TAG:-latest}'
     container_name: stellar-spend-canary
     ports:
-      - "${CANARY_PORT:-3002}:3000"
+      - '${CANARY_PORT:-3002}:3000'
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3000/api/health']

@@ -25,25 +25,30 @@ const rangeResult = ValidationService.validateAmountRange('100', 10, 1000);
 ## Available Validators
 
 ### Amount Validation
+
 - `validateAmount(amount)` - Basic amount validation
 - `validateMinAmount(amount, min)` - Minimum amount
 - `validateMaxAmount(amount, max)` - Maximum amount
 - `validateAmountRange(amount, min, max)` - Range validation
 
 ### Address Validation
+
 - `validateStellarAddress(address)` - Stellar address format
 - `validateBaseAddress(address)` - Base chain address format
 - `validateEvmAddress(address)` - EVM address format
 
 ### Currency Validation
+
 - `validateCurrencyCode(code)` - 3-letter currency code
 
 ### Beneficiary Validation
+
 - `validateAccountNumber(accountNumber)` - 10-digit account number
 - `validateInstitution(institution)` - Institution name
 - `validateBeneficiary(data)` - Complete beneficiary object
 
 ### Request Validation
+
 - `validateQuoteRequest(data)` - Quote request object
 - `validateBridgeTransaction(data)` - Bridge transaction object
 - `validatePayoutOrder(data)` - Payout order object
@@ -84,7 +89,8 @@ interface FormattedValidationError {
 Extend Zod schemas with custom rules:
 
 ```typescript
-const customSchema = z.string()
+const customSchema = z
+  .string()
   .min(1, 'Required')
   .refine((val) => !val.includes('invalid'), 'Contains invalid characters');
 ```

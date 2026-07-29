@@ -215,10 +215,9 @@ describe('rotateFieldEncryption', () => {
     const records = [{ accountIdentifier: null }];
     process.env.NEW_ENCRYPTION_KEY = NEW_KEY;
 
-    const result = rotateFieldEncryption(
-      records as unknown as Record<string, unknown>[],
-      ['accountIdentifier']
-    );
+    const result = rotateFieldEncryption(records as unknown as Record<string, unknown>[], [
+      'accountIdentifier',
+    ]);
     expect(result.skipped).toBe(1);
     expect(result.rotated).toBe(0);
   });
@@ -229,14 +228,13 @@ describe('rotateFieldEncryption', () => {
     const records = [{ beneficiary: { accountName: encryptField(plain) } }];
     process.env.NEW_ENCRYPTION_KEY = NEW_KEY;
 
-    const result = rotateFieldEncryption(
-      records as unknown as Record<string, unknown>[],
-      ['beneficiary.accountName']
-    );
+    const result = rotateFieldEncryption(records as unknown as Record<string, unknown>[], [
+      'beneficiary.accountName',
+    ]);
     expect(result.rotated).toBe(1);
 
     process.env.ENCRYPTION_KEY = NEW_KEY;
-    expect(decryptField((records[0].beneficiary.accountName) as string)).toBe(plain);
+    expect(decryptField(records[0].beneficiary.accountName as string)).toBe(plain);
   });
 });
 

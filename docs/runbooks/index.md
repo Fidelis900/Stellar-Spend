@@ -6,13 +6,13 @@
 
 ## Runbook Index
 
-| # | Runbook | Severity | Alert Link |
-|---|---------|----------|-----------|
-| RB-001 | [Stuck Bridge Transaction](./stuck-bridge.md) | P1 | `ALERT_BRIDGE_STUCK` |
-| RB-002 | [Provider Outage (Paycrest / Allbridge)](./provider-outage.md) | P1 | `ALERT_PROVIDER_UNAVAILABLE` |
-| RB-003 | [Database Failover](./database-failover.md) | P1 | `ALERT_DB_UNHEALTHY` |
-| RB-004 | [High Error Rate](./high-error-rate.md) | P2 | `ALERT_ERROR_RATE_HIGH` |
-| RB-005 | [Backup Failure](./backup-failure.md) | P2 | `ALERT_BACKUP_FAILED` |
+| #      | Runbook                                                        | Severity | Alert Link                   |
+| ------ | -------------------------------------------------------------- | -------- | ---------------------------- |
+| RB-001 | [Stuck Bridge Transaction](./stuck-bridge.md)                  | P1       | `ALERT_BRIDGE_STUCK`         |
+| RB-002 | [Provider Outage (Paycrest / Allbridge)](./provider-outage.md) | P1       | `ALERT_PROVIDER_UNAVAILABLE` |
+| RB-003 | [Database Failover](./database-failover.md)                    | P1       | `ALERT_DB_UNHEALTHY`         |
+| RB-004 | [High Error Rate](./high-error-rate.md)                        | P2       | `ALERT_ERROR_RATE_HIGH`      |
+| RB-005 | [Backup Failure](./backup-failure.md)                          | P2       | `ALERT_BACKUP_FAILED`        |
 
 ---
 
@@ -24,33 +24,42 @@ Every runbook follows this structure. Copy it when creating new ones.
 # RB-XXX: <Incident Title>
 
 ## Severity
+
 P1 / P2 / P3
 
 ## Triggering Alerts
+
 - ALERT_NAME
 
 ## Impact
+
 One-sentence description of user / business impact.
 
 ## Prerequisites
+
 - Access to AWS Console / CloudWatch
 - Access to production DB (read-only replica preferred)
 - On-call Slack channel: #ops-alerts
 
 ## Detection
+
 How the incident is typically first noticed.
 
 ## Diagnosis Steps
+
 Step-by-step triage commands and checks.
 
 ## Mitigation Steps
+
 Actions to restore service, ordered by preference (quick wins first).
 
 ## Escalation
+
 - If unresolved after 15 min → escalate to [Role] via [Channel]
 - After 30 min → page [Secondary] + notify [Stakeholders]
 
 ## Post-Incident
+
 Link to PIR template: docs/runbooks/post-incident-review.md
 
 ## Related Runbooks
@@ -60,11 +69,11 @@ Link to PIR template: docs/runbooks/post-incident-review.md
 
 ## Escalation Matrix
 
-| Severity | Response SLA | First Escalation | Second Escalation |
-|----------|-------------|-----------------|------------------|
-| P1 — Service down / funds at risk | 15 min | Infra lead (Slack DM + phone) | CTO + Legal (if funds impacted) |
-| P2 — Degraded / partial outage | 30 min | Infra lead (Slack) | Engineering manager |
-| P3 — Non-critical / monitoring | 2 h | Async Slack | N/A |
+| Severity                          | Response SLA | First Escalation              | Second Escalation               |
+| --------------------------------- | ------------ | ----------------------------- | ------------------------------- |
+| P1 — Service down / funds at risk | 15 min       | Infra lead (Slack DM + phone) | CTO + Legal (if funds impacted) |
+| P2 — Degraded / partial outage    | 30 min       | Infra lead (Slack)            | Engineering manager             |
+| P3 — Non-critical / monitoring    | 2 h          | Async Slack                   | N/A                             |
 
 On-call rotation: managed in PagerDuty. See `#ops-oncall` for current schedule.
 

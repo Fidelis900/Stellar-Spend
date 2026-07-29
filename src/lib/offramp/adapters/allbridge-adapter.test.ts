@@ -29,7 +29,7 @@ describe('AllbridgeAdapter', () => {
 
     it('should include USDC token', async () => {
       const tokens = await adapter.getTokens('STELLAR');
-      const usdc = tokens.find(t => t.symbol === 'USDC');
+      const usdc = tokens.find((t) => t.symbol === 'USDC');
       expect(usdc).toBeDefined();
     });
   });
@@ -58,7 +58,7 @@ describe('AllbridgeAdapter', () => {
           sourceToken: 'USDC',
           destinationToken: 'USDC',
           recipient: '0x1234567890123456789012345678901234567890',
-        })
+        }),
       ).rejects.toThrow();
     });
 
@@ -71,7 +71,7 @@ describe('AllbridgeAdapter', () => {
           sourceToken: 'USDC',
           destinationToken: 'USDC',
           recipient: '0x1234567890123456789012345678901234567890',
-        })
+        }),
       ).rejects.toThrow();
     });
   });

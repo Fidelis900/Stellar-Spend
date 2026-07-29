@@ -10,17 +10,31 @@ import { calculateMinAmountOut as calcMinFromStablecoins, getSwapPair } from '..
 // Mock stellar-sdk to avoid ESM issues
 vi.mock('@stellar/stellar-sdk', () => ({
   Asset: class Asset {
-    constructor(public code: string, public issuer: string) {}
-    static native() { return new Asset('XLM', ''); }
+    constructor(
+      public code: string,
+      public issuer: string,
+    ) {}
+    static native() {
+      return new Asset('XLM', '');
+    }
   },
   Account: class Account {
-    constructor(public id: string, public sequence: string) {}
+    constructor(
+      public id: string,
+      public sequence: string,
+    ) {}
   },
   TransactionBuilder: class TransactionBuilder {
     constructor() {}
-    addOperation() { return this; }
-    setTimeout() { return this; }
-    build() { return { toXDR: () => 'mocked-xdr' }; }
+    addOperation() {
+      return this;
+    }
+    setTimeout() {
+      return this;
+    }
+    build() {
+      return { toXDR: () => 'mocked-xdr' };
+    }
   },
   Operation: {
     pathPaymentStrictSend: vi.fn(() => ({})),
@@ -178,9 +192,9 @@ describe('StellarSwapService', () => {
     it('throws for expired quote', async () => {
       const quote = await service.getQuote('USDC', 'USDT', '100');
       const expired: StellarSwapQuote = { ...quote, expiresAt: Date.now() - 1000 };
-      await expect(
-        service.buildSwapTransaction(expired, 'GBXXX', '0'),
-      ).rejects.toThrow('Quote has expired');
+      await expect(service.buildSwapTransaction(expired, 'GBXXX', '0')).rejects.toThrow(
+        'Quote has expired',
+      );
     });
   });
 });

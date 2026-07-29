@@ -25,7 +25,7 @@ export class HttpClientError extends Error {
   constructor(
     message: string,
     public readonly status: number,
-    public readonly details?: unknown
+    public readonly details?: unknown,
   ) {
     super(message);
     this.name = 'HttpClientError';
@@ -34,7 +34,9 @@ export class HttpClientError extends Error {
 }
 
 export class HttpClient {
-  private readonly config: Required<Omit<HttpClientConfig, 'baseUrl' | 'headers' | 'onRequest' | 'onResponse'>> &
+  private readonly config: Required<
+    Omit<HttpClientConfig, 'baseUrl' | 'headers' | 'onRequest' | 'onResponse'>
+  > &
     Pick<HttpClientConfig, 'baseUrl' | 'headers' | 'onRequest' | 'onResponse'>;
   private circuitState: CircuitState = 'closed';
   private failures = 0;
@@ -114,7 +116,7 @@ export class HttpClient {
           const err = new HttpClientError(
             (data as any)?.message || response.statusText || 'Unknown error',
             response.status,
-            data
+            data,
           );
           // Don't retry 4xx except 429
           if (response.status >= 400 && response.status < 500 && response.status !== 429) {
@@ -128,7 +130,12 @@ export class HttpClient {
         return ((data as any)?.data ?? data) as T;
       } catch (error: any) {
         clearTimeout(timerId);
-        if (error instanceof HttpClientError && error.status >= 400 && error.status < 500 && error.status !== 429) {
+        if (
+          error instanceof HttpClientError &&
+          error.status >= 400 &&
+          error.status < 500 &&
+          error.status !== 429
+        ) {
           throw error;
         }
         if (error instanceof CircuitOpenError) throw error;

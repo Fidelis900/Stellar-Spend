@@ -3,20 +3,20 @@
  * Provides CSP directives and validation
  */
 
-import crypto from "crypto";
+import crypto from 'crypto';
 
 export interface CSPDirectives {
-  "default-src": string[];
-  "script-src": string[];
-  "style-src": string[];
-  "font-src": string[];
-  "img-src": string[];
-  "connect-src": string[];
-  "frame-ancestors": string[];
-  "base-uri": string[];
-  "form-action": string[];
-  "upgrade-insecure-requests"?: string[];
-  "report-uri"?: string[];
+  'default-src': string[];
+  'script-src': string[];
+  'style-src': string[];
+  'font-src': string[];
+  'img-src': string[];
+  'connect-src': string[];
+  'frame-ancestors': string[];
+  'base-uri': string[];
+  'form-action': string[];
+  'upgrade-insecure-requests'?: string[];
+  'report-uri'?: string[];
 }
 
 /**
@@ -34,26 +34,17 @@ export function generateNonce(): string {
  * CSP directives configuration (nonce-based, no unsafe-*)
  */
 export const CSP_DIRECTIVES: CSPDirectives = {
-  "default-src": ["'self'"],
-  "script-src": [
-    "'self'",
-    "'nonce-{nonce}'",
-    "https://cdn.jsdelivr.net",
-    "https://cdn.sentry.io",
-  ],
-  "style-src": [
-    "'self'",
-    "'nonce-{nonce}'",
-    "https://fonts.googleapis.com",
-  ],
-  "font-src": ["'self'", "https://fonts.gstatic.com", "data:"],
-  "img-src": ["'self'", "data:", "blob:", "https:"],
-  "connect-src": ["'self'", "https:", "wss:", "https://sentry.io"],
-  "frame-ancestors": ["'none'"],
-  "base-uri": ["'self'"],
-  "form-action": ["'self'"],
-  "upgrade-insecure-requests": [],
-  "report-uri": ["/api/csp-report"],
+  'default-src': ["'self'"],
+  'script-src': ["'self'", "'nonce-{nonce}'", 'https://cdn.jsdelivr.net', 'https://cdn.sentry.io'],
+  'style-src': ["'self'", "'nonce-{nonce}'", 'https://fonts.googleapis.com'],
+  'font-src': ["'self'", 'https://fonts.gstatic.com', 'data:'],
+  'img-src': ["'self'", 'data:', 'blob:', 'https:'],
+  'connect-src': ["'self'", 'https:', 'wss:', 'https://sentry.io'],
+  'frame-ancestors': ["'none'"],
+  'base-uri': ["'self'"],
+  'form-action': ["'self'"],
+  'upgrade-insecure-requests': [],
+  'report-uri': ['/api/csp-report'],
 };
 
 /**
@@ -62,8 +53,8 @@ export const CSP_DIRECTIVES: CSPDirectives = {
 export function buildCSPHeader(directives: CSPDirectives): string {
   return Object.entries(directives)
     .filter(([, values]) => values.length > 0)
-    .map(([key, values]) => `${key} ${values.join(" ")}`)
-    .join("; ");
+    .map(([key, values]) => `${key} ${values.join(' ')}`)
+    .join('; ');
 }
 
 /**
@@ -74,11 +65,11 @@ export function validateCSPHeader(header: string): { valid: boolean; errors: str
 
   // Check for common CSP syntax issues
   if (!header || header.trim().length === 0) {
-    errors.push("CSP header is empty");
+    errors.push('CSP header is empty');
   }
 
   // Validate directive format
-  const directives = header.split(";").map((d) => d.trim());
+  const directives = header.split(';').map((d) => d.trim());
   for (const directive of directives) {
     if (!directive) continue;
 
@@ -102,12 +93,16 @@ export function validateCSPHeader(header: string): { valid: boolean; errors: str
 /**
  * Get CSP directives for specific environment
  */
-export function getCSPDirectivesForEnvironment(env: "development" | "production"): CSPDirectives {
+export function getCSPDirectivesForEnvironment(env: 'development' | 'production'): CSPDirectives {
   const directives = { ...CSP_DIRECTIVES };
 
-  if (env === "development") {
+  if (env === 'development') {
     // Allow localhost for development
-    directives["connect-src"] = [...directives["connect-src"], "http://localhost:*", "ws://localhost:*"];
+    directives['connect-src'] = [
+      ...directives['connect-src'],
+      'http://localhost:*',
+      'ws://localhost:*',
+    ];
   }
 
   return directives;

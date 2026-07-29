@@ -45,7 +45,8 @@ export async function GET(req: NextRequest) {
 // POST: submit KYC, upload document, run AML screening
 export async function POST(req: NextRequest) {
   try {
-    const { action, userId, documentType, documentId, fileName, mimeType, transactionAmount } = await req.json();
+    const { action, userId, documentType, documentId, fileName, mimeType, transactionAmount } =
+      await req.json();
 
     if (!userId) {
       return ErrorHandler.validation('userId is required');
@@ -55,7 +56,13 @@ export async function POST(req: NextRequest) {
       if (!documentType || !documentId) {
         return ErrorHandler.validation('documentType and documentId are required');
       }
-      const upload = KYCLimitService.uploadDocument(userId, documentType, documentId, fileName, mimeType);
+      const upload = KYCLimitService.uploadDocument(
+        userId,
+        documentType,
+        documentId,
+        fileName,
+        mimeType,
+      );
       return NextResponse.json({ success: true, upload, kyc: KYCLimitService.getKYC(userId) });
     }
 
@@ -109,7 +116,10 @@ export async function PATCH(req: NextRequest) {
     if (action === 'approve-limit-increase') {
       if (!requestId) return ErrorHandler.validation('requestId is required');
       const approved = KYCLimitService.approveLimitIncrease(userId, requestId);
-      if (!approved) return ErrorHandler.handle(new ApiError(ErrorType.NOT_FOUND, 'Request not found or already processed'));
+      if (!approved)
+        return ErrorHandler.handle(
+          new ApiError(ErrorType.NOT_FOUND, 'Request not found or already processed'),
+        );
       return NextResponse.json({ success: true, limits: KYCLimitService.getUserLimits(userId) });
     }
 

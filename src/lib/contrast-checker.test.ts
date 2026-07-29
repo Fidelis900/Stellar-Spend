@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  getContrastRatio,
-  isWcagAA,
-  isWcagAAA,
-  auditContrastPairs,
-} from './contrast-checker';
+import { getContrastRatio, isWcagAA, isWcagAAA, auditContrastPairs } from './contrast-checker';
 
 describe('contrast-checker', () => {
   describe('getContrastRatio', () => {
@@ -100,7 +95,7 @@ describe('contrast-checker', () => {
 
       const pairs = auditContrastPairs(tokens);
       const whiteOnBlack = pairs.find(
-        p => p.foregroundName === 'text' && p.backgroundName === 'bg'
+        (p) => p.foregroundName === 'text' && p.backgroundName === 'bg',
       );
       expect(whiteOnBlack?.wcagAA).toBe(true);
       expect(whiteOnBlack?.contrast).toBeGreaterThan(4.5);
@@ -116,7 +111,7 @@ describe('contrast-checker', () => {
 
       const pairs = auditContrastPairs(tokens);
       const lowContrast = pairs.find(
-        p => p.foregroundName === 'muted' && p.backgroundName === 'panel'
+        (p) => p.foregroundName === 'muted' && p.backgroundName === 'panel',
       );
       expect(lowContrast).toBeDefined();
     });

@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import type { ReactNode } from "react";
-import { cn } from "@/lib/cn";
-import { getCurrencyFlag } from "@/lib/currency-flags";
-import type { Filters } from "../filters";
+import type { ReactNode } from 'react';
+import { cn } from '@/lib/cn';
+import { getCurrencyFlag } from '@/lib/currency-flags';
+import type { Filters } from '../filters';
 
 interface FilterInputsProps {
   filters: Filters;
@@ -14,8 +14,8 @@ interface FilterInputsProps {
 }
 
 const inputClass = cn(
-  "bg-[#0a0a0a] border border-[#333333] px-3 py-2 text-xs text-white",
-  "placeholder-[#555555] focus:outline-none focus:border-[#c9a962]",
+  'bg-[#0a0a0a] border border-[#333333] px-3 py-2 text-xs text-white',
+  'placeholder-[#555555] focus:outline-none focus:border-[#c9a962]',
 );
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
@@ -41,16 +41,16 @@ export function FilterInputs({
         <input
           type="text"
           value={filters.search}
-          onChange={(e) => onChange("search", e.target.value)}
+          onChange={(e) => onChange('search', e.target.value)}
           placeholder="TX hash, ID, or note"
           aria-label="Search transactions"
-          className={cn(inputClass, "w-48")}
+          className={cn(inputClass, 'w-48')}
         />
       </Field>
       <Field label="Status">
         <select
           value={filters.status}
-          onChange={(e) => onChange("status", e.target.value as Filters["status"])}
+          onChange={(e) => onChange('status', e.target.value as Filters['status'])}
           aria-label="Filter by status"
           className={inputClass}
         >
@@ -65,10 +65,10 @@ export function FilterInputs({
       <Field label="Currency">
         <select
           value={filters.currency}
-          onChange={(e) => onChange("currency", e.target.value)}
+          onChange={(e) => onChange('currency', e.target.value)}
           aria-label="Filter by currency"
           disabled={availableCurrencies.length === 0}
-          className={cn(inputClass, "disabled:opacity-50 disabled:cursor-not-allowed")}
+          className={cn(inputClass, 'disabled:opacity-50 disabled:cursor-not-allowed')}
         >
           <option value="">All</option>
           {availableCurrencies.map((c) => (
@@ -82,48 +82,48 @@ export function FilterInputs({
         <input
           type="text"
           value={filters.tags}
-          onChange={(e) => onChange("tags", e.target.value)}
+          onChange={(e) => onChange('tags', e.target.value)}
           placeholder="comma, separated"
           aria-label="Filter by tags"
-          className={cn(inputClass, "w-40")}
+          className={cn(inputClass, 'w-40')}
         />
       </Field>
       <Field label="From">
         <input
           type="date"
           value={filters.dateFrom}
-          onChange={(e) => onChange("dateFrom", e.target.value)}
+          onChange={(e) => onChange('dateFrom', e.target.value)}
           aria-label="Filter from date"
-          className={cn(inputClass, "[color-scheme:dark]")}
+          className={cn(inputClass, '[color-scheme:dark]')}
         />
       </Field>
       <Field label="To">
         <input
           type="date"
           value={filters.dateTo}
-          onChange={(e) => onChange("dateTo", e.target.value)}
+          onChange={(e) => onChange('dateTo', e.target.value)}
           aria-label="Filter to date"
-          className={cn(inputClass, "[color-scheme:dark]")}
+          className={cn(inputClass, '[color-scheme:dark]')}
         />
       </Field>
       <Field label="Min USDC">
         <input
           type="number"
           value={filters.amountMin}
-          onChange={(e) => onChange("amountMin", e.target.value)}
+          onChange={(e) => onChange('amountMin', e.target.value)}
           placeholder="0"
           aria-label="Minimum amount"
-          className={cn(inputClass, "w-24")}
+          className={cn(inputClass, 'w-24')}
         />
       </Field>
       <Field label="Max USDC">
         <input
           type="number"
           value={filters.amountMax}
-          onChange={(e) => onChange("amountMax", e.target.value)}
+          onChange={(e) => onChange('amountMax', e.target.value)}
           placeholder="∞"
           aria-label="Maximum amount"
-          className={cn(inputClass, "w-24")}
+          className={cn(inputClass, 'w-24')}
         />
       </Field>
 
@@ -131,9 +131,9 @@ export function FilterInputs({
         <button
           onClick={onClear}
           className={cn(
-            "ml-auto text-[10px] tracking-widest uppercase px-3 py-2",
-            "border border-[#555555] text-[#777777]",
-            "hover:border-[#c9a962] hover:text-[#c9a962] transition-colors duration-150",
+            'ml-auto text-[10px] tracking-widest uppercase px-3 py-2',
+            'border border-[#555555] text-[#777777]',
+            'hover:border-[#c9a962] hover:text-[#c9a962] transition-colors duration-150',
           )}
         >
           Clear filters

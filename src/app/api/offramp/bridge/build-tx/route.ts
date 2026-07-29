@@ -16,9 +16,9 @@ function withRequestId<T>(response: NextResponse<T>, requestId: string): NextRes
 
 /**
  * POST /api/offramp/bridge/build-tx
- * 
+ *
  * Builds a Soroban XDR transaction for bridging USDC from Stellar to Base.
- * 
+ *
  * Request body:
  * {
  *   amount: string (USDC amount)
@@ -26,7 +26,7 @@ function withRequestId<T>(response: NextResponse<T>, requestId: string): NextRes
  *   toAddress: string (Base address)
  *   feePaymentMethod: 'native' | 'stablecoin' (default: 'stablecoin')
  * }
- * 
+ *
  * Response:
  * {
  *   xdr: string
@@ -44,7 +44,10 @@ export async function POST(request: NextRequest) {
     const rateLimitCheck = await buildTxLimiter.check(clientIp);
     if (!rateLimitCheck.allowed) {
       logger.logError(429, 'Rate limit exceeded');
-      const res = withRequestId(ErrorHandler.rateLimit('Too many requests', rateLimitCheck.retryAfter), requestId);
+      const res = withRequestId(
+        ErrorHandler.rateLimit('Too many requests', rateLimitCheck.retryAfter),
+        requestId,
+      );
       res.headers.set('Retry-After', String(rateLimitCheck.retryAfter));
       return res;
     }
@@ -55,7 +58,10 @@ export async function POST(request: NextRequest) {
     // Validate inputs
     if (!validateAmount(amount)) {
       logger.logError(400, 'Invalid amount: must be a positive number');
-      return withRequestId(ErrorHandler.validation('Invalid amount: must be a positive number'), requestId);
+      return withRequestId(
+        ErrorHandler.validation('Invalid amount: must be a positive number'),
+        requestId,
+      );
     }
 
     if (!validateAddress(fromAddress, 'stellar')) {
@@ -70,11 +76,16 @@ export async function POST(request: NextRequest) {
 
     if (!['native', 'stablecoin'].includes(feePaymentMethod)) {
       logger.logError(400, 'Invalid feePaymentMethod: must be "native" or "stablecoin"');
-      return withRequestId(ErrorHandler.validation('Invalid feePaymentMethod: must be "native" or "stablecoin"'), requestId);
+      return withRequestId(
+        ErrorHandler.validation('Invalid feePaymentMethod: must be "native" or "stablecoin"'),
+        requestId,
+      );
     }
 
     // Initialize Allbridge SDK
-    const { AllbridgeCoreSdk, nodeRpcUrlsDefault, Messenger, FeePaymentMethod } = await import('@allbridge/bridge-core-sdk');
+    const { AllbridgeCoreSdk, nodeRpcUrlsDefault, Messenger, FeePaymentMethod } = await import(
+      '@allbridge/bridge-core-sdk'
+    );
 
     const sdk = new AllbridgeCoreSdk({
       ...nodeRpcUrlsDefault,
@@ -86,19 +97,22 @@ export async function POST(request: NextRequest) {
     // Fetch chain details and tokens — wrapped in circuit breaker
     let chainDetails: Awaited<ReturnType<typeof sdk.chainDetailsMap>>;
     try {
-      chainDetails = await allbridgeBreaker.execute(
-        () => sdk.chainDetailsMap(),
-        {
-          fallback: () => {
-            throw new Error('Allbridge SDK unavailable — circuit open');
-          },
+      chainDetails = await allbridgeBreaker.execute(() => sdk.chainDetailsMap(), {
+        fallback: () => {
+          throw new Error('Allbridge SDK unavailable — circuit open');
         },
-      );
+      });
     } catch (err) {
-      if (err instanceof CircuitOpenError || (err instanceof Error && err.message.includes('circuit open'))) {
+      if (
+        err instanceof CircuitOpenError ||
+        (err instanceof Error && err.message.includes('circuit open'))
+      ) {
         logger.logError(503, 'Bridge service temporarily unavailable');
         return withRequestId(
-          NextResponse.json({ error: 'Bridge service is temporarily unavailable. Please try again shortly.' }, { status: 503 }),
+          NextResponse.json(
+            { error: 'Bridge service is temporarily unavailable. Please try again shortly.' },
+            { status: 503 },
+          ),
           requestId,
         );
       }
@@ -110,17 +124,26 @@ export async function POST(request: NextRequest) {
 
     for (const [, chain] of Object.entries(chainDetails)) {
       const chainObj = chain as any;
-      if (chainObj.name?.toLowerCase().includes('stellar') || chainObj.name?.toLowerCase().includes('soroban')) {
+      if (
+        chainObj.name?.toLowerCase().includes('stellar') ||
+        chainObj.name?.toLowerCase().includes('soroban')
+      ) {
         stellarChain = chainObj;
       }
-      if (chainObj.name?.toLowerCase().includes('ethereum') || chainObj.name?.toLowerCase().includes('base')) {
+      if (
+        chainObj.name?.toLowerCase().includes('ethereum') ||
+        chainObj.name?.toLowerCase().includes('base')
+      ) {
         baseChain = chainObj;
       }
     }
 
     if (!stellarChain || !baseChain) {
       logger.logError(500, 'Failed to fetch chain details from Allbridge');
-      return withRequestId(ErrorHandler.handle(new Error('Failed to fetch chain details from Allbridge')), requestId);
+      return withRequestId(
+        ErrorHandler.handle(new Error('Failed to fetch chain details from Allbridge')),
+        requestId,
+      );
     }
 
     // Find USDC tokens
@@ -129,19 +152,30 @@ export async function POST(request: NextRequest) {
 
     if (!sourceToken || !destinationToken) {
       logger.logError(500, 'USDC token not found on one or both chains');
-      return withRequestId(ErrorHandler.handle(new Error('USDC token not found on one or both chains')), requestId);
+      return withRequestId(
+        ErrorHandler.handle(new Error('USDC token not found on one or both chains')),
+        requestId,
+      );
     }
 
     // Get fee options
-    const feeOptions = await sdk.getGasFeeOptions(sourceToken, destinationToken, Messenger.ALLBRIDGE);
+    const feeOptions = await sdk.getGasFeeOptions(
+      sourceToken,
+      destinationToken,
+      Messenger.ALLBRIDGE,
+    );
 
     // Select fee based on payment method
-    const gasFeePaymentMethod = feePaymentMethod === 'native'
-      ? FeePaymentMethod.WITH_NATIVE_CURRENCY
-      : FeePaymentMethod.WITH_STABLECOIN;
-    const selectedFee = feePaymentMethod === 'native'
-      ? (feeOptions as any).native?.float ?? (feeOptions as any)[FeePaymentMethod.WITH_NATIVE_CURRENCY]?.float
-      : (feeOptions as any).stablecoin?.float ?? (feeOptions as any)[FeePaymentMethod.WITH_STABLECOIN]?.float;
+    const gasFeePaymentMethod =
+      feePaymentMethod === 'native'
+        ? FeePaymentMethod.WITH_NATIVE_CURRENCY
+        : FeePaymentMethod.WITH_STABLECOIN;
+    const selectedFee =
+      feePaymentMethod === 'native'
+        ? ((feeOptions as any).native?.float ??
+          (feeOptions as any)[FeePaymentMethod.WITH_NATIVE_CURRENCY]?.float)
+        : ((feeOptions as any).stablecoin?.float ??
+          (feeOptions as any)[FeePaymentMethod.WITH_STABLECOIN]?.float);
 
     // Build raw transaction
     const rawTx = await sdk.bridge.rawTxBuilder.send({
@@ -156,7 +190,8 @@ export async function POST(request: NextRequest) {
     });
 
     // rawTx for Stellar/Soroban is an XDR string
-    const xdr = typeof rawTx === 'string' ? rawTx : (rawTx as any).toXDR?.() ?? JSON.stringify(rawTx);
+    const xdr =
+      typeof rawTx === 'string' ? rawTx : ((rawTx as any).toXDR?.() ?? JSON.stringify(rawTx));
 
     const response = NextResponse.json({
       xdr,
@@ -183,13 +218,15 @@ export async function POST(request: NextRequest) {
 
     // Parse common simulation errors
     if (message.includes('resulting balance is not within the allowed range')) {
-      const userFriendly = "Insufficient XLM balance for native gas fee. Your remaining XLM would fall below Stellar's minimum account reserve. Switch to USDC fee payment or add more XLM.";
+      const userFriendly =
+        "Insufficient XLM balance for native gas fee. Your remaining XLM would fall below Stellar's minimum account reserve. Switch to USDC fee payment or add more XLM.";
       logger.logError(500, userFriendly);
       return withRequestId(ErrorHandler.handle(new Error(userFriendly)), requestId);
     }
 
     if (message.includes('contract call failed') && message.includes('transfer')) {
-      const userFriendly = "A token transfer in the bridge contract failed during simulation. This usually means insufficient balance for the amount + fees.";
+      const userFriendly =
+        'A token transfer in the bridge contract failed during simulation. This usually means insufficient balance for the amount + fees.';
       logger.logError(500, userFriendly);
       return withRequestId(ErrorHandler.handle(new Error(userFriendly)), requestId);
     }

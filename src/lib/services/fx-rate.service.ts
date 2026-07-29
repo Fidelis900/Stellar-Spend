@@ -20,12 +20,12 @@ import { logger } from '@/lib/logger';
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 const PAYCREST_RATE_BASE = 'https://api.paycrest.io/v1/rates/USDC/1';
-const CACHE_TTL_MS = 30_000;          // 30 s — fresh
-const STALE_TTL_MS = 60_000;          // 60 s — stale-while-revalidate window
-const FETCH_TIMEOUT_MS = 8_000;       // 8 s per individual rate fetch
+const CACHE_TTL_MS = 30_000; // 30 s — fresh
+const STALE_TTL_MS = 60_000; // 60 s — stale-while-revalidate window
+const FETCH_TIMEOUT_MS = 8_000; // 8 s per individual rate fetch
 const DEFAULT_CURRENCIES = ['NGN', 'KES', 'GHS', 'ZAR', 'USD'] as const;
 
-export type SupportedCurrency = typeof DEFAULT_CURRENCIES[number] | string;
+export type SupportedCurrency = (typeof DEFAULT_CURRENCIES)[number] | string;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -71,12 +71,14 @@ export class FxRateService {
         // Stale-while-revalidate: serve stale, kick off background refresh
         if (!entry.revalidating) {
           entry.revalidating = true;
-          this.fetchAndCache(key).catch((err) => {
-            logger.debug('fx-rate.background-revalidation-failed', { currency: key }, err);
-          }).finally(() => {
-            const e = this.cache.get(key);
-            if (e) e.revalidating = false;
-          });
+          this.fetchAndCache(key)
+            .catch((err) => {
+              logger.debug('fx-rate.background-revalidation-failed', { currency: key }, err);
+            })
+            .finally(() => {
+              const e = this.cache.get(key);
+              if (e) e.revalidating = false;
+            });
         }
         return entry.rate;
       }
@@ -93,7 +95,13 @@ export class FxRateService {
    */
   async getRates(currencies: string[] = [...DEFAULT_CURRENCIES]): Promise<FxRate[]> {
     const results = await Promise.allSettled(
-      currencies.map((c) => this.getRate(c).then((rate) => ({ currency: c.toUpperCase(), rate, fetchedAt: Date.now() })))
+      currencies.map((c) =>
+        this.getRate(c).then((rate) => ({
+          currency: c.toUpperCase(),
+          rate,
+          fetchedAt: Date.now(),
+        })),
+      ),
     );
 
     return results
@@ -143,7 +151,11 @@ export class FxRateService {
       // Return stale value if available rather than propagating
       const stale = this.cache.get(currency);
       if (stale) {
-        logger.warn('fx-rate.using-stale-fallback', { currency, staleAgeMs: Date.now() - stale.fetchedAt }, err);
+        logger.warn(
+          'fx-rate.using-stale-fallback',
+          { currency, staleAgeMs: Date.now() - stale.fetchedAt },
+          err,
+        );
         return stale.rate;
       }
       logger.error('fx-rate.fetch-failed', { currency }, err);

@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { useStellarWallet } from '../useStellarWallet';
 
 jest.mock('@/lib/wallets/manager', () => ({
-  WalletManager: jest.fn(function() {
+  WalletManager: jest.fn(function () {
     this.getAvailableWallets = jest.fn(() => []);
     this.isWalletAvailable = jest.fn(() => false);
     this.connect = jest.fn();

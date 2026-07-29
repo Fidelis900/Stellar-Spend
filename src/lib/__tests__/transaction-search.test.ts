@@ -44,7 +44,9 @@ describe('TransactionSearchService.search', () => {
   });
 
   it('is case-insensitive when matching tags', () => {
-    const txs = [createMockTransaction({ id: 'a', tags: [{ id: '1', name: 'Urgent', color: '#fff' }] })];
+    const txs = [
+      createMockTransaction({ id: 'a', tags: [{ id: '1', name: 'Urgent', color: '#fff' }] }),
+    ];
     const result = TransactionSearchService.search(txs, { tags: ['urgent'] });
     expect(result.map((t) => t.id)).toEqual(['a']);
   });
@@ -61,12 +63,30 @@ describe('TransactionSearchService.search', () => {
   it('composes multiple filters (status + currency + amount range + tags)', () => {
     const txs = [
       createMockTransaction({
-        id: 'match', status: 'failed', currency: 'NGN', amount: '50',
+        id: 'match',
+        status: 'failed',
+        currency: 'NGN',
+        amount: '50',
         tags: [{ id: '1', name: 'flagged', color: '#fff' }],
       }),
-      createMockTransaction({ id: 'wrong-status', status: 'completed', currency: 'NGN', amount: '50' }),
-      createMockTransaction({ id: 'wrong-currency', status: 'failed', currency: 'USD', amount: '50' }),
-      createMockTransaction({ id: 'out-of-range', status: 'failed', currency: 'NGN', amount: '500' }),
+      createMockTransaction({
+        id: 'wrong-status',
+        status: 'completed',
+        currency: 'NGN',
+        amount: '50',
+      }),
+      createMockTransaction({
+        id: 'wrong-currency',
+        status: 'failed',
+        currency: 'USD',
+        amount: '50',
+      }),
+      createMockTransaction({
+        id: 'out-of-range',
+        status: 'failed',
+        currency: 'NGN',
+        amount: '500',
+      }),
       createMockTransaction({ id: 'no-tag', status: 'failed', currency: 'NGN', amount: '50' }),
     ];
 

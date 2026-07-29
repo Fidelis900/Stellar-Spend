@@ -1,10 +1,10 @@
-import { cn } from "@/lib/cn";
+import { cn } from '@/lib/cn';
 
 export interface SkeletonBaseProps {
   width?: string | number;
   height?: string | number;
   className?: string;
-  "aria-label"?: string;
+  'aria-label'?: string;
 }
 
 /**
@@ -23,14 +23,14 @@ export function SkeletonBase({
   width,
   height,
   className,
-  "aria-label": ariaLabel,
+  'aria-label': ariaLabel,
 }: SkeletonBaseProps) {
   return (
     <span
-      className={cn("skeleton", className)}
+      className={cn('skeleton', className)}
       style={{ width, height }}
       role="status"
-      aria-label={ariaLabel ?? "Loading…"}
+      aria-label={ariaLabel ?? 'Loading…'}
       aria-busy="true"
     />
   );

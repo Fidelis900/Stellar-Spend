@@ -28,9 +28,7 @@ export function escapeSql(input: string): string {
  */
 export function escapeNoSql(input: unknown): unknown {
   if (typeof input === 'string') {
-    return input
-      .replace(/\$/g, '\\$')
-      .replace(/\./g, '\\.');
+    return input.replace(/\$/g, '\\$').replace(/\./g, '\\.');
   }
   if (typeof input === 'object' && input !== null) {
     if (Array.isArray(input)) {
@@ -94,13 +92,13 @@ export function sanitizeNumber(input: unknown): number | null {
 export function sanitizeObjectKeys(obj: Record<string, unknown>): Record<string, unknown> {
   const dangerous = ['__proto__', 'constructor', 'prototype'];
   const sanitized: Record<string, unknown> = {};
-  
+
   for (const [key, value] of Object.entries(obj)) {
     if (!dangerous.includes(key)) {
       sanitized[key] = value;
     }
   }
-  
+
   return sanitized;
 }
 

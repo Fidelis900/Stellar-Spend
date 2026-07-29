@@ -7,7 +7,7 @@ import {
   ApiError,
   getEnvironmentConfig,
   isError,
-  hasMessage
+  hasMessage,
 } from './error-types';
 import { TimeoutError } from './offramp/utils/timeout';
 import { PaycrestHttpError } from './offramp/adapters/paycrest-adapter';
@@ -53,7 +53,7 @@ export class ErrorHandler {
 
     const context = this.createErrorContext(error, statusCode);
     const response = this.formatResponse(context);
-    
+
     return NextResponse.json(response, { status: context.statusCode });
   }
 
@@ -66,7 +66,7 @@ export class ErrorHandler {
       originalError: new Error(errorMessage),
       statusCode: ERROR_STATUS_CODES[ErrorType.VALIDATION],
       errorType: ErrorType.VALIDATION,
-      message: errorMessage
+      message: errorMessage,
     };
 
     const response = this.formatResponse(context);
@@ -82,7 +82,7 @@ export class ErrorHandler {
       originalError: new Error(message),
       statusCode: ERROR_STATUS_CODES[ErrorType.NOT_FOUND],
       errorType: ErrorType.NOT_FOUND,
-      message
+      message,
     };
 
     const response = this.formatResponse(context);
@@ -98,7 +98,7 @@ export class ErrorHandler {
       originalError: new Error(errorMessage),
       statusCode: ERROR_STATUS_CODES[ErrorType.UNAUTHORIZED],
       errorType: ErrorType.UNAUTHORIZED,
-      message: errorMessage
+      message: errorMessage,
     };
 
     const response = this.formatResponse(context);
@@ -114,7 +114,7 @@ export class ErrorHandler {
       originalError: new Error(errorMessage),
       statusCode: ERROR_STATUS_CODES[ErrorType.FORBIDDEN],
       errorType: ErrorType.FORBIDDEN,
-      message: errorMessage
+      message: errorMessage,
     };
 
     const response = this.formatResponse(context);
@@ -124,13 +124,16 @@ export class ErrorHandler {
   /**
    * Handle conflict errors (duplicate resource, invalid state transition, etc.)
    */
-  static conflict(message: string, details?: Record<string, unknown>): NextResponse<StandardErrorResponse> {
+  static conflict(
+    message: string,
+    details?: Record<string, unknown>,
+  ): NextResponse<StandardErrorResponse> {
     const context: ErrorContext = {
       originalError: new Error(message),
       statusCode: ERROR_STATUS_CODES[ErrorType.CONFLICT],
       errorType: ErrorType.CONFLICT,
       message,
-      details: getEnvironmentConfig().includeDetails ? details : undefined
+      details: getEnvironmentConfig().includeDetails ? details : undefined,
     };
 
     const response = this.formatResponse(context);
@@ -146,7 +149,7 @@ export class ErrorHandler {
       originalError: new Error(errorMessage),
       statusCode: ERROR_STATUS_CODES[ErrorType.RATE_LIMIT],
       errorType: ErrorType.RATE_LIMIT,
-      message: errorMessage
+      message: errorMessage,
     };
 
     const response = this.formatResponse(context);
@@ -165,7 +168,7 @@ export class ErrorHandler {
       originalError: error,
       statusCode: 504,
       errorType: ErrorType.SERVER_ERROR,
-      message: error.message
+      message: error.message,
     };
 
     const response = this.formatResponse(context);
@@ -173,15 +176,17 @@ export class ErrorHandler {
   }
   static serverError(error?: unknown): NextResponse<StandardErrorResponse> {
     const config = getEnvironmentConfig();
-    const message = config.isProduction 
-      ? 'Internal server error' 
-      : (isError(error) ? error.message : 'Internal server error');
+    const message = config.isProduction
+      ? 'Internal server error'
+      : isError(error)
+        ? error.message
+        : 'Internal server error';
 
     const context: ErrorContext = {
       originalError: error || new Error('Internal server error'),
       statusCode: ERROR_STATUS_CODES[ErrorType.SERVER_ERROR],
       errorType: ErrorType.SERVER_ERROR,
-      message
+      message,
     };
 
     const response = this.formatResponse(context);
@@ -193,7 +198,7 @@ export class ErrorHandler {
    */
   private static createErrorContext(error: unknown, statusCode?: number): ErrorContext {
     const config = getEnvironmentConfig();
-    
+
     // Handle different input types
     if (isError(error)) {
       return {
@@ -202,7 +207,7 @@ export class ErrorHandler {
         errorType: this.classifyError(error, statusCode),
         message: error.message,
         stack: error.stack,
-        details: config.includeDetails ? { stack: error.stack } : undefined
+        details: config.includeDetails ? { stack: error.stack } : undefined,
       };
     }
 
@@ -211,7 +216,7 @@ export class ErrorHandler {
         originalError: error,
         statusCode: statusCode || ERROR_STATUS_CODES[ErrorType.SERVER_ERROR],
         errorType: this.classifyError(error, statusCode),
-        message: error
+        message: error,
       };
     }
 
@@ -221,7 +226,7 @@ export class ErrorHandler {
         statusCode: statusCode || ERROR_STATUS_CODES[ErrorType.SERVER_ERROR],
         errorType: this.classifyError(error, statusCode),
         message: error.message,
-        details: config.includeDetails ? error : undefined
+        details: config.includeDetails ? error : undefined,
       };
     }
 
@@ -230,7 +235,7 @@ export class ErrorHandler {
       originalError: error,
       statusCode: statusCode || ERROR_STATUS_CODES[ErrorType.SERVER_ERROR],
       errorType: ErrorType.SERVER_ERROR,
-      message: 'An unexpected error occurred'
+      message: 'An unexpected error occurred',
     };
   }
 
@@ -273,7 +278,7 @@ export class ErrorHandler {
   private static formatResponse(context: ErrorContext): StandardErrorResponse {
     const config = getEnvironmentConfig();
     const response: StandardErrorResponse = {
-      error: context.errorType
+      error: context.errorType,
     };
 
     // Add message if available
@@ -297,14 +302,14 @@ export class ErrorHandler {
   private static sanitizeMessage(message: string): string {
     // Remove file paths
     message = message.replace(/\/[^\s]+\.(js|ts|jsx|tsx|json)/g, '[file]');
-    
+
     // Remove connection strings
     message = message.replace(/mongodb:\/\/[^\s]+/g, '[connection_string]');
     message = message.replace(/postgres:\/\/[^\s]+/g, '[connection_string]');
-    
+
     // Remove API keys and tokens
     message = message.replace(/[a-zA-Z0-9]{32,}/g, '[api_key]');
-    
+
     return message;
   }
 
@@ -317,12 +322,12 @@ export class ErrorHandler {
     }
 
     if (Array.isArray(details)) {
-      return details.map(item => this.sanitizeDetails(item));
+      return details.map((item) => this.sanitizeDetails(item));
     }
 
     if (typeof details === 'object' && details !== null) {
       const sanitized: Record<string, unknown> = {};
-      
+
       for (const [key, value] of Object.entries(details)) {
         // Skip sensitive keys
         if (this.isSensitiveKey(key)) {
@@ -331,7 +336,7 @@ export class ErrorHandler {
           sanitized[key] = this.sanitizeDetails(value);
         }
       }
-      
+
       return sanitized;
     }
 
@@ -343,11 +348,21 @@ export class ErrorHandler {
    */
   private static isSensitiveKey(key: string): boolean {
     const sensitiveKeys = [
-      'password', 'token', 'secret', 'key', 'auth', 'credential',
-      'connection', 'database', 'db', 'mongo', 'postgres', 'redis'
+      'password',
+      'token',
+      'secret',
+      'key',
+      'auth',
+      'credential',
+      'connection',
+      'database',
+      'db',
+      'mongo',
+      'postgres',
+      'redis',
     ];
-    
+
     const lowerKey = key.toLowerCase();
-    return sensitiveKeys.some(sensitive => lowerKey.includes(sensitive));
+    return sensitiveKeys.some((sensitive) => lowerKey.includes(sensitive));
   }
 }

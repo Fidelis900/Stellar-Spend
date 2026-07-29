@@ -62,19 +62,29 @@ vi.mock('@allbridge/bridge-core-sdk', () => ({
     chainDetailsMap = vi.fn().mockResolvedValue({
       stellar: {
         name: 'Stellar',
-        tokens: [{
-          symbol: 'USDC', name: 'USD Coin', decimals: 7,
-          contract: 'GBUQWP3BOUZX34ULNQG23RQ6F4YUSXHTQSXUSMIQ75XABZEYYWRB6HP',
-          allbridgeSymbol: 'USDC', chain: 'STELLAR',
-        }],
+        tokens: [
+          {
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 7,
+            contract: 'GBUQWP3BOUZX34ULNQG23RQ6F4YUSXHTQSXUSMIQ75XABZEYYWRB6HP',
+            allbridgeSymbol: 'USDC',
+            chain: 'STELLAR',
+          },
+        ],
       },
       base: {
         name: 'Base',
-        tokens: [{
-          symbol: 'USDC', name: 'USD Coin', decimals: 6,
-          contract: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-          allbridgeSymbol: 'USDC', chain: 'BASE',
-        }],
+        tokens: [
+          {
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 6,
+            contract: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+            allbridgeSymbol: 'USDC',
+            chain: 'BASE',
+          },
+        ],
       },
     });
     getAmountToBeReceived = vi.fn().mockResolvedValue('99.5');
@@ -142,11 +152,20 @@ interface OpenAPIDoc {
   components: {
     schemas: Record<string, unknown>;
   };
-  paths: Record<string, Record<string, {
-    responses: Record<string, {
-      content?: Record<string, { schema?: unknown }>;
-    }>;
-  }>>;
+  paths: Record<
+    string,
+    Record<
+      string,
+      {
+        responses: Record<
+          string,
+          {
+            content?: Record<string, { schema?: unknown }>;
+          }
+        >;
+      }
+    >
+  >;
 }
 
 let openapiDoc: OpenAPIDoc;
@@ -171,7 +190,7 @@ function resolveRef(doc: OpenAPIDoc, ref: string, visited = new Set<string>()): 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function dereferenceNode(doc: OpenAPIDoc, node: any, visited = new Set<string>()): any {
   if (node === null || typeof node !== 'object') return node;
-  if (Array.isArray(node)) return node.map(item => dereferenceNode(doc, item, new Set(visited)));
+  if (Array.isArray(node)) return node.map((item) => dereferenceNode(doc, item, new Set(visited)));
 
   if ('$ref' in node && typeof node.$ref === 'string') {
     return resolveRef(doc, node.$ref, new Set(visited));
@@ -185,7 +204,12 @@ function dereferenceNode(doc: OpenAPIDoc, node: any, visited = new Set<string>()
   return result;
 }
 
-function getResponseSchema(doc: OpenAPIDoc, pathKey: string, method: string, statusCode: string): unknown | null {
+function getResponseSchema(
+  doc: OpenAPIDoc,
+  pathKey: string,
+  method: string,
+  statusCode: string,
+): unknown | null {
   const pathItem = doc.paths[pathKey];
   if (!pathItem) return null;
   const operation = pathItem[method.toLowerCase()];
@@ -260,7 +284,7 @@ function assertConformsToSchema(
   const valid = validate(body);
   if (!valid) {
     const errors = (validate.errors ?? [])
-      .map(e => `  ${e.instancePath || '(root)'} ${e.message}`)
+      .map((e) => `  ${e.instancePath || '(root)'} ${e.message}`)
       .join('\n');
     throw new Error(`Schema validation failed for [${label}]:\n${errors}`);
   }
@@ -418,7 +442,12 @@ describe('Issue #834 — OpenAPI Contract Tests', () => {
 
       if (res.status === 200) {
         const body = await res.json();
-        const schema = getResponseSchema(openapiDoc, '/api/offramp/bridge/gas-fee-options', 'get', '200');
+        const schema = getResponseSchema(
+          openapiDoc,
+          '/api/offramp/bridge/gas-fee-options',
+          'get',
+          '200',
+        );
         expect(schema).not.toBeNull();
         // GasFeeOptions.feeOptions should have native/stablecoin if present
         if (body.feeOptions) {
@@ -614,7 +643,7 @@ describe('Issue #834 — OpenAPI Contract Tests', () => {
       const body = await res.json();
 
       const undocumentedKeys = Object.keys(body).filter(
-        k => !['status', 'timestamp', 'version'].includes(k),
+        (k) => !['status', 'timestamp', 'version'].includes(k),
       );
       expect(undocumentedKeys).toHaveLength(0);
     });
@@ -631,7 +660,7 @@ describe('Issue #834 — OpenAPI Contract Tests', () => {
         const body = await res.json();
         // Error schema: error (required), message (optional), details (optional)
         const undocumented = Object.keys(body).filter(
-          k => !['error', 'message', 'details'].includes(k),
+          (k) => !['error', 'message', 'details'].includes(k),
         );
         expect(undocumented).toHaveLength(0);
       }

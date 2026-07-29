@@ -1,47 +1,31 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import {
-  AsyncBoundary,
-  ListLoadingState,
-  ListEmptyState,
-  ListErrorState,
-} from '../AsyncBoundary';
+import { AsyncBoundary, ListLoadingState, ListEmptyState, ListErrorState } from '../AsyncBoundary';
 
 describe('AsyncBoundary', () => {
   it('renders children when loaded and not empty', () => {
     render(
-      <AsyncBoundary
-        isLoading={false}
-        isEmpty={false}
-      >
+      <AsyncBoundary isLoading={false} isEmpty={false}>
         <div>Content</div>
-      </AsyncBoundary>
+      </AsyncBoundary>,
     );
     expect(screen.getByText('Content')).toBeTruthy();
   });
 
   it('renders loading content when isLoading is true', () => {
     render(
-      <AsyncBoundary
-        isLoading={true}
-        isEmpty={false}
-        loadingContent={<div>Loading...</div>}
-      >
+      <AsyncBoundary isLoading={true} isEmpty={false} loadingContent={<div>Loading...</div>}>
         <div>Content</div>
-      </AsyncBoundary>
+      </AsyncBoundary>,
     );
     expect(screen.getByText('Loading...')).toBeTruthy();
   });
 
   it('renders empty content when isEmpty is true', () => {
     render(
-      <AsyncBoundary
-        isLoading={false}
-        isEmpty={true}
-        emptyContent={<div>Empty</div>}
-      >
+      <AsyncBoundary isLoading={false} isEmpty={true} emptyContent={<div>Empty</div>}>
         <div>Content</div>
-      </AsyncBoundary>
+      </AsyncBoundary>,
     );
     expect(screen.getByText('Empty')).toBeTruthy();
   });
@@ -55,7 +39,7 @@ describe('AsyncBoundary', () => {
         errorContent={(err) => <div>Error: {err}</div>}
       >
         <div>Content</div>
-      </AsyncBoundary>
+      </AsyncBoundary>,
     );
     expect(screen.getByText('Error: Something went wrong')).toBeTruthy();
   });
@@ -70,7 +54,7 @@ describe('AsyncBoundary', () => {
         errorContent={(err) => <div>{err}</div>}
       >
         <div>Content</div>
-      </AsyncBoundary>
+      </AsyncBoundary>,
     );
     expect(screen.getByText('Error')).toBeTruthy();
     expect(screen.queryByText('Empty')).toBeNull();
@@ -87,7 +71,7 @@ describe('AsyncBoundary', () => {
         errorContent={(err) => <div>{err}</div>}
       >
         <div>Content</div>
-      </AsyncBoundary>
+      </AsyncBoundary>,
     );
     expect(screen.getByText('Loading')).toBeTruthy();
   });
@@ -101,7 +85,7 @@ describe('AsyncBoundary', () => {
         loadingContent={<div>Loading</div>}
       >
         <div>Content</div>
-      </AsyncBoundary>
+      </AsyncBoundary>,
     );
     expect(container.querySelector('.custom-class')).toBeTruthy();
   });
@@ -129,31 +113,18 @@ describe('ListEmptyState', () => {
   });
 
   it('renders custom title and description', () => {
-    render(
-      <ListEmptyState
-        title="Custom title"
-        description="Custom description"
-      />
-    );
+    render(<ListEmptyState title="Custom title" description="Custom description" />);
     expect(screen.getByText('Custom title')).toBeTruthy();
     expect(screen.getByText('Custom description')).toBeTruthy();
   });
 
   it('renders icon when provided', () => {
-    render(
-      <ListEmptyState
-        icon={<svg data-testid="icon" />}
-      />
-    );
+    render(<ListEmptyState icon={<svg data-testid="icon" />} />);
     expect(screen.getByTestId('icon')).toBeTruthy();
   });
 
   it('renders action when provided', () => {
-    render(
-      <ListEmptyState
-        action={<button>Action</button>}
-      />
-    );
+    render(<ListEmptyState action={<button>Action</button>} />);
     expect(screen.getByRole('button', { name: 'Action' })).toBeTruthy();
   });
 });

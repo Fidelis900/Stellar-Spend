@@ -10,7 +10,7 @@ import { Button, Card, CardHeader, CardContent, CardFooter, Badge, Alert } from 
 describe('design-system barrel', () => {
   it('exposes exactly the expected named exports', () => {
     expect(Object.keys(ds).sort()).toEqual(
-      ['Alert', 'Badge', 'Button', 'Card', 'CardContent', 'CardFooter', 'CardHeader'].sort()
+      ['Alert', 'Badge', 'Button', 'Card', 'CardContent', 'CardFooter', 'CardHeader'].sort(),
     );
   });
 
@@ -34,7 +34,7 @@ describe('design-system barrel', () => {
           <Alert title="Heads up">Body</Alert>
         </CardContent>
         <CardFooter>Footer</CardFooter>
-      </Card>
+      </Card>,
     );
     expect(getByRole('button')).toHaveTextContent('Click');
     expect(getByText('New')).toBeInTheDocument();

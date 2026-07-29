@@ -35,7 +35,7 @@ Located in `packages/mobile/`, contains:
 Mobile app imports shared types:
 
 ```typescript
-import { Transaction, Quote } from "@stellar-spend/shared";
+import { Transaction, Quote } from '@stellar-spend/shared';
 ```
 
 ## Next Steps

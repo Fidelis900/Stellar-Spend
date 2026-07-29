@@ -22,7 +22,9 @@ export async function GET(req: NextRequest) {
     const alerts = PriceAlertStorage.getAlertsByUser(userAddress);
     return NextResponse.json({ alerts });
   } catch {
-    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to fetch price alerts'));
+    return ErrorHandler.handle(
+      new ApiError(ErrorType.SERVER_ERROR, 'Failed to fetch price alerts'),
+    );
   }
 }
 
@@ -43,7 +45,10 @@ export async function POST(req: NextRequest) {
       return ErrorHandler.validation('targetPrice must be a positive number');
     }
 
-    const alertInput: Omit<PriceAlert, 'id' | 'createdAt' | 'triggeredAt' | 'notificationSent' | 'triggerHistory'> = {
+    const alertInput: Omit<
+      PriceAlert,
+      'id' | 'createdAt' | 'triggeredAt' | 'notificationSent' | 'triggerHistory'
+    > = {
       currency,
       targetPrice,
       alertType,
@@ -56,6 +61,8 @@ export async function POST(req: NextRequest) {
     const alert = PriceAlertStorage.createAlert(alertInput);
     return NextResponse.json({ alert }, { status: 201 });
   } catch {
-    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to create price alert'));
+    return ErrorHandler.handle(
+      new ApiError(ErrorType.SERVER_ERROR, 'Failed to create price alert'),
+    );
   }
 }

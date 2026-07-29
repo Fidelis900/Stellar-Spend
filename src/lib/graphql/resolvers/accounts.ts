@@ -11,11 +11,7 @@ import { requireAuth, requireRole } from '../auth-guards';
 // ─── Query Resolvers ──────────────────────────────────────────────────────────
 
 export const accountQueries = {
-  async kycInfo(
-    _: unknown,
-    { userId }: { userId: string },
-    ctx: GraphQLContext,
-  ) {
+  async kycInfo(_: unknown, { userId }: { userId: string }, ctx: GraphQLContext) {
     requireAuth(ctx);
     const { KYCLimitService } = await import('../../kyc-limits');
     const kyc = KYCLimitService.getKYC(userId);
@@ -30,11 +26,7 @@ export const accountQueries = {
     };
   },
 
-  async userLimits(
-    _: unknown,
-    { userId }: { userId: string },
-    ctx: GraphQLContext,
-  ) {
+  async userLimits(_: unknown, { userId }: { userId: string }, ctx: GraphQLContext) {
     requireAuth(ctx);
     const { KYCLimitService, TIER_LIMITS } = await import('../../kyc-limits');
     const limits = KYCLimitService.getUserLimits(userId);
@@ -75,11 +67,7 @@ export const accountMutations = {
     };
   },
 
-  async approveKYC(
-    _: unknown,
-    { userId }: { userId: string },
-    ctx: GraphQLContext,
-  ) {
+  async approveKYC(_: unknown, { userId }: { userId: string }, ctx: GraphQLContext) {
     requireRole(ctx, 'admin');
     const { KYCLimitService } = await import('../../kyc-limits');
     const kyc = KYCLimitService.verifyKYC(userId);

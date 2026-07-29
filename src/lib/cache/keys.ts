@@ -1,10 +1,10 @@
 /** Cache TTL values in seconds */
 export const TTL = {
-  RATE: 30,           // FX rates — 30 seconds
-  QUOTE: 60,          // Quotes — 1 minute
-  CURRENCIES: 3600,   // Currency list — 1 hour
+  RATE: 30, // FX rates — 30 seconds
+  QUOTE: 60, // Quotes — 1 minute
+  CURRENCIES: 3600, // Currency list — 1 hour
   INSTITUTIONS: 3600, // Institution list — 1 hour
-  TRANSACTION: 300,   // Transaction status — 5 minutes
+  TRANSACTION: 300, // Transaction status — 5 minutes
 } as const;
 
 /** Cache key builders */

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 
-export type Theme = "light" | "dark" | "high-contrast";
+export type Theme = 'light' | 'dark' | 'high-contrast';
 
 interface ThemeContextValue {
   theme: Theme;
@@ -14,24 +14,24 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-const THEME_CYCLE: Theme[] = ["dark", "light", "high-contrast"];
-const STORAGE_KEY = "theme";
+const THEME_CYCLE: Theme[] = ['dark', 'light', 'high-contrast'];
+const STORAGE_KEY = 'theme';
 
 function resolveSystemTheme(): Theme {
-  if (typeof window === "undefined") return "dark";
-  if (window.matchMedia("(prefers-contrast: more)").matches) return "high-contrast";
-  if (window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
-  return "light";
+  if (typeof window === 'undefined') return 'dark';
+  if (window.matchMedia('(prefers-contrast: more)').matches) return 'high-contrast';
+  if (window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
+  return 'light';
 }
 
 function readStoredTheme(): Theme | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === 'undefined') return null;
   const stored = window.localStorage.getItem(STORAGE_KEY);
-  return stored === "light" || stored === "dark" || stored === "high-contrast" ? stored : null;
+  return stored === 'light' || stored === 'dark' || stored === 'high-contrast' ? stored : null;
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("dark");
+  const [theme, setThemeState] = useState<Theme>('dark');
   const [isSystem, setIsSystem] = useState<boolean>(true);
   const isMounted = useRef(false);
 
@@ -46,40 +46,43 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isSystem) return;
-    const colorScheme = window.matchMedia("(prefers-color-scheme: dark)");
-    const contrast = window.matchMedia("(prefers-contrast: more)");
+    const colorScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    const contrast = window.matchMedia('(prefers-contrast: more)');
     const handler = () => {
       const next = resolveSystemTheme();
       setThemeState(next);
       applyTheme(next, { animate: true });
     };
-    colorScheme.addEventListener("change", handler);
-    contrast.addEventListener("change", handler);
+    colorScheme.addEventListener('change', handler);
+    contrast.addEventListener('change', handler);
     return () => {
-      colorScheme.removeEventListener("change", handler);
-      contrast.removeEventListener("change", handler);
+      colorScheme.removeEventListener('change', handler);
+      contrast.removeEventListener('change', handler);
     };
   }, [isSystem]);
 
   function applyTheme(next: Theme, opts: { animate: boolean }) {
     const root = document.documentElement;
     if (!opts.animate) {
-      root.classList.add("theme-no-transition");
+      root.classList.add('theme-no-transition');
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => root.classList.remove("theme-no-transition"));
+        requestAnimationFrame(() => root.classList.remove('theme-no-transition'));
       });
     }
-    root.setAttribute("data-theme", next);
-    root.style.colorScheme = next === "light" ? "light" : "dark";
+    root.setAttribute('data-theme', next);
+    root.style.colorScheme = next === 'light' ? 'light' : 'dark';
 
     if (isMounted.current && navigator.sendBeacon) {
       const payload = JSON.stringify({
-        category: "Accessibility",
-        action: "theme_change",
+        category: 'Accessibility',
+        action: 'theme_change',
         label: next,
         timestamp: new Date().toISOString(),
       });
-      navigator.sendBeacon("/api/monitoring/vitals", new Blob([payload], { type: "application/json" }));
+      navigator.sendBeacon(
+        '/api/monitoring/vitals',
+        new Blob([payload], { type: 'application/json' }),
+      );
     }
   }
 
@@ -116,6 +119,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 export function useTheme(): ThemeContextValue {
   const ctx = useContext(ThemeContext);
-  if (!ctx) throw new Error("useTheme must be used within ThemeProvider");
+  if (!ctx) throw new Error('useTheme must be used within ThemeProvider');
   return ctx;
 }

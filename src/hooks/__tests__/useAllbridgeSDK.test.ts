@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { useAllbridgeSDK } from '../useAllbridgeSDK';
 
 jest.mock('@allbridge/bridge-core-sdk', () => ({
-  AllbridgeCoreSdk: jest.fn(function(config: any) {
+  AllbridgeCoreSdk: jest.fn(function (config: any) {
     this.config = config;
     return this;
   }),

@@ -83,7 +83,10 @@ function setupSdkSuccess() {
   });
   mockGetAmountToBeReceived.mockResolvedValue('99.5');
   vi.mocked(quoteFetcher.calculateBridgeAmount).mockReturnValue('99.5');
-  vi.mocked(quoteFetcher.fetchPaycrestQuote).mockResolvedValue({ rate: 1600, destinationAmount: '159200.00' });
+  vi.mocked(quoteFetcher.fetchPaycrestQuote).mockResolvedValue({
+    rate: 1600,
+    destinationAmount: '159200.00',
+  });
   vi.mocked(quoteFetcher.buildQuote).mockReturnValue({
     destinationAmount: '159200.00',
     rate: 1600,

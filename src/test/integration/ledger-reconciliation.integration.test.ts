@@ -98,11 +98,31 @@ function buildQueryMock() {
 
     // ── INSERT into ledger_entries ─────────────────────────────────────────
     if (/INSERT INTO ledger_entries/.test(s)) {
-      const [id, txId, accountId, entryType, amount, currency, description,
-        referenceType, referenceId, entryHash, createdAt] = params as [
-          string, string | null, string, string, string, string,
-          string | null, string | null, string | null, string, number
-        ];
+      const [
+        id,
+        txId,
+        accountId,
+        entryType,
+        amount,
+        currency,
+        description,
+        referenceType,
+        referenceId,
+        entryHash,
+        createdAt,
+      ] = params as [
+        string,
+        string | null,
+        string,
+        string,
+        string,
+        string,
+        string | null,
+        string | null,
+        string | null,
+        string,
+        number,
+      ];
 
       // Enforce UNIQUE constraint on entry_hash (mirrors DB constraint)
       if (seenHashes.has(entryHash)) {
@@ -114,10 +134,16 @@ function buildQueryMock() {
       seenHashes.add(entryHash);
 
       const row: EntryRow = {
-        id, transaction_id: txId, account_id: accountId,
+        id,
+        transaction_id: txId,
+        account_id: accountId,
         entry_type: entryType as 'debit' | 'credit',
-        amount, currency, description, reference_type: referenceType,
-        reference_id: referenceId, entry_hash: entryHash,
+        amount,
+        currency,
+        description,
+        reference_type: referenceType,
+        reference_id: referenceId,
+        entry_hash: entryHash,
         created_at: createdAt,
       };
       ledgerEntries.set(id, row);
@@ -126,24 +152,50 @@ function buildQueryMock() {
 
     // ── INSERT into ledger_reconciliation ──────────────────────────────────
     if (/INSERT INTO ledger_reconciliation/.test(s)) {
-      const [id, reportId, accountId, reportedBal, ledgerBal, difference,
-        status, reconciledAt, notes, createdAt] = params as [
-          string, string, string, string, string, string, string,
-          number | null, string | null, number
-        ];
+      const [
+        id,
+        reportId,
+        accountId,
+        reportedBal,
+        ledgerBal,
+        difference,
+        status,
+        reconciledAt,
+        notes,
+        createdAt,
+      ] = params as [
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        number | null,
+        string | null,
+        number,
+      ];
       const row: ReconciliationRow = {
-        id, report_id: reportId, account_id: accountId,
-        reported_balance: reportedBal, ledger_balance: ledgerBal,
-        difference, status: status as ReconciliationRow['status'],
-        reconciled_at: reconciledAt, notes, created_at: createdAt,
+        id,
+        report_id: reportId,
+        account_id: accountId,
+        reported_balance: reportedBal,
+        ledger_balance: ledgerBal,
+        difference,
+        status: status as ReconciliationRow['status'],
+        reconciled_at: reconciledAt,
+        notes,
+        created_at: createdAt,
       };
       reconciliationRows.set(id, row);
       return { rows: [row] };
     }
 
     // ── verifyAllAccountsBalanced — global debit/credit totals ────────────
-    if (/COALESCE\(SUM.*total_debits.*total_credits.*FROM ledger_entries\s*$/.test(s) ||
-       (/FROM ledger_entries/.test(s) && /total_debits/.test(s) && !/WHERE account_id/.test(s))) {
+    if (
+      /COALESCE\(SUM.*total_debits.*total_credits.*FROM ledger_entries\s*$/.test(s) ||
+      (/FROM ledger_entries/.test(s) && /total_debits/.test(s) && !/WHERE account_id/.test(s))
+    ) {
       let totalDebits = 0;
       let totalCredits = 0;
       for (const row of ledgerEntries.values()) {
@@ -151,10 +203,12 @@ function buildQueryMock() {
         else totalCredits += Number(row.amount);
       }
       return {
-        rows: [{
-          total_debits: totalDebits.toFixed(2),
-          total_credits: totalCredits.toFixed(2),
-        }],
+        rows: [
+          {
+            total_debits: totalDebits.toFixed(2),
+            total_credits: totalCredits.toFixed(2),
+          },
+        ],
       };
     }
 
@@ -170,37 +224,33 @@ function buildQueryMock() {
         }
       }
       return {
-        rows: [{
-          total_debits: totalDebits.toFixed(2),
-          total_credits: totalCredits.toFixed(2),
-        }],
+        rows: [
+          {
+            total_debits: totalDebits.toFixed(2),
+            total_credits: totalCredits.toFixed(2),
+          },
+        ],
       };
     }
 
     // ── getEntriesByTransaction ────────────────────────────────────────────
     if (/FROM ledger_entries WHERE transaction_id/.test(s)) {
       const [txId] = params as [string];
-      const rows = Array.from(ledgerEntries.values()).filter(
-        (r) => r.transaction_id === txId,
-      );
+      const rows = Array.from(ledgerEntries.values()).filter((r) => r.transaction_id === txId);
       return { rows };
     }
 
     // ── getEntriesByAccount ────────────────────────────────────────────────
     if (/FROM ledger_entries WHERE account_id/.test(s)) {
       const [accountId] = params as [string];
-      const rows = Array.from(ledgerEntries.values()).filter(
-        (r) => r.account_id === accountId,
-      );
+      const rows = Array.from(ledgerEntries.values()).filter((r) => r.account_id === accountId);
       return { rows };
     }
 
     // ── getReconciliationByReport ──────────────────────────────────────────
     if (/FROM ledger_reconciliation WHERE report_id/.test(s)) {
       const [reportId] = params as [string];
-      const rows = Array.from(reconciliationRows.values()).filter(
-        (r) => r.report_id === reportId,
-      );
+      const rows = Array.from(reconciliationRows.values()).filter((r) => r.report_id === reportId);
       return { rows };
     }
 
@@ -234,10 +284,7 @@ import {
   LedgerError,
 } from '@/lib/ledger/entries';
 
-import {
-  reconcileAccount,
-  getReconciliationByReport,
-} from '@/lib/ledger/reconciliation';
+import { reconcileAccount, getReconciliationByReport } from '@/lib/ledger/reconciliation';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -299,9 +346,7 @@ describe('#851 — Ledger table reconciliation integration tests', () => {
 
     it('balanced after recording many transactions of different amounts', async () => {
       const amounts = ['50.00', '200.00', '0.01', '9999.99', '1.00'];
-      await Promise.all(
-        amounts.map((amt, i) => recordBalancedTransaction(`tx-multi-${i}`, amt)),
-      );
+      await Promise.all(amounts.map((amt, i) => recordBalancedTransaction(`tx-multi-${i}`, amt)));
       const result = await verifyAllAccountsBalanced();
       expect(result.balanced).toBe(true);
     });
@@ -444,12 +489,8 @@ describe('#851 — Ledger table reconciliation integration tests', () => {
 
     it('allows re-use of the same accountId with different transactionIds', async () => {
       // Same accountId, different transactionId → different hash → OK
-      await expect(
-        recordBalancedTransaction('tx-unique-1', '10.00'),
-      ).resolves.not.toThrow();
-      await expect(
-        recordBalancedTransaction('tx-unique-2', '10.00'),
-      ).resolves.not.toThrow();
+      await expect(recordBalancedTransaction('tx-unique-1', '10.00')).resolves.not.toThrow();
+      await expect(recordBalancedTransaction('tx-unique-2', '10.00')).resolves.not.toThrow();
     });
   });
 

@@ -17,16 +17,16 @@ This document covers the backup strategy, verification procedures, and recovery 
 
 Backups are managed by **AWS RDS automated snapshots**, configured in [`terraform/rds.tf`](../terraform/rds.tf).
 
-| Setting | Staging | Production |
-|---------|---------|------------|
-| Backup retention | 7 days | 30 days |
-| Backup window (UTC) | 03:00–04:00 | 03:00–04:00 |
-| Maintenance window | Sun 04:00–05:00 | Sun 04:00–05:00 |
-| Multi-AZ | No | Yes |
-| Storage encryption | Yes (AES-256) | Yes (AES-256) |
-| Deletion protection | No | Yes |
-| Final snapshot on destroy | No | Yes |
-| Performance Insights | 7 days | 731 days (2 years) |
+| Setting                   | Staging         | Production         |
+| ------------------------- | --------------- | ------------------ |
+| Backup retention          | 7 days          | 30 days            |
+| Backup window (UTC)       | 03:00–04:00     | 03:00–04:00        |
+| Maintenance window        | Sun 04:00–05:00 | Sun 04:00–05:00    |
+| Multi-AZ                  | No              | Yes                |
+| Storage encryption        | Yes (AES-256)   | Yes (AES-256)      |
+| Deletion protection       | No              | Yes                |
+| Final snapshot on destroy | No              | Yes                |
+| Performance Insights      | 7 days          | 731 days (2 years) |
 
 RDS takes one automated snapshot per day within the backup window. Point-in-time recovery (PITR) is available for any moment within the retention window.
 
@@ -36,10 +36,10 @@ DB credentials are stored in **AWS Secrets Manager** at `stellar-spend-<env>/db-
 
 ## RTO / RPO targets
 
-| Metric | Target | Notes |
-|--------|--------|-------|
-| RPO (Recovery Point Objective) | ≤ 24 hours | Last automated snapshot; PITR reduces this to ~5 min |
-| RTO (Recovery Time Objective) | ≤ 30 minutes | Snapshot restore typically takes 10–20 min |
+| Metric                         | Target       | Notes                                                |
+| ------------------------------ | ------------ | ---------------------------------------------------- |
+| RPO (Recovery Point Objective) | ≤ 24 hours   | Last automated snapshot; PITR reduces this to ~5 min |
+| RTO (Recovery Time Objective)  | ≤ 30 minutes | Snapshot restore typically takes 10–20 min           |
 
 For production, Multi-AZ provides automatic failover to the standby replica in **1–2 minutes** for instance-level failures without requiring a manual restore.
 
@@ -54,6 +54,7 @@ Run the verification script daily (or hook it into a cron/CI job):
 ```
 
 The script checks:
+
 1. Automated backup retention is ≥ 1 day
 2. Most recent snapshot exists, is `available`, and is ≤ 25 hours old
 3. Snapshot is encrypted
@@ -101,6 +102,7 @@ jobs:
 ```
 
 This will:
+
 1. Find the most recent automated snapshot
 2. Restore it to a new RDS instance
 3. Wait for the instance to become available (~10–20 min)
@@ -141,11 +143,13 @@ aws rds restore-db-instance-to-point-in-time \
 ### Cutover steps (after any restore)
 
 1. Confirm the restored instance is healthy:
+
    ```bash
    ./scripts/verify-backup.sh stellar-spend-production-db-restored
    ```
 
 2. Update the DB connection string in Secrets Manager:
+
    ```bash
    NEW_ENDPOINT=$(aws rds describe-db-instances \
      --db-instance-identifier stellar-spend-production-db-restored \
@@ -158,6 +162,7 @@ aws rds restore-db-instance-to-point-in-time \
    ```
 
 3. Force a new ECS deployment to pick up the new connection string:
+
    ```bash
    aws ecs update-service \
      --cluster stellar-spend-production \
@@ -167,6 +172,7 @@ aws rds restore-db-instance-to-point-in-time \
    ```
 
 4. Verify the application is healthy:
+
    ```bash
    curl -f https://<alb-dns>/api/health
    ```
@@ -184,6 +190,7 @@ Run a full end-to-end DR drill monthly against the production snapshot. The dril
 ```
 
 The drill runs five phases:
+
 1. **Verify source backups** — runs `verify-backup.sh`
 2. **Restore snapshot** — creates `stellar-spend-production-db-drtest-<timestamp>`
 3. **Validate instance** — checks status and encryption
@@ -191,6 +198,7 @@ The drill runs five phases:
 5. **Migration idempotency** — replays all migrations to confirm they are safe to re-run
 
 At the end it reports:
+
 - **RTO estimate** — actual restore duration
 - **RPO estimate** — age of the snapshot used
 
@@ -208,6 +216,7 @@ The test instance is deleted automatically via a `trap` on exit, even if the scr
 ## Runbook: database failure
 
 ### Symptoms
+
 - `/api/health` returns 5xx
 - ECS tasks restarting with database connection errors
 - CloudWatch alarm `stellar-spend-production-db-backup-failed` firing

@@ -10,39 +10,41 @@ import {
 import { withIdempotency } from '@/lib/idempotency';
 
 export async function POST(req: NextRequest) {
-  return withIdempotency(req, async () => {
-    try {
-      const { userId, amount, currency, scheduledFor, action, scheduledId } =
-        await req.json();
+  return withIdempotency(
+    req,
+    async () => {
+      try {
+        const { userId, amount, currency, scheduledFor, action, scheduledId } = await req.json();
 
-      if (action === 'schedule') {
-        const scheduled = await scheduleTransaction(
-          userId,
-          amount,
-          currency,
-          new Date(scheduledFor)
+        if (action === 'schedule') {
+          const scheduled = await scheduleTransaction(
+            userId,
+            amount,
+            currency,
+            new Date(scheduledFor),
+          );
+          return NextResponse.json({ scheduled });
+        }
+
+        if (action === 'cancel') {
+          await cancelScheduledTransaction(scheduledId);
+          return NextResponse.json({ status: 'cancelled' });
+        }
+
+        if (action === 'update') {
+          const updated = await updateScheduledTransaction(scheduledId, new Date(scheduledFor));
+          return NextResponse.json({ updated: updated.rows[0] });
+        }
+
+        return ErrorHandler.validation('Invalid action');
+      } catch {
+        return ErrorHandler.handle(
+          new ApiError(ErrorType.SERVER_ERROR, 'Failed to process scheduled transaction'),
         );
-        return NextResponse.json({ scheduled });
       }
-
-      if (action === 'cancel') {
-        await cancelScheduledTransaction(scheduledId);
-        return NextResponse.json({ status: 'cancelled' });
-      }
-
-      if (action === 'update') {
-        const updated = await updateScheduledTransaction(
-          scheduledId,
-          new Date(scheduledFor)
-        );
-        return NextResponse.json({ updated: updated.rows[0] });
-      }
-
-      return ErrorHandler.validation('Invalid action');
-    } catch {
-      return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to process scheduled transaction'));
-    }
-  }, { required: true });
+    },
+    { required: true },
+  );
 }
 
 export async function GET(req: NextRequest) {
@@ -55,6 +57,8 @@ export async function GET(req: NextRequest) {
     const scheduled = await getScheduledTransactions(userId);
     return NextResponse.json({ scheduled });
   } catch {
-    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to get scheduled transactions'));
+    return ErrorHandler.handle(
+      new ApiError(ErrorType.SERVER_ERROR, 'Failed to get scheduled transactions'),
+    );
   }
 }

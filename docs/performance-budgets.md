@@ -6,10 +6,10 @@ Per-route bundle size budgets enforced in CI to ensure fast load times on mobile
 
 ### Current Budgets
 
-| Route | Max Size | Max Initial JS | Rationale |
-|-------|----------|----------------|-----------|
-| `/` (Homepage) | 350 KB | 200 KB | Landing page must load fast on 3G. Critical for engagement. |
-| `/api/*` | 50 KB | 0 KB | Server-only routes. No client JS should be bundled. |
+| Route          | Max Size | Max Initial JS | Rationale                                                   |
+| -------------- | -------- | -------------- | ----------------------------------------------------------- |
+| `/` (Homepage) | 350 KB   | 200 KB         | Landing page must load fast on 3G. Critical for engagement. |
+| `/api/*`       | 50 KB    | 0 KB           | Server-only routes. No client JS should be bundled.         |
 
 ### Budget Enforcement
 
@@ -25,13 +25,13 @@ find .next/static/chunks -name "*.js" -exec ls -lh {} \;
 
 Based on Core Web Vitals "Good" thresholds:
 
-| Metric | Target | Description |
-|--------|--------|-------------|
-| **LCP** | < 2.5s | Largest Contentful Paint - main content visible |
-| **INP** | < 200ms | Interaction to Next Paint - responsiveness |
-| **CLS** | < 0.1 | Cumulative Layout Shift - visual stability |
-| **FCP** | < 1.8s | First Contentful Paint - first pixel rendered |
-| **TTFB** | < 800ms | Time to First Byte - server response time |
+| Metric   | Target  | Description                                     |
+| -------- | ------- | ----------------------------------------------- |
+| **LCP**  | < 2.5s  | Largest Contentful Paint - main content visible |
+| **INP**  | < 200ms | Interaction to Next Paint - responsiveness      |
+| **CLS**  | < 0.1   | Cumulative Layout Shift - visual stability      |
+| **FCP**  | < 1.8s  | First Contentful Paint - first pixel rendered   |
+| **TTFB** | < 800ms | Time to First Byte - server response time       |
 
 ### Tracking Web Vitals
 
@@ -59,6 +59,7 @@ curl https://your-domain.com/api/monitoring/vitals
 ```
 
 Returns:
+
 ```json
 {
   "period": "24h",
@@ -75,6 +76,7 @@ Returns:
 ### Bundle Size Check
 
 Runs on every build:
+
 - Analyzes `.next/static/chunks/` for JS bundles
 - Compares total size against budget
 - Fails CI if budget exceeded
@@ -82,6 +84,7 @@ Runs on every build:
 ### Lighthouse CI
 
 Runs on PRs:
+
 - Checks LCP, INP, CLS thresholds
 - Requires deployed preview URL for full audit
 - Basic budget validation runs on every build
@@ -113,7 +116,7 @@ on top of.
 > and middleware that run on most requests and checking their query shape
 > against the indexes actually defined in `migrations/`, since no live
 > database or production traffic sample was available to run `EXPLAIN
-> ANALYZE` against directly. Treat the "Index coverage" column below as
+ANALYZE` against directly. Treat the "Index coverage" column below as
 > reasoned-about, not measured. Before relying on it, confirm against a real
 > query plan with `queryOptimizer.analyzeQueries()` (`src/lib/db/query-optimizer.ts`,
 > already recording live timings for every `dal.ts` call) or `EXPLAIN ANALYZE`
@@ -121,18 +124,18 @@ on top of.
 
 ### Top queries by request-path traffic
 
-| # | Query (table / predicate) | Called from | Budget (P95) | Index coverage |
-|---|---|---|---|---|
-| 1 | `sessions` by `token` | `session-management.ts` `validateSession` — runs on every authenticated request | < 10ms | `idx_sessions_token` (013) |
-| 2 | `api_keys` by `key_hash` | `api-keys/service.ts` — runs on every API-key-authenticated request | < 10ms | `idx_api_keys_key_hash` (011) |
-| 3 | `idempotency_keys` by `(idempotency_key, method, path)` | `withIdempotency()` middleware — now enforced on all financial mutation routes (#790) | < 15ms | composite primary key (003) |
-| 4 | `ip_whitelist` by `user_address` | `ip-whitelist.ts` `isIPWhitelisted` — runs on mutation endpoints with IP enforcement | < 10ms | `idx_ip_whitelist_user_address` (012) |
-| 5 | `transactions` by `LOWER(user_address)`, ordered by `timestamp DESC` | `dal.ts` `getByUser` — transaction history / `v1/sync/history` | < 50ms | **was missing** — `011`/`018`/`024` intended to cover this but reference a `created_at` column that doesn't exist on `transactions`; fixed in `027_fix_query_optimization_indexes.sql` |
-| 6 | `transactions` by `id` | `dal.ts` `getById` — used after nearly every mutation to return the updated row | < 10ms | primary key (001) |
-| 7 | `transactions` by `payout_order_id` | `dal.ts` `getByPayoutOrderId` — Paycrest webhook order lookup | < 10ms | `idx_transactions_payout_order_id` (024) |
-| 8 | `audit_logs` insert + by `(user_address, action_type, created_at)` | `audit-logging.ts` — one insert per audited action, read on the admin audit dashboard | insert < 15ms, read < 100ms | `idx_audit_logs_user_address_action_type` (018) |
-| 9 | `webhook_nonces` by `nonce_key` | `webhookVerify.ts` `isReplay`/`markNonceUsed` — every inbound webhook with replay protection | < 10ms | primary key (created by `createNonceTable()`) |
-| 10 | `transaction_notification_preferences` by `LOWER(user_address)` | `notifications/preferences-store.ts` | < 10ms | **was missing** — PK is on raw `user_address`, unusable under `LOWER()`; fixed in `027_fix_query_optimization_indexes.sql` |
+| #   | Query (table / predicate)                                            | Called from                                                                                  | Budget (P95)                | Index coverage                                                                                                                                                                         |
+| --- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `sessions` by `token`                                                | `session-management.ts` `validateSession` — runs on every authenticated request              | < 10ms                      | `idx_sessions_token` (013)                                                                                                                                                             |
+| 2   | `api_keys` by `key_hash`                                             | `api-keys/service.ts` — runs on every API-key-authenticated request                          | < 10ms                      | `idx_api_keys_key_hash` (011)                                                                                                                                                          |
+| 3   | `idempotency_keys` by `(idempotency_key, method, path)`              | `withIdempotency()` middleware — now enforced on all financial mutation routes (#790)        | < 15ms                      | composite primary key (003)                                                                                                                                                            |
+| 4   | `ip_whitelist` by `user_address`                                     | `ip-whitelist.ts` `isIPWhitelisted` — runs on mutation endpoints with IP enforcement         | < 10ms                      | `idx_ip_whitelist_user_address` (012)                                                                                                                                                  |
+| 5   | `transactions` by `LOWER(user_address)`, ordered by `timestamp DESC` | `dal.ts` `getByUser` — transaction history / `v1/sync/history`                               | < 50ms                      | **was missing** — `011`/`018`/`024` intended to cover this but reference a `created_at` column that doesn't exist on `transactions`; fixed in `027_fix_query_optimization_indexes.sql` |
+| 6   | `transactions` by `id`                                               | `dal.ts` `getById` — used after nearly every mutation to return the updated row              | < 10ms                      | primary key (001)                                                                                                                                                                      |
+| 7   | `transactions` by `payout_order_id`                                  | `dal.ts` `getByPayoutOrderId` — Paycrest webhook order lookup                                | < 10ms                      | `idx_transactions_payout_order_id` (024)                                                                                                                                               |
+| 8   | `audit_logs` insert + by `(user_address, action_type, created_at)`   | `audit-logging.ts` — one insert per audited action, read on the admin audit dashboard        | insert < 15ms, read < 100ms | `idx_audit_logs_user_address_action_type` (018)                                                                                                                                        |
+| 9   | `webhook_nonces` by `nonce_key`                                      | `webhookVerify.ts` `isReplay`/`markNonceUsed` — every inbound webhook with replay protection | < 10ms                      | primary key (created by `createNonceTable()`)                                                                                                                                          |
+| 10  | `transaction_notification_preferences` by `LOWER(user_address)`      | `notifications/preferences-store.ts`                                                         | < 10ms                      | **was missing** — PK is on raw `user_address`, unusable under `LOWER()`; fixed in `027_fix_query_optimization_indexes.sql`                                                             |
 
 ### Known issues fixed alongside this pass
 

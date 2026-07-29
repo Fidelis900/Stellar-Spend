@@ -23,6 +23,7 @@ These tags enable cost tracking and allocation across departments.
 ### AWS Cost Explorer
 
 Access via AWS Console:
+
 1. Navigate to Cost Management → Cost Explorer
 2. Filter by tag: `Project = stellar-spend`
 3. View costs by service, region, and time period
@@ -32,6 +33,7 @@ Access via AWS Console:
 Monthly budgets are configured per environment and per service:
 
 **Total monthly budget** (`aws_budgets_budget.monthly`):
+
 - **80% threshold** (forecasted): warning alert
 - **100% threshold** (actual): breach alert
 - Filtered by `Environment` tag (staging / production budgets are independent)
@@ -137,6 +139,7 @@ aws ec2 describe-addresses \
 ### Unused NAT Gateways
 
 Monitor data transfer:
+
 - If < 1 GB/day: Consider removing
 - Cost: $32/month + data transfer
 
@@ -171,11 +174,11 @@ aws ec2 describe-spot-price-history \
 
 Analyze utilization and downsize:
 
-| Current | Recommended | Monthly Savings |
-|---------|-------------|-----------------|
-| t3.large | t3.medium | $20-30 |
-| db.t3.large | db.t3.medium | $50-70 |
-| 500GB EBS | 250GB EBS | $10-15 |
+| Current     | Recommended  | Monthly Savings |
+| ----------- | ------------ | --------------- |
+| t3.large    | t3.medium    | $20-30          |
+| db.t3.large | db.t3.medium | $50-70          |
+| 500GB EBS   | 250GB EBS    | $10-15          |
 
 ### 4. Data Transfer Optimization
 
@@ -204,6 +207,7 @@ aws cloudwatch get-dashboard \
 ```
 
 **Metrics**:
+
 - Estimated monthly charges
 - EC2 utilization
 - RDS utilization
@@ -237,18 +241,22 @@ The Lambda IAM role has `cloudwatch:GetMetricStatistics`, `ce:GetCostAndUsage`, 
 ### Process
 
 1. **Review Budget Status**
+
    - Check if on track
    - Identify variances
 
 2. **Analyze Cost Trends**
+
    - Compare to previous months
    - Identify anomalies
 
 3. **Review Recommendations**
+
    - Evaluate Lambda suggestions
    - Prioritize optimizations
 
 4. **Implement Changes**
+
    - Downsize underutilized resources
    - Remove unused resources
    - Adjust configurations
@@ -259,12 +267,12 @@ The Lambda IAM role has `cloudwatch:GetMetricStatistics`, `ce:GetCostAndUsage`, 
 
 ### Targets
 
-| Metric | Target | Current |
-|--------|--------|---------|
-| Monthly Cost | < $5,000 | TBD |
-| Cost per Transaction | < $0.01 | TBD |
-| Resource Utilization | > 60% | TBD |
-| Unused Resources | 0 | TBD |
+| Metric               | Target   | Current |
+| -------------------- | -------- | ------- |
+| Monthly Cost         | < $5,000 | TBD     |
+| Cost per Transaction | < $0.01  | TBD     |
+| Resource Utilization | > 60%    | TBD     |
+| Unused Resources     | 0        | TBD     |
 
 ## Cost Allocation
 

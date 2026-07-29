@@ -28,12 +28,17 @@ export class MoonpayAdapter implements DepositProviderAdapter {
       quoteCurrencyCode: request.destinationToken,
     });
 
-    const response = await fetch(`${this.baseUrl}/v3/currencies/${request.destinationToken.toLowerCase()}/buy_quote?${params}`);
+    const response = await fetch(
+      `${this.baseUrl}/v3/currencies/${request.destinationToken.toLowerCase()}/buy_quote?${params}`,
+    );
     if (!response.ok) throw new Error(`MoonPay quote error: ${response.statusText}`);
     const data = await response.json();
 
     const destinationAmount = String(parseFloat(data.quoteCurrencyAmount || '0'));
-    const fee = String((parseFloat(request.fiatAmount) - parseFloat(data.baseCurrencyAmount || request.fiatAmount)) || '0');
+    const fee = String(
+      parseFloat(request.fiatAmount) - parseFloat(data.baseCurrencyAmount || request.fiatAmount) ||
+        '0',
+    );
 
     return {
       destinationAmount,
@@ -49,7 +54,7 @@ export class MoonpayAdapter implements DepositProviderAdapter {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.secretKey}`,
+        Authorization: `Bearer ${this.secretKey}`,
       },
       body: JSON.stringify({
         baseCurrencyAmount: parseFloat(request.fiatAmount),
@@ -76,19 +81,19 @@ export class MoonpayAdapter implements DepositProviderAdapter {
 
   async getOrderStatus(orderId: string): Promise<{ status: string; txHash?: string }> {
     const response = await fetch(`${this.baseUrl}/v1/orders/${orderId}`, {
-      headers: { 'Authorization': `Bearer ${this.secretKey}` },
+      headers: { Authorization: `Bearer ${this.secretKey}` },
     });
     if (!response.ok) throw new Error(`MoonPay status error: ${response.statusText}`);
     const data = await response.json();
 
     const statusMap: Record<string, string> = {
-      'waitingPayment': 'pending',
-      'pending': 'pending',
-      'preparing': 'processing',
-      'sent': 'completed',
-      'complete': 'completed',
-      'failed': 'failed',
-      'cancelled': 'failed',
+      waitingPayment: 'pending',
+      pending: 'pending',
+      preparing: 'processing',
+      sent: 'completed',
+      complete: 'completed',
+      failed: 'failed',
+      cancelled: 'failed',
     };
 
     return {
@@ -109,7 +114,18 @@ export class MoonpayAdapter implements DepositProviderAdapter {
 
   getCapabilities(): OnrampProviderCapabilities {
     return {
-      supportedFiatCurrencies: ['USD', 'EUR', 'GBP', 'NGN', 'KES', 'BRL', 'MXN', 'INR', 'PHP', 'AED'],
+      supportedFiatCurrencies: [
+        'USD',
+        'EUR',
+        'GBP',
+        'NGN',
+        'KES',
+        'BRL',
+        'MXN',
+        'INR',
+        'PHP',
+        'AED',
+      ],
       supportedDestinationTokens: ['USDC', 'USDT'],
       supportedNetworks: ['stellar', 'base', 'ethereum'],
       maxAmount: 50_000,

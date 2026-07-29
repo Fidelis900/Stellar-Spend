@@ -8,12 +8,12 @@
  * @returns JSON string representation
  */
 export function safeJson(value: unknown): string {
-  if (value === undefined) return "undefined";
-  if (value === null) return "null";
+  if (value === undefined) return 'undefined';
+  if (value === null) return 'null';
 
   // Handle BigInt by converting to string representation
   const bigIntReplacer = (_key: string, val: unknown): unknown => {
-    if (typeof val === "bigint") {
+    if (typeof val === 'bigint') {
       return `BigInt(${val.toString()})`;
     }
     return val;
@@ -39,31 +39,31 @@ export function decodeTxResultXdr(errorResultXdr?: string): string | null {
     // Common Stellar/Soroban error codes
     // These are typical result codes from Stellar transaction responses
     const errorPatterns: Record<string, string> = {
-      tx_success: "Transaction succeeded",
-      tx_too_early: "Transaction submitted too early",
-      tx_too_late: "Transaction submitted too late",
-      tx_missing_operation: "Transaction missing operations",
-      tx_insufficient_balance: "Insufficient balance",
-      tx_no_source_account: "Source account not found",
-      tx_invalid_source_account: "Invalid source account",
-      tx_invalid_sequence_number: "Invalid sequence number",
-      tx_invalid_signature: "Invalid signature",
-      tx_missing_signature: "Missing required signature",
-      tx_fee_bump_invalid_sig: "Fee bump has invalid signature",
-      tx_fee_bump_missing_sig: "Fee bump missing signature",
-      tx_not_supported: "Operation not supported",
-      tx_too_many_operations: "Too many operations in transaction",
-      tx_invalid_operation: "Invalid operation",
-      op_invalid: "Invalid operation",
-      op_bad_auth: "Invalid authorization",
-      op_no_trust: "Trust line not found",
-      op_trust_NOT_ALLOWED: "Trust not allowed",
-      op_underfunded: "Underfunded - insufficient balance",
-      op_source_not_authorized: "Source not authorized",
-      op_no_account: "Account not found",
-      op_low_reserve: "Below minimum balance",
-      op_buy_not_AUTHORIZED: "Buy not authorized",
-      op_sell_not_AUTHORIZED: "Sell not authorized",
+      tx_success: 'Transaction succeeded',
+      tx_too_early: 'Transaction submitted too early',
+      tx_too_late: 'Transaction submitted too late',
+      tx_missing_operation: 'Transaction missing operations',
+      tx_insufficient_balance: 'Insufficient balance',
+      tx_no_source_account: 'Source account not found',
+      tx_invalid_source_account: 'Invalid source account',
+      tx_invalid_sequence_number: 'Invalid sequence number',
+      tx_invalid_signature: 'Invalid signature',
+      tx_missing_signature: 'Missing required signature',
+      tx_fee_bump_invalid_sig: 'Fee bump has invalid signature',
+      tx_fee_bump_missing_sig: 'Fee bump missing signature',
+      tx_not_supported: 'Operation not supported',
+      tx_too_many_operations: 'Too many operations in transaction',
+      tx_invalid_operation: 'Invalid operation',
+      op_invalid: 'Invalid operation',
+      op_bad_auth: 'Invalid authorization',
+      op_no_trust: 'Trust line not found',
+      op_trust_NOT_ALLOWED: 'Trust not allowed',
+      op_underfunded: 'Underfunded - insufficient balance',
+      op_source_not_authorized: 'Source not authorized',
+      op_no_account: 'Account not found',
+      op_low_reserve: 'Below minimum balance',
+      op_buy_not_AUTHORIZED: 'Buy not authorized',
+      op_sell_not_AUTHORIZED: 'Sell not authorized',
     };
 
     // Try to decode base64 XDR if present
@@ -72,7 +72,7 @@ export function decodeTxResultXdr(errorResultXdr?: string): string | null {
       // Check if it looks like base64 encoded
       const isBase64 = /^[A-Za-z0-9+/=]+$/.test(errorResultXdr);
       if (isBase64 && errorResultXdr.length > 20) {
-        return "Transaction failed (XDR encoded)";
+        return 'Transaction failed (XDR encoded)';
       }
     }
 
@@ -83,7 +83,7 @@ export function decodeTxResultXdr(errorResultXdr?: string): string | null {
       }
     }
 
-    return "Transaction failed";
+    return 'Transaction failed';
   } catch {
     return null;
   }
@@ -95,17 +95,17 @@ export function decodeTxResultXdr(errorResultXdr?: string): string | null {
  * @returns Formatted error message
  */
 export function formatSorobanError(payload: unknown): string {
-  if (!payload) return "Unknown error";
+  if (!payload) return 'Unknown error';
 
   // Try to parse the payload if it's a string
   let parsed: Record<string, unknown>;
-  if (typeof payload === "string") {
+  if (typeof payload === 'string') {
     try {
       parsed = JSON.parse(payload);
     } catch {
       return payload;
     }
-  } else if (typeof payload === "object") {
+  } else if (typeof payload === 'object') {
     parsed = payload as Record<string, unknown>;
   } else {
     return String(payload);
@@ -117,9 +117,9 @@ export function formatSorobanError(payload: unknown): string {
   // Status - could be in various formats
   if (parsed.status) {
     const status = parsed.status;
-    if (typeof status === "string") {
+    if (typeof status === 'string') {
       parts.push(status);
-    } else if (typeof status === "number") {
+    } else if (typeof status === 'number') {
       parts.push(`Status(${status})`);
     } else {
       parts.push(safeJson(status));
@@ -158,7 +158,7 @@ export function formatSorobanError(payload: unknown): string {
     return safeJson(payload);
   }
 
-  return parts.join(" | ");
+  return parts.join(' | ');
 }
 
 /**
@@ -167,13 +167,13 @@ export function formatSorobanError(payload: unknown): string {
  * @returns Human-readable error message
  */
 export function extractErrorMessage(error: unknown): string {
-  if (!error) return "Unknown error";
+  if (!error) return 'Unknown error';
 
-  if (typeof error === "string") return error;
+  if (typeof error === 'string') return error;
 
   if (error instanceof Error) return error.message;
 
-  if (typeof error === "object") {
+  if (typeof error === 'object') {
     const err = error as Record<string, unknown>;
     if (err.message) return String(err.message);
     if (err.error) return String(err.error);

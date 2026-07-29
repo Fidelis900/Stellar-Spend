@@ -8,7 +8,7 @@ const noop = vi.fn();
 
 function renderModal(step: OfframpStep, errorMessage?: string) {
   return render(
-    <TransactionProgressModal step={step} errorMessage={errorMessage} onClose={noop} />
+    <TransactionProgressModal step={step} errorMessage={errorMessage} onClose={noop} />,
   );
 }
 

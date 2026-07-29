@@ -3,10 +3,10 @@ name: Terraform
 on:
   push:
     paths:
-      - "terraform/**"
+      - 'terraform/**'
   pull_request:
     paths:
-      - "terraform/**"
+      - 'terraform/**'
 
 permissions:
   contents: read
@@ -23,7 +23,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.7.5"
+          terraform_version: '1.7.5'
 
       - name: Terraform Format
         id: fmt
@@ -70,7 +70,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.7.5"
+          terraform_version: '1.7.5'
 
       - name: Terraform Init
         run: |
@@ -139,7 +139,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.7.5"
+          terraform_version: '1.7.5'
 
       - name: Terraform Init
         run: |

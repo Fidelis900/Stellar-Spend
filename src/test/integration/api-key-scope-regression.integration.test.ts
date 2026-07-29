@@ -275,7 +275,9 @@ describe('hasRequiredScope — correct/incorrect scope combinations', () => {
   for (const endpoint of PROTECTED_ENDPOINTS) {
     describe(`${endpoint.method} ${endpoint.path} (requires ${endpoint.requiredScope})`, () => {
       it('grants access with the exact required scope', () => {
-        expect(hasRequiredScope(makeKey([endpoint.requiredScope]), endpoint.requiredScope)).toBe(true);
+        expect(hasRequiredScope(makeKey([endpoint.requiredScope]), endpoint.requiredScope)).toBe(
+          true,
+        );
       });
 
       it('grants access with admin:* regardless of endpoint', () => {
@@ -362,8 +364,7 @@ describe('Consistent 403 error body structure', () => {
 
       const body = await response!.json();
       // The body must have at least one of: error, message (standard error envelope)
-      const hasErrorField =
-        'error' in body || 'message' in body;
+      const hasErrorField = 'error' in body || 'message' in body;
       expect(hasErrorField).toBe(true);
     }
   });
@@ -400,7 +401,7 @@ describe('Multi-scope API keys', () => {
 
     const blockedEndpoints: [string, string][] = [
       ['POST', '/api/offramp/execute-payout'], // needs write:payouts
-      ['POST', '/api/merchant'],               // needs write:merchant
+      ['POST', '/api/merchant'], // needs write:merchant
       ['POST', '/api/webhooks/subscriptions'], // needs write:webhooks
     ];
 
@@ -426,7 +427,10 @@ describe('Registry integrity', () => {
       expect(entry.method, `method is required`).toBeTruthy();
       expect(entry.path, `path is required`).toBeTruthy();
       expect(entry.requiredScope, `requiredScope is required`).toBeTruthy();
-      expect(entry.insufficientScopes.length, `need at least one insufficient scope`).toBeGreaterThan(0);
+      expect(
+        entry.insufficientScopes.length,
+        `need at least one insufficient scope`,
+      ).toBeGreaterThan(0);
     }
   });
 });

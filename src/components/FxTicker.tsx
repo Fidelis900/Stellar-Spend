@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/cn";
-import type { FxRate } from "@/app/api/fx-rates/route";
+import { useEffect, useRef, useState } from 'react';
+import { cn } from '@/lib/cn';
+import type { FxRate } from '@/app/api/fx-rates/route';
 
 const REFRESH_INTERVAL = 30_000; // 30 s
 
-type Direction = "up" | "down" | "neutral";
+type Direction = 'up' | 'down' | 'neutral';
 
 interface RateWithDir extends FxRate {
   dir: Direction;
@@ -14,15 +14,15 @@ interface RateWithDir extends FxRate {
 
 function formatRate(rate: number): string {
   return rate >= 100
-    ? rate.toLocaleString("en-US", { maximumFractionDigits: 0 })
-    : rate.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+    ? rate.toLocaleString('en-US', { maximumFractionDigits: 0 })
+    : rate.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
 }
 
-const ARROW: Record<Direction, string> = { up: "▲", down: "▼", neutral: "" };
+const ARROW: Record<Direction, string> = { up: '▲', down: '▼', neutral: '' };
 const ARROW_COLOR: Record<Direction, string> = {
-  up: "text-green-400",
-  down: "text-red-400",
-  neutral: "",
+  up: 'text-green-400',
+  down: 'text-red-400',
+  neutral: '',
 };
 
 export default function FxTicker() {
@@ -32,22 +32,18 @@ export default function FxTicker() {
 
   const fetchRates = async () => {
     try {
-      const res = await fetch("/api/fx-rates");
-      if (!res.ok) throw new Error("bad response");
+      const res = await fetch('/api/fx-rates');
+      if (!res.ok) throw new Error('bad response');
       const data: { rates: FxRate[] } = await res.json();
 
       setRates(
         data.rates.map(({ currency, rate }) => {
           const prev = prevRef.current.get(currency);
           const dir: Direction =
-            prev === undefined || prev === rate
-              ? "neutral"
-              : rate > prev
-              ? "up"
-              : "down";
+            prev === undefined || prev === rate ? 'neutral' : rate > prev ? 'up' : 'down';
           prevRef.current.set(currency, rate);
           return { currency, rate, dir };
-        })
+        }),
       );
       setError(false);
     } catch {
@@ -90,8 +86,8 @@ export default function FxTicker() {
         >
           <span className="text-[#777777] uppercase">{currency}</span>
           <span className="text-white tabular-nums">{formatRate(rate)}</span>
-          {dir !== "neutral" && (
-            <span className={cn("text-[9px]", ARROW_COLOR[dir])} aria-hidden>
+          {dir !== 'neutral' && (
+            <span className={cn('text-[9px]', ARROW_COLOR[dir])} aria-hidden>
               {ARROW[dir]}
             </span>
           )}

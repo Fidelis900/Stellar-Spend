@@ -74,11 +74,7 @@ export default function DashboardClient() {
           onAmountChange={setCurrentAmount}
           onCurrencyChange={setCurrentCurrency}
         />
-        <RightPanel
-          quote={currentQuote}
-          amount={currentAmount}
-          currency={currentCurrency}
-        />
+        <RightPanel quote={currentQuote} amount={currentAmount} currency={currentCurrency} />
       </section>
     </>
   );

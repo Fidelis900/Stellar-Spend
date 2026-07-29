@@ -36,9 +36,7 @@ export const SUPPORTED_STABLECOINS: StablecoinConfig[] = [
 ];
 
 export function getStablecoinConfig(symbol: string): StablecoinConfig | undefined {
-  return SUPPORTED_STABLECOINS.find(
-    (s) => s.symbol === symbol.toUpperCase() && s.active
-  );
+  return SUPPORTED_STABLECOINS.find((s) => s.symbol === symbol.toUpperCase() && s.active);
 }
 
 export function getActiveStablecoins(): StablecoinConfig[] {

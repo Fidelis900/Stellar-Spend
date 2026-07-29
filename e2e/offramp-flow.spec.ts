@@ -9,14 +9,14 @@ test.describe('Complete Offramp Flow', () => {
     // Step 1: Connect wallet
     await page.click('button:has-text("Connect Wallet")');
     await page.waitForSelector('[data-testid="wallet-modal"]');
-    
+
     // Select Freighter
     await page.click('button:has-text("Freighter")');
     await page.waitForNavigation();
 
     // Step 2: Enter amount
     await page.fill('input[placeholder="Enter amount"]', '100');
-    
+
     // Step 3: Select currency
     await page.click('select[name="currency"]');
     await page.selectOption('select[name="currency"]', 'NGN');
@@ -47,7 +47,7 @@ test.describe('Complete Offramp Flow', () => {
 
     // Step 9: Confirm transaction
     await page.click('button:has-text("Confirm")');
-    
+
     // Wait for transaction to be submitted
     await page.waitForSelector('[data-testid="transaction-submitted"]');
 

@@ -31,11 +31,7 @@ export function parseUtc(iso: string): Date {
  * @param locale - BCP-47 locale tag (default: 'en-US')
  * @param timeZone - IANA timezone (default: 'UTC')
  */
-export function formatUtc(
-  iso: string,
-  locale: string = 'en-US',
-  timeZone: string = 'UTC'
-): string {
+export function formatUtc(iso: string, locale: string = 'en-US', timeZone: string = 'UTC'): string {
   const d = parseUtc(iso);
   return new Intl.DateTimeFormat(locale, {
     year: 'numeric',
@@ -59,7 +55,7 @@ export function formatUtc(
 export function formatDate(
   iso: string,
   locale: string = 'en-US',
-  timeZone: string = 'UTC'
+  timeZone: string = 'UTC',
 ): string {
   const d = parseUtc(iso);
   return new Intl.DateTimeFormat(locale, {
@@ -101,7 +97,7 @@ export function isAfter(iso: string, referenceIso: string): boolean {
  */
 export function addDuration(
   iso: string,
-  delta: { ms?: number; seconds?: number; minutes?: number; hours?: number; days?: number }
+  delta: { ms?: number; seconds?: number; minutes?: number; hours?: number; days?: number },
 ): string {
   const base = parseUtc(iso).getTime();
   const totalMs =

@@ -27,9 +27,10 @@ export function validateAccountNumberLegacy(accountNumber: string): ValidationRe
 export function validateInstitutionLegacy(institution: string): ValidationResult {
   const result = {
     valid: !!institution && institution.trim() !== '',
-    errors: !institution || institution.trim() === ''
-      ? [createValidationError('institution', 'Institution is required')]
-      : [],
+    errors:
+      !institution || institution.trim() === ''
+        ? [createValidationError('institution', 'Institution is required')]
+        : [],
   };
   return {
     valid: result.valid,

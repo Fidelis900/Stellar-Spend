@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback, useRef, useTransition } from "react";
-import type { FxRate } from "@/app/api/fx-rates/route";
+import { useState, useEffect, useCallback, useRef, useTransition } from 'react';
+import type { FxRate } from '@/app/api/fx-rates/route';
 
 const QUOTE_TTL = 30; // seconds
 
@@ -29,12 +29,12 @@ export interface CurrencyConverterState {
 }
 
 export function useCurrencyConverter(): CurrencyConverterState {
-  const [fromAmount, setFromAmount] = useState("100");
-  const [toAmount, setToAmount] = useState("");
-  const [fromCurrency, setFromCurrency] = useState("USDC");
-  const [toCurrency, setToCurrency] = useState("NGN");
+  const [fromAmount, setFromAmount] = useState('100');
+  const [toAmount, setToAmount] = useState('');
+  const [fromCurrency, setFromCurrency] = useState('USDC');
+  const [toCurrency, setToCurrency] = useState('NGN');
   const [rate, setRate] = useState<number | null>(null);
-  const [fees] = useState({ bridge: "0.5", payout: "0" });
+  const [fees] = useState({ bridge: '0.5', payout: '0' });
   const [loading, setLoading] = useState(false);
   const [currencies, setCurrencies] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
@@ -46,29 +46,29 @@ export function useCurrencyConverter(): CurrencyConverterState {
 
   const fetchCurrencies = useCallback(async () => {
     try {
-      const res = await fetch("/api/offramp/currencies");
+      const res = await fetch('/api/offramp/currencies');
       if (res.ok) {
-        const data = await res.json() as { currencies?: string[] };
+        const data = (await res.json()) as { currencies?: string[] };
         startTransition(() => setCurrencies(data.currencies ?? []));
       }
     } catch (error) {
-      console.error("Failed to fetch currencies:", error);
+      console.error('Failed to fetch currencies:', error);
     }
   }, []);
 
   const fetchRate = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/offramp/rate");
+      const res = await fetch('/api/offramp/rate');
       if (res.ok) {
-        const data = await res.json() as FxRate;
+        const data = (await res.json()) as FxRate;
         setRate(data.rate);
         if (rateUpdatedTimer.current) clearTimeout(rateUpdatedTimer.current);
         setRateUpdated(true);
         rateUpdatedTimer.current = setTimeout(() => setRateUpdated(false), 1_500);
       }
     } catch (error) {
-      console.error("Failed to fetch rate:", error);
+      console.error('Failed to fetch rate:', error);
     } finally {
       setLoading(false);
     }
@@ -91,7 +91,11 @@ export function useCurrencyConverter(): CurrencyConverterState {
     setQuoteSecondsLeft(QUOTE_TTL);
     const id = setInterval(() => {
       setQuoteSecondsLeft((prev) => {
-        if (prev <= 1) { setIsStale(true); clearInterval(id); return 0; }
+        if (prev <= 1) {
+          setIsStale(true);
+          clearInterval(id);
+          return 0;
+        }
         return prev - 1;
       });
     }, 1_000);
@@ -107,7 +111,7 @@ export function useCurrencyConverter(): CurrencyConverterState {
         const afterFees = total - (amount * parseFloat(fees.bridge)) / 100;
         setToAmount(afterFees.toFixed(2));
       } else {
-        setToAmount("");
+        setToAmount('');
       }
     },
     [rate, fees.bridge],
@@ -121,7 +125,7 @@ export function useCurrencyConverter(): CurrencyConverterState {
         const beforeFees = amount / (1 - parseFloat(fees.bridge) / 100);
         setFromAmount((beforeFees / rate).toFixed(2));
       } else {
-        setFromAmount("");
+        setFromAmount('');
       }
     },
     [rate, fees.bridge],
@@ -141,12 +145,25 @@ export function useCurrencyConverter(): CurrencyConverterState {
   }, [fromAmount, fromCurrency, toAmount, toCurrency]);
 
   return {
-    fromAmount, toAmount, fromCurrency, toCurrency,
-    rate, fees, loading, currencies, copied, isPending,
-    quoteSecondsLeft, isStale, rateUpdated,
-    handleFromAmountChange, handleToAmountChange,
-    setFromCurrency, setToCurrency,
-    swapCurrencies, copyResult,
+    fromAmount,
+    toAmount,
+    fromCurrency,
+    toCurrency,
+    rate,
+    fees,
+    loading,
+    currencies,
+    copied,
+    isPending,
+    quoteSecondsLeft,
+    isStale,
+    rateUpdated,
+    handleFromAmountChange,
+    handleToAmountChange,
+    setFromCurrency,
+    setToCurrency,
+    swapCurrencies,
+    copyResult,
     refreshRate: fetchRate,
   };
 }

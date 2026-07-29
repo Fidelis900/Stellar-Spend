@@ -19,7 +19,7 @@ interface NotificationCenterProps {
 
 /**
  * NotificationCenter
- * 
+ *
  * Bell icon button with dropdown panel showing aggregated notifications.
  * Features:
  * - Bell icon with unread badge
@@ -173,12 +173,19 @@ export function NotificationCenter({
         className={cn(
           'relative p-2 text-[#777777] hover:text-[#c9a962] transition-colors',
           'focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]',
-          'rounded'
+          'rounded',
         )}
         title={`Notifications (${unreadCount} unread)`}
       >
         {/* Bell Icon */}
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
           <path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </svg>
@@ -189,7 +196,7 @@ export function NotificationCenter({
             className={cn(
               'absolute top-1 right-1 min-w-[20px] h-5 px-1 rounded-full',
               'bg-[#c9a962] text-[#0a0a0a] text-[10px] font-bold',
-              'flex items-center justify-center'
+              'flex items-center justify-center',
             )}
             aria-label={`${unreadCount} unread notifications`}
           >
@@ -207,7 +214,7 @@ export function NotificationCenter({
           className={cn(
             'absolute right-0 top-full mt-2 w-80 max-h-96',
             'bg-[#111111] border border-[#333333] rounded shadow-xl',
-            'z-50 flex flex-col overflow-hidden'
+            'z-50 flex flex-col overflow-hidden',
           )}
         >
           {/* Header */}
@@ -218,7 +225,7 @@ export function NotificationCenter({
                 onClick={onMarkAllAsRead}
                 className={cn(
                   'text-[10px] text-[#c9a962] hover:text-[#dbb76d]',
-                  'transition-colors focus:outline-none focus-visible:underline'
+                  'transition-colors focus:outline-none focus-visible:underline',
                 )}
                 title="Mark all as read"
               >
@@ -255,19 +262,21 @@ export function NotificationCenter({
             >
               {/* Notification list */}
               <ul className="divide-y divide-[#222222]">
-                {events.map(event => (
+                {events.map((event) => (
                   <li
                     key={event.id}
                     className={cn(
                       'px-4 py-3 border-l-4 transition-colors hover:bg-[#1a1a1a]',
-                      event.read ? 'border-[#222222] bg-[#0a0a0a]' : 'border-[#c9a962] bg-[#1a1a1a]'
+                      event.read
+                        ? 'border-[#222222] bg-[#0a0a0a]'
+                        : 'border-[#c9a962] bg-[#1a1a1a]',
                     )}
                   >
                     <button
                       onClick={() => handleNotificationClick(event)}
                       className={cn(
                         'w-full text-left focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962] rounded px-1',
-                        'transition-all'
+                        'transition-all',
                       )}
                       aria-label={`${event.title}: ${event.description}`}
                     >
@@ -309,7 +318,7 @@ export function NotificationCenter({
 
                     {/* Remove button */}
                     <button
-                      onClick={e => {
+                      onClick={(e) => {
                         e.stopPropagation();
                         onRemoveEvent(event.id);
                       }}
@@ -317,7 +326,13 @@ export function NotificationCenter({
                       aria-label="Remove notification"
                       title="Remove"
                     >
-                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        aria-hidden="true"
+                      >
                         <path
                           d="M12 4L4 12M4 4L12 12"
                           stroke="currentColor"
@@ -340,7 +355,7 @@ export function NotificationCenter({
                 className={cn(
                   'w-full text-[10px] text-[#777777] hover:text-red-400',
                   'transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]',
-                  'py-1 rounded tracking-widest uppercase'
+                  'py-1 rounded tracking-widest uppercase',
                 )}
                 title="Clear all notifications"
               >

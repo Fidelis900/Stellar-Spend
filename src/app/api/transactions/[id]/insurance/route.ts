@@ -35,32 +35,36 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
  * Body: { amount: number; currency: string }
  */
 export async function POST(request: NextRequest, { params }: RouteContext) {
-  return withIdempotency(request, async () => {
-    const { id } = await params;
+  return withIdempotency(
+    request,
+    async () => {
+      const { id } = await params;
 
-    let body: { amount?: unknown; currency?: unknown };
-    try {
-      body = await request.json();
-    } catch {
-      return ErrorHandler.validation('Invalid JSON body');
-    }
+      let body: { amount?: unknown; currency?: unknown };
+      try {
+        body = await request.json();
+      } catch {
+        return ErrorHandler.validation('Invalid JSON body');
+      }
 
-    const amount = Number(body.amount);
-    const currency = typeof body.currency === 'string' ? body.currency : 'USDC';
+      const amount = Number(body.amount);
+      const currency = typeof body.currency === 'string' ? body.currency : 'USDC';
 
-    if (!amount || isNaN(amount) || amount <= 0) {
-      return ErrorHandler.validation('amount must be a positive number');
-    }
+      if (!amount || isNaN(amount) || amount <= 0) {
+        return ErrorHandler.validation('amount must be a positive number');
+      }
 
-    try {
-      const quote = await calculateInsurancePremium(amount, currency);
-      const result = await createInsurance(id, quote.premium, quote.coverage, quote.provider);
-      const row = (result as { rows: unknown[] }).rows?.[0] ?? null;
-      return NextResponse.json({ insurance: row, quote }, { status: 201 });
-    } catch (err) {
-      return ErrorHandler.serverError(err);
-    }
-  }, { required: true });
+      try {
+        const quote = await calculateInsurancePremium(amount, currency);
+        const result = await createInsurance(id, quote.premium, quote.coverage, quote.provider);
+        const row = (result as { rows: unknown[] }).rows?.[0] ?? null;
+        return NextResponse.json({ insurance: row, quote }, { status: 201 });
+      } catch (err) {
+        return ErrorHandler.serverError(err);
+      }
+    },
+    { required: true },
+  );
 }
 
 /**
@@ -69,33 +73,37 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
  * Body: { insuranceId: string; reason: string; evidence?: string }
  */
 export async function PATCH(request: NextRequest, { params }: RouteContext) {
-  return withIdempotency(request, async () => {
-    const { id: _transactionId } = await params;
+  return withIdempotency(
+    request,
+    async () => {
+      const { id: _transactionId } = await params;
 
-    let body: { insuranceId?: unknown; reason?: unknown; evidence?: unknown };
-    try {
-      body = await request.json();
-    } catch {
-      return ErrorHandler.validation('Invalid JSON body');
-    }
+      let body: { insuranceId?: unknown; reason?: unknown; evidence?: unknown };
+      try {
+        body = await request.json();
+      } catch {
+        return ErrorHandler.validation('Invalid JSON body');
+      }
 
-    const insuranceId = typeof body.insuranceId === 'string' ? body.insuranceId : '';
-    const reason = typeof body.reason === 'string' ? body.reason.trim() : '';
-    const evidence = typeof body.evidence === 'string' ? body.evidence.trim() : undefined;
+      const insuranceId = typeof body.insuranceId === 'string' ? body.insuranceId : '';
+      const reason = typeof body.reason === 'string' ? body.reason.trim() : '';
+      const evidence = typeof body.evidence === 'string' ? body.evidence.trim() : undefined;
 
-    if (!insuranceId) {
-      return ErrorHandler.validation('insuranceId is required');
-    }
-    if (!reason) {
-      return ErrorHandler.validation('reason is required');
-    }
+      if (!insuranceId) {
+        return ErrorHandler.validation('insuranceId is required');
+      }
+      if (!reason) {
+        return ErrorHandler.validation('reason is required');
+      }
 
-    try {
-      const result = await fileClaim(insuranceId, reason, evidence);
-      const row = (result as { rows: unknown[] }).rows?.[0] ?? null;
-      return NextResponse.json({ claim: row }, { status: 200 });
-    } catch (err) {
-      return ErrorHandler.serverError(err);
-    }
-  }, { required: true });
+      try {
+        const result = await fileClaim(insuranceId, reason, evidence);
+        const row = (result as { rows: unknown[] }).rows?.[0] ?? null;
+        return NextResponse.json({ claim: row }, { status: 200 });
+      } catch (err) {
+        return ErrorHandler.serverError(err);
+      }
+    },
+    { required: true },
+  );
 }

@@ -168,21 +168,21 @@ jobs:
         run: |
           cat > SECURITY_REPORT.md << 'EOF'
           # Security Scan Report
-          
+
           Generated: $(date)
           Commit: ${{ github.sha }}
-          
+
           ## Scan Results
-          
+
           - **Dependency Scan**: ${{ needs.dependency-scan.result }}
           - **SAST**: ${{ needs.sast.result }}
           - **Secret Scan**: ${{ needs.secret-scan.result }}
           - **License Check**: ${{ needs.license-check.result }}
           - **Container Scan**: ${{ needs.container-scan.result }}
           - **CodeQL**: ${{ needs.codeql.result }}
-          
+
           ## Recommendations
-          
+
           1. Review all HIGH and CRITICAL vulnerabilities
           2. Update dependencies with security patches
           3. Rotate any exposed secrets immediately

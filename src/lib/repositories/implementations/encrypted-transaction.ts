@@ -14,7 +14,12 @@
  */
 
 import type { TransactionRepository, Transaction } from '../transaction';
-import { encryptField, decryptField, maskPiiForLog, isEncrypted } from '../../security/field-encryption';
+import {
+  encryptField,
+  decryptField,
+  maskPiiForLog,
+  isEncrypted,
+} from '../../security/field-encryption';
 import { logger } from '../../logger';
 
 function encryptBeneficiary(beneficiary: Transaction['beneficiary']): Transaction['beneficiary'] {

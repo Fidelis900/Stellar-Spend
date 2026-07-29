@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from 'react';
 
 const INTERVAL = 30_000;
 export const QUOTE_TTL_SECONDS = INTERVAL / 1_000; // 30
@@ -30,12 +30,12 @@ export function useFxRate() {
   }
 
   async function fetchRate() {
-    if (document.visibilityState === "hidden") return;
+    if (document.visibilityState === 'hidden') return;
     try {
-      const res = await fetch("/api/offramp/rate", { cache: "no-store" });
+      const res = await fetch('/api/offramp/rate', { cache: 'no-store' });
       if (!res.ok) return;
       const { rate: r } = await res.json();
-      if (typeof r === "number" && r > 0) {
+      if (typeof r === 'number' && r > 0) {
         setRate(r);
         setFlash(true);
         setTimeout(() => setFlash(false), 600);
@@ -52,14 +52,14 @@ export function useFxRate() {
     timerRef.current = setInterval(fetchRate, INTERVAL);
 
     function onVisibility() {
-      if (document.visibilityState === "visible") fetchRate();
+      if (document.visibilityState === 'visible') fetchRate();
     }
-    document.addEventListener("visibilitychange", onVisibility);
+    document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
       if (countdownRef.current) clearInterval(countdownRef.current);
-      document.removeEventListener("visibilitychange", onVisibility);
+      document.removeEventListener('visibilitychange', onVisibility);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -1,18 +1,22 @@
 # RB-002: Provider Outage (Paycrest / Allbridge)
 
 ## Severity
+
 P1
 
 ## Triggering Alerts
+
 - `ALERT_PROVIDER_UNAVAILABLE` — repeated 5xx responses from Paycrest or Allbridge APIs
 - `ALERT_BRIDGE_QUOTE_UNAVAILABLE` — `/api/offramp/bridge/build-tx` returning 502
 
 ## Impact
+
 - **Allbridge down:** No new off-ramp transactions can be initiated. Users see "Bridge quote unavailable" error.
 - **Paycrest down:** Bridge can complete but fiat settlement cannot proceed. USDC accumulates in the payout wallet.
 - **Both down:** Complete off-ramp outage.
 
 ## Prerequisites
+
 - Access to AWS CloudWatch
 - Paycrest status page: https://status.paycrest.io
 - Allbridge status page: https://status.allbridge.io
@@ -82,9 +86,11 @@ GROUP BY provider_affected;
 ### A. Allbridge outage
 
 1. **Post to status page** immediately:
+
    > We are currently experiencing issues with our bridge provider. New off-ramp transactions cannot be initiated. Existing transactions in-flight will resume automatically when the provider recovers.
 
 2. **Enable maintenance mode** (blocks new transactions, shows maintenance banner):
+
    ```bash
    # Set feature flag via API (requires admin token)
    curl -X PATCH https://stellar-spend.com/api/admin/feature-flags/maintenance \
@@ -107,11 +113,13 @@ GROUP BY provider_affected;
 ### B. Paycrest outage
 
 1. **Post to status page:**
+
    > Bridge transfers are completing normally, but fiat bank settlements are temporarily delayed due to a payment processor issue. Funds will settle automatically once the processor recovers.
 
 2. **Do NOT initiate new Paycrest orders** while the provider is down; USDC will accumulate in the payout wallet and orders will be created when connectivity is restored.
 
 3. **Monitor payout wallet balance:**
+
    ```bash
    # Check Base payout wallet USDC balance (via viem/Base RPC)
    # See scripts/ for wallet balance check utility
@@ -129,12 +137,12 @@ GROUP BY provider_affected;
 
 ## Escalation
 
-| Time elapsed | Action |
-|-------------|--------|
-| 0–15 min | On-call confirms outage and posts status update |
-| 15 min | Escalate to infra lead; contact provider support |
-| 2 h | Engineering manager + head of product informed |
-| 4 h | CTO informed; consider user communication via email |
+| Time elapsed | Action                                              |
+| ------------ | --------------------------------------------------- |
+| 0–15 min     | On-call confirms outage and posts status update     |
+| 15 min       | Escalate to infra lead; contact provider support    |
+| 2 h          | Engineering manager + head of product informed      |
+| 4 h          | CTO informed; consider user communication via email |
 
 ---
 
@@ -143,5 +151,6 @@ GROUP BY provider_affected;
 File PIR within 24 hours. Evaluate whether provider SLAs are adequate and whether a failover provider should be promoted.
 
 ## Related Runbooks
+
 - [RB-001: Stuck Bridge Transaction](./stuck-bridge.md)
 - [RB-003: Database Failover](./database-failover.md)
