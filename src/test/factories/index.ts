@@ -31,12 +31,7 @@ export {
   makeStellarTxHash,
 } from './transaction.factory';
 
-export {
-  makeQuote,
-  makeQuoteForCurrency,
-  makeQuotes,
-  type QuoteResponse,
-} from './quote.factory';
+export { makeQuote, makeQuoteForCurrency, makeQuotes, type QuoteResponse } from './quote.factory';
 
 export {
   makeBeneficiary,
@@ -45,9 +40,4 @@ export {
   type Beneficiary,
 } from './beneficiary.factory';
 
-export {
-  makeUser,
-  makeUsers,
-  resetUserCounter,
-  type User,
-} from './user.factory';
+export { makeUser, makeUsers, resetUserCounter, type User } from './user.factory';

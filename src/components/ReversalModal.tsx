@@ -13,12 +13,7 @@ interface ReversalModalProps {
   onSuccess: () => void;
 }
 
-export function ReversalModal({
-  transaction,
-  isOpen,
-  onClose,
-  onSuccess,
-}: ReversalModalProps) {
+export function ReversalModal({ transaction, isOpen, onClose, onSuccess }: ReversalModalProps) {
   const [amount, setAmount] = useState(transaction.amount);
   const [reason, setReason] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -92,10 +87,7 @@ export function ReversalModal({
         aria-describedby="reversal-modal-desc"
         className="relative bg-[#1a1a1a] border border-[#333333] p-6 max-w-md w-full mx-4"
       >
-        <h2
-          id="reversal-modal-title"
-          className="text-lg font-bold text-white mb-4"
-        >
+        <h2 id="reversal-modal-title" className="text-lg font-bold text-white mb-4">
           Reverse Transaction
         </h2>
         <p id="reversal-modal-desc" className="sr-only">
@@ -117,7 +109,8 @@ export function ReversalModal({
 
         {!isEligible ? (
           <div className="bg-red-500/10 border border-red-500/30 p-4 text-red-400 text-sm">
-            This transaction is not eligible for reversal. Only completed transactions without existing reversals can be reversed.
+            This transaction is not eligible for reversal. Only completed transactions without
+            existing reversals can be reversed.
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -153,7 +146,10 @@ export function ReversalModal({
             </div>
 
             {error && (
-              <div role="alert" className="bg-red-500/10 border border-red-500/30 p-3 text-red-400 text-xs">
+              <div
+                role="alert"
+                className="bg-red-500/10 border border-red-500/30 p-3 text-red-400 text-xs"
+              >
                 {error}
               </div>
             )}

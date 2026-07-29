@@ -5,7 +5,7 @@ import { merchantService } from '@/lib/services/merchant.service';
 // GET /api/merchant/payouts/[payoutId]
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ payoutId: string }> }
+  { params }: { params: Promise<{ payoutId: string }> },
 ) {
   const { payoutId } = await params;
 

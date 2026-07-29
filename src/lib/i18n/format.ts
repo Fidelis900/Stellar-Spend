@@ -15,7 +15,11 @@ export function localeFor(language: Language): string {
   return LOCALE_MAP[language] ?? 'en-US';
 }
 
-export function formatDate(date: Date | number, language: Language, options?: Intl.DateTimeFormatOptions): string {
+export function formatDate(
+  date: Date | number,
+  language: Language,
+  options?: Intl.DateTimeFormatOptions,
+): string {
   return new Intl.DateTimeFormat(localeFor(language), {
     year: 'numeric',
     month: 'short',
@@ -26,7 +30,11 @@ export function formatDate(date: Date | number, language: Language, options?: In
   }).format(date);
 }
 
-export function formatNumber(amount: number, language: Language, options?: Intl.NumberFormatOptions): string {
+export function formatNumber(
+  amount: number,
+  language: Language,
+  options?: Intl.NumberFormatOptions,
+): string {
   return new Intl.NumberFormat(localeFor(language), options).format(amount);
 }
 

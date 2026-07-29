@@ -40,7 +40,9 @@ const CACHE_TTL_MS = 5 * 60 * 1000;
 export async function initializeAllbridgeSdk() {
   if (!sdkInstance) {
     const { AllbridgeCoreSdk } = await import('@allbridge/bridge-core-sdk');
-    sdkInstance = new AllbridgeCoreSdk({ /* RPC URLs from env */ });
+    sdkInstance = new AllbridgeCoreSdk({
+      /* RPC URLs from env */
+    });
   }
   return sdkInstance;
 }
@@ -56,21 +58,24 @@ export function invalidateSdkCache() {
 ## Consequences
 
 **Positive:**
+
 - Next.js builds successfully — the dynamic import is deferred past the build graph resolution phase.
 - Cold starts for non-bridge routes are unaffected.
 - Cache invalidation is explicit and testable.
 - Singleton pattern keeps network connections warm across concurrent requests.
 
 **Negative / Trade-offs:**
+
 - The very first request to a bridge route after a cold start (or after cache invalidation) incurs the full SDK initialization cost (~200–500 ms depending on RPC latency).
 - Module-level state means the singleton persists for the lifetime of the server process; long-running processes accumulate stale state unless something triggers `invalidateSdkCache()`.
 - Testing requires mocking the dynamic import path, which is slightly more involved than mocking a static module.
 
 **Mitigations:**
+
 - The 5-minute TTL ensures chain details stay reasonably fresh without constant re-fetching.
 - Error-triggered invalidation means transient RPC failures self-heal on retry.
 - Tests mock `@allbridge/bridge-core-sdk` at the Vitest module level, keeping the test suite fast and deterministic.
 
 ---
 
-*Related: [[ADR-003-adapter-pattern-external-services]]*
+_Related: [[ADR-003-adapter-pattern-external-services]]_

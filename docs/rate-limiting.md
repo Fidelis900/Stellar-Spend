@@ -22,10 +22,10 @@ This document covers the rate limiting policies in Stellar-Spend — tiers, quot
 
 Stellar-Spend applies rate limiting at two layers:
 
-| Layer | Scope | Implementation |
-|-------|-------|---------------|
-| **IP-based** | Per client IP address, per endpoint | `RateLimiter` class (`src/lib/offramp/utils/rate-limiter.ts`) |
-| **API key-based** | Per API key, across all endpoints | `PerKeyRateLimiter` class (`src/lib/api-keys/service.ts`) |
+| Layer             | Scope                               | Implementation                                                |
+| ----------------- | ----------------------------------- | ------------------------------------------------------------- |
+| **IP-based**      | Per client IP address, per endpoint | `RateLimiter` class (`src/lib/offramp/utils/rate-limiter.ts`) |
+| **API key-based** | Per API key, across all endpoints   | `PerKeyRateLimiter` class (`src/lib/api-keys/service.ts`)     |
 
 All rate-limited responses use HTTP status **429 Too Many Requests** and include a `Retry-After` header indicating how many seconds to wait before retrying.
 
@@ -37,19 +37,19 @@ All rate-limited responses use HTTP status **429 Too Many Requests** and include
 
 These limits apply to all clients regardless of authentication:
 
-| Tier | Endpoints | Limit | Window |
-|------|-----------|-------|--------|
-| **Sensitive** | Bridge tx build, Paycrest order creation | 10 req | 60 s |
-| **Standard** | Quote, FX rates, status checks | 5 req | 60 s |
+| Tier          | Endpoints                                | Limit  | Window |
+| ------------- | ---------------------------------------- | ------ | ------ |
+| **Sensitive** | Bridge tx build, Paycrest order creation | 10 req | 60 s   |
+| **Standard**  | Quote, FX rates, status checks           | 5 req  | 60 s   |
 
 ### API key tiers
 
 API keys have individually configurable rate limits stored per key. Default values at key creation:
 
-| Field | Default |
-|-------|---------|
+| Field                  | Default                     |
+| ---------------------- | --------------------------- |
 | `rateLimitMaxRequests` | Configured at creation time |
-| `rateLimitWindowMs` | Configured at creation time |
+| `rateLimitWindowMs`    | Configured at creation time |
 
 API keys are created via the `/api/api-keys` endpoint by an admin. Each key carries its own `rateLimitMaxRequests` and `rateLimitWindowMs` values, allowing fine-grained control per integration partner or use case.
 
@@ -64,9 +64,9 @@ API keys are created via the `/api/api-keys` endpoint by an admin. Each key carr
 
 Rate-limited responses include the following headers:
 
-| Header | Description | Example |
-|--------|-------------|---------|
-| `Retry-After` | Seconds until the rate limit window resets | `42` |
+| Header         | Description                                                 | Example     |
+| -------------- | ----------------------------------------------------------- | ----------- |
+| `Retry-After`  | Seconds until the rate limit window resets                  | `42`        |
 | `X-API-Key-Id` | ID of the API key that was rate-limited (API key auth only) | `ak_abc123` |
 
 > **Note:** `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and `X-RateLimit-Reset` are not yet included in responses. They are planned for a future release. Track the `Retry-After` header for now.
@@ -107,12 +107,12 @@ Window (60 s)
 
 ### Trade-offs
 
-| Property | Fixed Window |
-|----------|-------------|
-| Memory | Low — one record per key |
-| Accuracy | Allows up to 2× the limit at window boundaries |
-| Complexity | Simple to implement and reason about |
-| Persistence | In-memory only — resets on server restart |
+| Property    | Fixed Window                                   |
+| ----------- | ---------------------------------------------- |
+| Memory      | Low — one record per key                       |
+| Accuracy    | Allows up to 2× the limit at window boundaries |
+| Complexity  | Simple to implement and reason about           |
+| Persistence | In-memory only — resets on server restart      |
 
 > **Production note:** The current in-memory implementation does not share state across multiple server instances. For multi-instance deployments (Kubernetes, Vercel edge), a distributed store such as Redis is required to enforce limits globally.
 
@@ -187,11 +187,11 @@ Authorization: Bearer ssp_live_a1b2c3d4e5f6.0102...
 
 ### API key lifecycle
 
-| Status | Description |
-|--------|-------------|
-| `active` | Key is valid and can authenticate requests |
+| Status    | Description                                                 |
+| --------- | ----------------------------------------------------------- |
+| `active`  | Key is valid and can authenticate requests                  |
 | `rotated` | Key has been replaced; the new key is in `rotatedFromKeyId` |
-| `revoked` | Key is permanently disabled; all requests will be rejected |
+| `revoked` | Key is permanently disabled; all requests will be rejected  |
 
 Rotate a key via `POST /api/api-keys/:id/rotate`. Revoke via the admin API.
 
@@ -218,7 +218,7 @@ Check both the HTTP status code (`response.status === 429`) and the `Retry-After
 async function fetchWithRetry(
   url: string,
   options: RequestInit,
-  maxRetries = 3
+  maxRetries = 3,
 ): Promise<Response> {
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     const response = await fetch(url, options);
@@ -248,7 +248,7 @@ For high-frequency clients, use exponential backoff as the base delay:
 ```ts
 const delay = Math.min(
   Math.pow(2, attempt) * 1000 + Math.random() * 500,
-  30_000 // cap at 30 s
+  30_000, // cap at 30 s
 );
 ```
 
@@ -371,6 +371,7 @@ Content-Type: application/json
 ### How to request an increase
 
 1. **Open a GitHub issue** using the **Rate Limit Increase Request** template and include:
+
    - Your API key prefix (the `ssp_live_<6-char>` prefix — never share the full key)
    - Intended use case
    - Required request rate (requests per minute or per second)

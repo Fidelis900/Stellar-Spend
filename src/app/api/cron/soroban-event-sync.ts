@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     logger.error('Event indexing failed:', {}, error);
     return NextResponse.json(
       { error: 'Event indexing failed', message: String(error) },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
     logger.error('State check failed:', {}, error);
     return NextResponse.json(
       { error: 'State check failed', message: String(error) },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

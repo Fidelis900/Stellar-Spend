@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback } from 'react';
 
 interface KeyboardNavigationOptions {
   onEscape?: () => void;
@@ -24,37 +24,37 @@ export function useKeyboardNavigation({
       if (!enabled) return;
 
       switch (event.key) {
-        case "Escape":
+        case 'Escape':
           onEscape?.();
           break;
-        case "Enter":
+        case 'Enter':
           if (!event.shiftKey && !event.ctrlKey && !event.metaKey) {
             onEnter?.();
           }
           break;
-        case "ArrowUp":
+        case 'ArrowUp':
           event.preventDefault();
           onArrowUp?.();
           break;
-        case "ArrowDown":
+        case 'ArrowDown':
           event.preventDefault();
           onArrowDown?.();
           break;
-        case "ArrowLeft":
+        case 'ArrowLeft':
           onArrowLeft?.();
           break;
-        case "ArrowRight":
+        case 'ArrowRight':
           onArrowRight?.();
           break;
       }
     },
-    [enabled, onEscape, onEnter, onArrowUp, onArrowDown, onArrowLeft, onArrowRight]
+    [enabled, onEscape, onEnter, onArrowUp, onArrowDown, onArrowLeft, onArrowRight],
   );
 
   useEffect(() => {
     if (!enabled) return;
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [enabled, handleKeyDown]);
 }

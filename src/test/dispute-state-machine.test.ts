@@ -74,10 +74,7 @@ describe('Dispute state machine unit tests (#846)', () => {
     });
 
     it('assigns the priority from the request', async () => {
-      const dispute = await repo.createDispute(
-        '0xUser1',
-        makeCreateRequest({ priority: 'high' }),
-      );
+      const dispute = await repo.createDispute('0xUser1', makeCreateRequest({ priority: 'high' }));
       expect(dispute.priority).toBe('high');
     });
 
@@ -148,16 +145,16 @@ describe('Dispute state machine unit tests (#846)', () => {
 
   describe('invalid status transitions', () => {
     const invalidTransitionPairs: Array<[DisputeStatus, DisputeStatus]> = [
-      ['open', 'resolved'],      // must go through in_review first
-      ['open', 'open'],          // no-op is not in the table (stays same, but not "invalid")
-      ['resolved', 'open'],      // terminal
+      ['open', 'resolved'], // must go through in_review first
+      ['open', 'open'], // no-op is not in the table (stays same, but not "invalid")
+      ['resolved', 'open'], // terminal
       ['resolved', 'in_review'], // terminal
       ['resolved', 'escalated'], // terminal
-      ['resolved', 'rejected'],  // terminal
-      ['rejected', 'open'],      // terminal
+      ['resolved', 'rejected'], // terminal
+      ['rejected', 'open'], // terminal
       ['rejected', 'in_review'], // terminal
       ['rejected', 'escalated'], // terminal
-      ['rejected', 'resolved'],  // terminal
+      ['rejected', 'resolved'], // terminal
     ];
 
     for (const [from, to] of invalidTransitionPairs) {
@@ -173,9 +170,9 @@ describe('Dispute state machine unit tests (#846)', () => {
         }
 
         // Attempting the invalid transition should throw
-        await expect(
-          repo.updateDispute(dispute.id, { status: to }),
-        ).rejects.toThrow(/invalid status transition/i);
+        await expect(repo.updateDispute(dispute.id, { status: to })).rejects.toThrow(
+          /invalid status transition/i,
+        );
       });
     }
   });
@@ -189,9 +186,9 @@ describe('Dispute state machine unit tests (#846)', () => {
       await repo.updateDispute(dispute.id, { status: 'resolved' });
 
       for (const target of ['open', 'in_review', 'escalated', 'rejected'] as DisputeStatus[]) {
-        await expect(
-          repo.updateDispute(dispute.id, { status: target }),
-        ).rejects.toThrow(/invalid status transition/i);
+        await expect(repo.updateDispute(dispute.id, { status: target })).rejects.toThrow(
+          /invalid status transition/i,
+        );
       }
     });
 
@@ -200,9 +197,9 @@ describe('Dispute state machine unit tests (#846)', () => {
       await repo.updateDispute(dispute.id, { status: 'rejected' });
 
       for (const target of ['open', 'in_review', 'escalated', 'resolved'] as DisputeStatus[]) {
-        await expect(
-          repo.updateDispute(dispute.id, { status: target }),
-        ).rejects.toThrow(/invalid status transition/i);
+        await expect(repo.updateDispute(dispute.id, { status: target })).rejects.toThrow(
+          /invalid status transition/i,
+        );
       }
     });
 
@@ -254,17 +251,13 @@ describe('Dispute state machine unit tests (#846)', () => {
       await repo.updateDispute(dispute.id, { status: 'in_review' });
       await repo.updateDispute(dispute.id, { status: 'resolved' });
 
-      await expect(
-        repo.escalateDispute(dispute.id, 'admin', 'late escalation'),
-      ).rejects.toThrow(/cannot escalate/i);
+      await expect(repo.escalateDispute(dispute.id, 'admin', 'late escalation')).rejects.toThrow(
+        /cannot escalate/i,
+      );
     });
 
     it('returns null when dispute id does not exist', async () => {
-      const result = await repo.escalateDispute(
-        'nonexistent_id',
-        'admin',
-        'reason',
-      );
+      const result = await repo.escalateDispute('nonexistent_id', 'admin', 'reason');
       expect(result).toBeNull();
     });
 
@@ -282,11 +275,7 @@ describe('Dispute state machine unit tests (#846)', () => {
     it('resolves a dispute in in_review state', async () => {
       const dispute = await repo.createDispute('0xUser1', makeCreateRequest());
       await repo.updateDispute(dispute.id, { status: 'in_review' });
-      const resolved = await repo.resolveDispute(
-        dispute.id,
-        'resolved',
-        'Refund issued',
-      );
+      const resolved = await repo.resolveDispute(dispute.id, 'resolved', 'Refund issued');
       expect(resolved?.status).toBe('resolved');
       expect(resolved?.resolutionNotes).toBe('Refund issued');
     });
@@ -294,11 +283,7 @@ describe('Dispute state machine unit tests (#846)', () => {
     it('rejects a dispute and records resolution notes', async () => {
       const dispute = await repo.createDispute('0xUser1', makeCreateRequest());
       await repo.updateDispute(dispute.id, { status: 'in_review' });
-      const rejected = await repo.resolveDispute(
-        dispute.id,
-        'rejected',
-        'Transaction was valid',
-      );
+      const rejected = await repo.resolveDispute(dispute.id, 'rejected', 'Transaction was valid');
       expect(rejected?.status).toBe('rejected');
       expect(rejected?.resolutionNotes).toBe('Transaction was valid');
     });

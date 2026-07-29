@@ -6,18 +6,18 @@ This document describes how Stellar-Spend manages application secrets: where the
 
 ## Secret Inventory
 
-| Secret | Server-only | Description |
-|--------|-------------|-------------|
-| `PAYCREST_API_KEY` | ✅ | Paycrest API key for creating quotes and payout orders |
-| `PAYCREST_WEBHOOK_SECRET` | ✅ | HMAC secret for verifying incoming Paycrest webhook events |
-| `BASE_PRIVATE_KEY` | ✅ | Private key of the Base wallet that signs on-chain payout transactions |
-| `BASE_RETURN_ADDRESS` | ✅ | Base address for refunds / treasury routing |
-| `BASE_RPC_URL` | ✅ | Base mainnet RPC provider URL |
-| `STELLAR_SOROBAN_RPC_URL` | ✅ | Soroban RPC endpoint for server-side transaction building |
-| `STELLAR_HORIZON_URL` | ✅ | Horizon endpoint for account and trustline lookups |
-| `DATABASE_URL` | ✅ | PostgreSQL connection string |
-| `API_KEY_ADMIN_TOKEN` | ✅ | Bearer token for admin API key management |
-| `SENTRY_AUTH_TOKEN` | ✅ | Sentry token for source map uploads (CI only) |
+| Secret                    | Server-only | Description                                                            |
+| ------------------------- | ----------- | ---------------------------------------------------------------------- |
+| `PAYCREST_API_KEY`        | ✅          | Paycrest API key for creating quotes and payout orders                 |
+| `PAYCREST_WEBHOOK_SECRET` | ✅          | HMAC secret for verifying incoming Paycrest webhook events             |
+| `BASE_PRIVATE_KEY`        | ✅          | Private key of the Base wallet that signs on-chain payout transactions |
+| `BASE_RETURN_ADDRESS`     | ✅          | Base address for refunds / treasury routing                            |
+| `BASE_RPC_URL`            | ✅          | Base mainnet RPC provider URL                                          |
+| `STELLAR_SOROBAN_RPC_URL` | ✅          | Soroban RPC endpoint for server-side transaction building              |
+| `STELLAR_HORIZON_URL`     | ✅          | Horizon endpoint for account and trustline lookups                     |
+| `DATABASE_URL`            | ✅          | PostgreSQL connection string                                           |
+| `API_KEY_ADMIN_TOKEN`     | ✅          | Bearer token for admin API key management                              |
+| `SENTRY_AUTH_TOKEN`       | ✅          | Sentry token for source map uploads (CI only)                          |
 
 > ⚠️ **None of the above may use the `NEXT_PUBLIC_` prefix.** The app throws a startup error if `NEXT_PUBLIC_PAYCREST_API_KEY`, `NEXT_PUBLIC_BASE_PRIVATE_KEY`, or `NEXT_PUBLIC_PAYCREST_WEBHOOK_SECRET` are set.
 
@@ -42,14 +42,17 @@ Set secrets in **Vercel → Settings → Environment Variables** for the Product
 ### Production (Docker / Kubernetes)
 
 **Docker Compose** — pass secrets via `--env-file`:
+
 ```bash
 docker compose up -d  # reads .env.local by default
 ```
 
 **Kubernetes** — create a Secret from your env file, then reference it in the Deployment:
+
 ```bash
 kubectl create secret generic stellar-spend-secrets --from-env-file=.env.local
 ```
+
 The `k8s/deployment.yaml` manifest references this secret via `envFrom.secretRef`.
 
 ---
@@ -64,6 +67,7 @@ chmod +x scripts/validate-secrets.sh
 ```
 
 The script checks:
+
 - All required server-side secrets are present and not placeholder values
 - All required public variables are present
 - No secrets are accidentally exposed via `NEXT_PUBLIC_` prefixed variables
@@ -84,6 +88,7 @@ chmod +x scripts/rotate-secret.sh
 ```
 
 The script:
+
 1. Prompts for the new value (hidden input — not echoed to the terminal)
 2. Creates a timestamped backup of the env file (e.g. `.env.local.bak.20260425120000`)
 3. Updates the value in-place
@@ -92,6 +97,7 @@ The script:
 ### Rotation checklist per secret
 
 **`PAYCREST_API_KEY`**
+
 1. Generate a new key in the Paycrest dashboard
 2. Run `./scripts/rotate-secret.sh PAYCREST_API_KEY`
 3. Redeploy the application
@@ -99,12 +105,14 @@ The script:
 5. Revoke the old key in the Paycrest dashboard
 
 **`PAYCREST_WEBHOOK_SECRET`**
+
 1. Generate a new secret in Paycrest webhook settings
 2. Run `./scripts/rotate-secret.sh PAYCREST_WEBHOOK_SECRET`
 3. Redeploy the application
 4. Update the secret in Paycrest simultaneously to avoid a gap
 
 **`BASE_PRIVATE_KEY`**
+
 1. Generate a new Base wallet
 2. Transfer any funds from the old wallet to the new wallet
 3. Run `./scripts/rotate-secret.sh BASE_PRIVATE_KEY`
@@ -112,6 +120,7 @@ The script:
 5. Redeploy the application
 
 **`DATABASE_URL`**
+
 1. Provision new database credentials
 2. Run `./scripts/rotate-secret.sh DATABASE_URL`
 3. Redeploy the application

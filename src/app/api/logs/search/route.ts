@@ -27,8 +27,9 @@ import {
 
 export const maxDuration = 30;
 
-const LOG_GROUP = process.env.CW_LOG_GROUP ?? `/ecs/stellar-spend-${process.env.ENVIRONMENT ?? 'production'}`;
-const REGION    = process.env.AWS_REGION ?? 'us-east-1';
+const LOG_GROUP =
+  process.env.CW_LOG_GROUP ?? `/ecs/stellar-spend-${process.env.ENVIRONMENT ?? 'production'}`;
+const REGION = process.env.AWS_REGION ?? 'us-east-1';
 
 const client = new CloudWatchLogsClient({ region: REGION });
 
@@ -42,13 +43,15 @@ async function runQuery(
   endTime: number,
   limit: number,
 ): Promise<Record<string, string>[]> {
-  const { queryId } = await client.send(new StartQueryCommand({
-    logGroupName: LOG_GROUP,
-    queryString,
-    startTime,
-    endTime,
-    limit,
-  }));
+  const { queryId } = await client.send(
+    new StartQueryCommand({
+      logGroupName: LOG_GROUP,
+      queryString,
+      startTime,
+      endTime,
+      limit,
+    }),
+  );
 
   if (!queryId) throw new Error('Failed to start query');
 
@@ -94,13 +97,18 @@ export async function POST(request: NextRequest) {
 
   const now = Math.floor(Date.now() / 1000);
   const start = typeof startTime === 'number' ? startTime : now - 3600;
-  const end   = typeof endTime   === 'number' ? endTime   : now;
-  const lim   = typeof limit     === 'number' ? Math.min(Math.max(limit, 1), 1000) : 100;
+  const end = typeof endTime === 'number' ? endTime : now;
+  const lim = typeof limit === 'number' ? Math.min(Math.max(limit, 1), 1000) : 100;
 
   try {
     const results = await runQuery(query, start, end, lim);
     return NextResponse.json({ results, count: results.length, logGroup: LOG_GROUP });
   } catch (err) {
-    return ErrorHandler.handle(new ApiError(ErrorType.EXTERNAL_SERVICE, err instanceof Error ? err.message : 'Search failed'));
+    return ErrorHandler.handle(
+      new ApiError(
+        ErrorType.EXTERNAL_SERVICE,
+        err instanceof Error ? err.message : 'Search failed',
+      ),
+    );
   }
 }

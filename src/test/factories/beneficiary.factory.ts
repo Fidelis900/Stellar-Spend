@@ -19,7 +19,7 @@ let _counter = 0;
 
 export function makeBeneficiary(
   overrides: Partial<Beneficiary> = {},
-  rng: Rng = getDefaultRng()
+  rng: Rng = getDefaultRng(),
 ): Beneficiary {
   const n = ++_counter;
   const currency = overrides.currency ?? 'NGN';
@@ -36,7 +36,7 @@ export function makeBeneficiary(
 export function makeBeneficiaryForCurrency(
   currency: string,
   overrides: Partial<Beneficiary> = {},
-  rng?: Rng
+  rng?: Rng,
 ): Beneficiary {
   return makeBeneficiary({ currency, ...overrides }, rng);
 }

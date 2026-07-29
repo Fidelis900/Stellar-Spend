@@ -35,7 +35,7 @@ describe('PaycrestAdapter', () => {
             bankCode: '044',
             name: 'John Doe',
           },
-        })
+        }),
       ).rejects.toThrow();
     });
 
@@ -49,7 +49,7 @@ describe('PaycrestAdapter', () => {
             bankCode: '044',
             name: 'John Doe',
           },
-        })
+        }),
       ).rejects.toThrow();
     });
 
@@ -63,7 +63,7 @@ describe('PaycrestAdapter', () => {
             bankCode: '044',
             name: 'John Doe',
           },
-        })
+        }),
       ).rejects.toThrow();
     });
   });
@@ -105,7 +105,7 @@ describe('PaycrestAdapter', () => {
         adapter.verifyBeneficiary({
           accountNumber: '1234567890',
           bankCode: '',
-        })
+        }),
       ).rejects.toThrow();
     });
   });

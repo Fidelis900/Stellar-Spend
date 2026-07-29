@@ -23,10 +23,7 @@ describe('getAllowedOrigins', () => {
   it('parses comma-separated ALLOWED_ORIGINS', async () => {
     process.env.ALLOWED_ORIGINS = 'https://app.example.com,https://www.example.com';
     const { getAllowedOrigins } = await import('@/lib/cors');
-    expect(getAllowedOrigins()).toEqual([
-      'https://app.example.com',
-      'https://www.example.com',
-    ]);
+    expect(getAllowedOrigins()).toEqual(['https://app.example.com', 'https://www.example.com']);
   });
 
   it('trims whitespace around origins', async () => {

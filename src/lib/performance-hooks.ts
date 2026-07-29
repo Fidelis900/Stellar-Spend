@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useMemo, useCallback, ReactNode, memo } from "react";
+import { useMemo, useCallback, ReactNode, memo } from 'react';
 
 /**
  * Performance optimization utilities for React components.
@@ -61,10 +61,7 @@ export function useThrottle<T extends (...args: unknown[]) => unknown>(
  * Memoize expensive calculations with dependency tracking.
  * Automatically re-computes when dependencies change.
  */
-export function useMemoized<T>(
-  factory: () => T,
-  deps: React.DependencyList,
-): T {
+export function useMemoized<T>(factory: () => T, deps: React.DependencyList): T {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   return useMemo(factory, deps);
 }
@@ -93,10 +90,7 @@ export function useVirtualScroll(
 ) {
   return useMemo(() => {
     const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - 1);
-    const endIndex = Math.min(
-      itemCount,
-      Math.ceil((scrollTop + containerHeight) / itemHeight) + 1,
-    );
+    const endIndex = Math.min(itemCount, Math.ceil((scrollTop + containerHeight) / itemHeight) + 1);
     const offsetY = startIndex * itemHeight;
 
     return {

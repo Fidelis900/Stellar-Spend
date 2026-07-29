@@ -53,11 +53,11 @@ export class BridgeProviderRegistry {
 
   getEligibleBridges(corridor: string): string[] {
     const routeProviders = this.routes
-      .filter(r => r.corridor === corridor)
+      .filter((r) => r.corridor === corridor)
       .sort((a, b) => a.priority - b.priority)
-      .map(r => r.bridgeProvider);
+      .map((r) => r.bridgeProvider);
 
-    const healthy = routeProviders.filter(p => {
+    const healthy = routeProviders.filter((p) => {
       const health = this.healthCache.get(p);
       return !health || health.ok;
     });
@@ -67,12 +67,12 @@ export class BridgeProviderRegistry {
 
   getEligiblePayouts(currency: string): string[] {
     const routeProviders = this.routes
-      .filter(r => r.fiatCurrency === currency)
+      .filter((r) => r.fiatCurrency === currency)
       .sort((a, b) => a.priority - b.priority)
-      .map(r => r.payoutProvider)
+      .map((r) => r.payoutProvider)
       .filter(Boolean) as string[];
 
-    const healthy = routeProviders.filter(p => {
+    const healthy = routeProviders.filter((p) => {
       const health = this.healthCache.get(p);
       return !health || health.ok;
     });
@@ -167,7 +167,7 @@ export class BridgeProviderRegistry {
   }
 
   getRoutesForCorridor(corridor: string): PerCorridorRoute[] {
-    return this.routes.filter(r => r.corridor === corridor);
+    return this.routes.filter((r) => r.corridor === corridor);
   }
 }
 

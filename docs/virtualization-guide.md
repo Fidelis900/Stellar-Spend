@@ -9,6 +9,7 @@ This guide explains the virtualization implementation for rendering large transa
 ### VirtualList.tsx
 
 Enhanced virtual scrolling component with:
+
 - **Keyboard Navigation**: ArrowUp, ArrowDown, Home, End, PageUp, PageDown
 - **Focus Management**: Automatic scroll-to-focus, tabindex management
 - **Accessibility**: ARIA attributes (aria-rowcount, aria-rowindex, aria-sort)
@@ -18,6 +19,7 @@ Enhanced virtual scrolling component with:
 ### RecentOfframpsTable.tsx
 
 Recent transactions table with:
+
 - **Automatic Virtualization**: Enables when rows > 50
 - **Backward Compatible**: Renders normally for small datasets
 - **Consistent UI**: Same styling and behavior as non-virtualized table
@@ -26,6 +28,7 @@ Recent transactions table with:
 ### VirtualizedTransactionTable.tsx
 
 Full-featured transaction table with:
+
 - **Row Skeletons**: Loading state with animated placeholders
 - **Optimized Rendering**: Memoized row components
 - **Focus Tracking**: Per-row focus management
@@ -34,12 +37,14 @@ Full-featured transaction table with:
 ## Performance Metrics
 
 ### Before Virtualization
+
 - 5,000 rows: 20-30fps (jank)
 - DOM nodes: 5,000+ tr/td elements
 - Memory: 50+ MB
 - Render time: 300-500ms initial, 100-200ms per scroll
 
 ### After Virtualization
+
 - 5,000 rows: **60fps** ✓
 - DOM nodes: 15-20 visible rows only
 - Memory: 5-10 MB
@@ -62,16 +67,17 @@ Scenario: Scrolling 5,000 transactions
 
 The VirtualList supports full keyboard navigation for accessibility:
 
-| Key | Action |
-|-----|--------|
-| `ArrowUp` | Move to previous row |
-| `ArrowDown` | Move to next row |
-| `Home` | Jump to first row |
-| `End` | Jump to last row |
-| `PageUp` | Jump up by page height |
-| `PageDown` | Jump down by page height |
+| Key         | Action                   |
+| ----------- | ------------------------ |
+| `ArrowUp`   | Move to previous row     |
+| `ArrowDown` | Move to next row         |
+| `Home`      | Jump to first row        |
+| `End`       | Jump to last row         |
+| `PageUp`    | Jump up by page height   |
+| `PageDown`  | Jump down by page height |
 
 ### Focus Behavior
+
 - First navigation key focus on container auto-focuses first row
 - Focused row auto-scrolls into view with smooth animation
 - Focus ring visible on focused row (gold/amber color)
@@ -97,6 +103,7 @@ const filtered = transactions.filter(tx => tx.status === 'completed');
 ```
 
 ### Performance Impact
+
 - Filter operation: < 10ms for 5,000 items (pre-computed memoization)
 - Virtualization re-calculation: < 1ms
 - Total: Imperceptible to user
@@ -115,6 +122,7 @@ Skeleton loaders improve perceived performance during data fetch:
 ```
 
 ### Features
+
 - Animated pulse effect
 - Matches real row height (56px)
 - All column widths replicated
@@ -134,12 +142,13 @@ Row 1 of 5000, Transaction history table
 ```
 
 ### ARIA Implementation
+
 ```tsx
 <div
   role="region"
   aria-label="Virtual list"
-  aria-rowcount={5000}        // Total rows
-  tabIndex={0}                 // Keyboard accessible
+  aria-rowcount={5000} // Total rows
+  tabIndex={0} // Keyboard accessible
 >
   <div role="row" aria-rowindex={1}>
     {/* Row content */}
@@ -224,6 +233,7 @@ itemHeight={56}  // Must be fixed and known in advance
 ```
 
 If content varies in height, use a fixed minimum:
+
 ```typescript
 itemHeight={56}  // Sufficient for all rows
 ```
@@ -246,6 +256,7 @@ overscan={3}  // Default: render 3 extra rows above/below viewport
 ```
 
 Increase if scrolling still shows blank rows:
+
 ```typescript
 overscan={5}  // More buffer = higher memory, smoother scroll
 ```
@@ -253,18 +264,21 @@ overscan={5}  // More buffer = higher memory, smoother scroll
 ## Browser Compatibility
 
 ### Desktop
+
 - ✓ Chrome 60+
 - ✓ Firefox 55+
 - ✓ Safari 12+
 - ✓ Edge 79+
 
 ### Mobile
+
 - ✓ iOS Safari 12+
 - ✓ Android Chrome
 - ✓ Android Firefox
 - ✓ Samsung Internet 8+
 
 ### Touch
+
 - ✓ Momentum scrolling (iOS)
 - ✓ Fling scrolling (Android)
 - ✓ Touch keyboard navigation
@@ -276,6 +290,7 @@ overscan={5}  // More buffer = higher memory, smoother scroll
 **Issue**: White space appears while scrolling quickly
 
 **Solutions**:
+
 1. Increase `overscan` value (3 → 5)
 2. Check `itemHeight` matches actual height
 3. Verify no CSS transforms affecting layout
@@ -285,6 +300,7 @@ overscan={5}  // More buffer = higher memory, smoother scroll
 **Issue**: Arrow keys don't move between rows
 
 **Solutions**:
+
 1. Ensure `containerRef.current` is focused
 2. Check `items.length > 0`
 3. Verify `itemHeight > 0`
@@ -294,6 +310,7 @@ overscan={5}  // More buffer = higher memory, smoother scroll
 **Issue**: Browser memory grows over time
 
 **Solutions**:
+
 1. Check for memory leaks in renderItem
 2. Avoid creating new objects in renderItem
 3. Use React.memo on row components
@@ -303,6 +320,7 @@ overscan={5}  // More buffer = higher memory, smoother scroll
 **Issue**: Screen reader skips rows or doesn't announce state
 
 **Solutions**:
+
 1. Verify `role="row"` on each row
 2. Check `aria-rowindex` is numeric
 3. Ensure focus management works (`aria-label` on container)
@@ -351,6 +369,7 @@ Chrome DevTools → Memory → Take heap snapshot
 ## Support
 
 Issues or questions? Check:
+
 1. This guide
 2. Component source code comments
 3. Test files for usage examples

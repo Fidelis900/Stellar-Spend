@@ -256,7 +256,9 @@ describe('Load Testing', () => {
 
       expect(report).toContain('Load Test Report');
       expect(report).toContain(`Total Requests: ${results.totalRequests}`);
-      expect(report).toContain(`Success Rate: ${((results.successfulRequests / results.totalRequests) * 100).toFixed(2)}%`);
+      expect(report).toContain(
+        `Success Rate: ${((results.successfulRequests / results.totalRequests) * 100).toFixed(2)}%`,
+      );
     });
   });
 });

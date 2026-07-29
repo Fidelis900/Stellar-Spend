@@ -3,7 +3,10 @@ import { pool } from '@/lib/db/client';
 import type { LedgerEntry, EntryType } from './types';
 
 export class LedgerError extends Error {
-  constructor(message: string, public readonly cause?: unknown) {
+  constructor(
+    message: string,
+    public readonly cause?: unknown,
+  ) {
     super(message);
     this.name = 'LedgerError';
   }
@@ -31,7 +34,7 @@ function computeEntryHash(entry: {
 }
 
 export async function recordEntry(
-  input: Omit<LedgerEntry, 'id' | 'entryHash' | 'createdAt'>
+  input: Omit<LedgerEntry, 'id' | 'entryHash' | 'createdAt'>,
 ): Promise<LedgerEntry> {
   const id = randomUUID();
   const now = Date.now();
@@ -120,7 +123,7 @@ export async function getEntriesByTransaction(transactionId: string): Promise<Le
 export async function getEntriesByAccount(
   accountId: string,
   limit = 100,
-  offset = 0
+  offset = 0,
 ): Promise<LedgerEntry[]> {
   const sql = `SELECT * FROM ledger_entries WHERE account_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`;
   try {
@@ -131,7 +134,9 @@ export async function getEntriesByAccount(
   }
 }
 
-export async function verifyBalances(accountId: string): Promise<{ debits: string; credits: string; balance: string }> {
+export async function verifyBalances(
+  accountId: string,
+): Promise<{ debits: string; credits: string; balance: string }> {
   const sql = `
     SELECT
       COALESCE(SUM(CASE WHEN entry_type = 'debit' THEN amount::numeric ELSE 0 END), 0) AS total_debits,
@@ -151,7 +156,12 @@ export async function verifyBalances(accountId: string): Promise<{ debits: strin
   }
 }
 
-export async function verifyAllAccountsBalanced(): Promise<{ balanced: boolean; totalDebits: string; totalCredits: string; difference: string }> {
+export async function verifyAllAccountsBalanced(): Promise<{
+  balanced: boolean;
+  totalDebits: string;
+  totalCredits: string;
+  difference: string;
+}> {
   const sql = `
     SELECT
       COALESCE(SUM(CASE WHEN entry_type = 'debit' THEN amount::numeric ELSE 0 END), 0) AS total_debits,
@@ -177,15 +187,78 @@ export async function verifyAllAccountsBalanced(): Promise<{ balanced: boolean; 
 
 export async function seedStandardAccounts(): Promise<void> {
   const accounts = [
-    { id: 'asset_cash', code: '1000', name: 'Cash', type: 'asset' as const, category: 'current_assets', description: 'Cash and cash equivalents' },
-    { id: 'asset_fees_receivable', code: '1100', name: 'Fees Receivable', type: 'asset' as const, category: 'receivables', description: 'Unsettled fee receivables' },
-    { id: 'liability_payables', code: '2000', name: 'Settlement Payables', type: 'liability' as const, category: 'current_liabilities', description: 'Pending settlement amounts' },
-    { id: 'equity_retained', code: '3000', name: 'Retained Earnings', type: 'equity' as const, category: 'equity', description: 'Retained earnings' },
-    { id: 'revenue_fees', code: '4000', name: 'Fee Revenue', type: 'revenue' as const, category: 'operating_revenue', description: 'Transaction fee revenue' },
-    { id: 'revenue_bridge_fees', code: '4100', name: 'Bridge Fee Revenue', type: 'revenue' as const, category: 'operating_revenue', description: 'Bridge fee revenue' },
-    { id: 'revenue_payout_fees', code: '4200', name: 'Payout Fee Revenue', type: 'revenue' as const, category: 'operating_revenue', description: 'Payout fee revenue' },
-    { id: 'expense_bridge_costs', code: '5000', name: 'Bridge Costs', type: 'expense' as const, category: 'operating_expenses', description: 'Cost of bridge transactions' },
-    { id: 'expense_payout_costs', code: '5100', name: 'Payout Costs', type: 'expense' as const, category: 'operating_expenses', description: 'Cost of payout processing' },
+    {
+      id: 'asset_cash',
+      code: '1000',
+      name: 'Cash',
+      type: 'asset' as const,
+      category: 'current_assets',
+      description: 'Cash and cash equivalents',
+    },
+    {
+      id: 'asset_fees_receivable',
+      code: '1100',
+      name: 'Fees Receivable',
+      type: 'asset' as const,
+      category: 'receivables',
+      description: 'Unsettled fee receivables',
+    },
+    {
+      id: 'liability_payables',
+      code: '2000',
+      name: 'Settlement Payables',
+      type: 'liability' as const,
+      category: 'current_liabilities',
+      description: 'Pending settlement amounts',
+    },
+    {
+      id: 'equity_retained',
+      code: '3000',
+      name: 'Retained Earnings',
+      type: 'equity' as const,
+      category: 'equity',
+      description: 'Retained earnings',
+    },
+    {
+      id: 'revenue_fees',
+      code: '4000',
+      name: 'Fee Revenue',
+      type: 'revenue' as const,
+      category: 'operating_revenue',
+      description: 'Transaction fee revenue',
+    },
+    {
+      id: 'revenue_bridge_fees',
+      code: '4100',
+      name: 'Bridge Fee Revenue',
+      type: 'revenue' as const,
+      category: 'operating_revenue',
+      description: 'Bridge fee revenue',
+    },
+    {
+      id: 'revenue_payout_fees',
+      code: '4200',
+      name: 'Payout Fee Revenue',
+      type: 'revenue' as const,
+      category: 'operating_revenue',
+      description: 'Payout fee revenue',
+    },
+    {
+      id: 'expense_bridge_costs',
+      code: '5000',
+      name: 'Bridge Costs',
+      type: 'expense' as const,
+      category: 'operating_expenses',
+      description: 'Cost of bridge transactions',
+    },
+    {
+      id: 'expense_payout_costs',
+      code: '5100',
+      name: 'Payout Costs',
+      type: 'expense' as const,
+      category: 'operating_expenses',
+      description: 'Cost of payout processing',
+    },
   ];
 
   const now = Date.now();
@@ -194,7 +267,15 @@ export async function seedStandardAccounts(): Promise<void> {
       `INSERT INTO ledger_accounts (id, code, name, type, category, description, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $7)
        ON CONFLICT (id) DO NOTHING`,
-      [account.id, account.code, account.name, account.type, account.category, account.description ?? null, now]
+      [
+        account.id,
+        account.code,
+        account.name,
+        account.type,
+        account.category,
+        account.description ?? null,
+        now,
+      ],
     );
   }
 }

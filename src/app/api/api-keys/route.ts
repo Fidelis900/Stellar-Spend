@@ -53,7 +53,9 @@ export async function POST(request: NextRequest) {
     const validScopeKeys = Object.keys(SCOPE_CATALOG) as Scope[];
     for (const s of body.scopes) {
       if (!validScopeKeys.includes(s as Scope)) {
-        return ErrorHandler.validation(`Invalid scope: "${s}". Valid scopes: ${validScopeKeys.join(', ')}`);
+        return ErrorHandler.validation(
+          `Invalid scope: "${s}". Valid scopes: ${validScopeKeys.join(', ')}`,
+        );
       }
     }
     scopes = body.scopes as Scope[];

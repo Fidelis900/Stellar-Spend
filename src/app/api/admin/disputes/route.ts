@@ -12,7 +12,11 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(req.nextUrl.searchParams.get('limit') || '50');
     const offset = parseInt(req.nextUrl.searchParams.get('offset') || '0');
 
-    const disputes = await disputeRepository.listDisputes((status || undefined) as DisputeStatus | undefined, limit, offset);
+    const disputes = await disputeRepository.listDisputes(
+      (status || undefined) as DisputeStatus | undefined,
+      limit,
+      offset,
+    );
 
     return NextResponse.json(disputes);
   } catch (error) {
@@ -33,7 +37,7 @@ export async function PATCH(req: NextRequest) {
     const dispute = await disputeRepository.updateDispute(disputeId, update);
 
     if (!dispute) {
-      return ErrorHandler.notFound("Dispute");
+      return ErrorHandler.notFound('Dispute');
     }
 
     return NextResponse.json(dispute);

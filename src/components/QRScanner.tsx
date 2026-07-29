@@ -1,5 +1,5 @@
 import { logger } from '@/lib/logger';
-'use client';
+('use client');
 
 import { useState, useRef, useEffect } from 'react';
 import { QRCodeData } from '@/types/qrcode';
@@ -18,7 +18,9 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [flashlightAvailable, setFlashlightAvailable] = useState(false);
   const [flashlightOn, setFlashlightOn] = useState(false);
-  const [scanHistory, setScanHistory] = useState<Array<{data: QRCodeData; timestamp: number}>>([]);
+  const [scanHistory, setScanHistory] = useState<Array<{ data: QRCodeData; timestamp: number }>>(
+    [],
+  );
   const [mode, setMode] = useState<'camera' | 'upload'>('upload');
   const [selectedCameraId, setSelectedCameraId] = useState<string | undefined>(undefined);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -31,7 +33,7 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
       // If we get here, permission granted
       setPermissionStatus('granted');
       // Stop the stream as we just wanted to check permission
-      stream.getTracks().forEach(track => track.stop());
+      stream.getTracks().forEach((track) => track.stop());
       return true;
     } catch (err) {
       setPermissionStatus('denied');
@@ -94,16 +96,14 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
           const data = qrCodeService.parseQRData(resultText);
           if (data) {
             // Prevent duplicate scans
-            const alreadyScanned = scanHistory.some(item => 
-              item.data.transactionId === data.transactionId && 
-              Date.now() - item.timestamp < 5000 // 5 second debounce
+            const alreadyScanned = scanHistory.some(
+              (item) =>
+                item.data.transactionId === data.transactionId &&
+                Date.now() - item.timestamp < 5000, // 5 second debounce
             );
             if (!alreadyScanned) {
               onScan(data);
-              setScanHistory(prev => [
-                ...prev,
-                { data, timestamp: Date.now() }
-              ]);
+              setScanHistory((prev) => [...prev, { data, timestamp: Date.now() }]);
             }
           } else {
             const errMsg = 'Invalid QR code format';
@@ -135,7 +135,7 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
     if (videoRef.current) {
       const stream = videoRef.current.srcObject as MediaStream;
       if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach((track) => track.stop());
       }
       videoRef.current.srcObject = null;
     }
@@ -181,10 +181,7 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
 
         if (data) {
           onScan(data);
-          setScanHistory(prev => [
-            ...prev,
-            { data, timestamp: Date.now() }
-          ]);
+          setScanHistory((prev) => [...prev, { data, timestamp: Date.now() }]);
         } else {
           const err = 'Invalid QR code format';
           setError(err);
@@ -208,10 +205,7 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
 
       if (data) {
         onScan(data);
-        setScanHistory(prev => [
-          ...prev,
-          { data, timestamp: Date.now() }
-        ]);
+        setScanHistory((prev) => [...prev, { data, timestamp: Date.now() }]);
       } else {
         const err = 'Invalid QR code data in clipboard';
         setError(err);
@@ -229,7 +223,7 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
     const enumerateCameras = async () => {
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        const videoDevices = devices.filter((device) => device.kind === 'videoinput');
         // We could store and let user select, but for simplicity we'll just use the first rear camera
         // For now, we don't implement camera selection UI, but we can add later
       } catch (err) {
@@ -251,9 +245,7 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
     <div className="space-y-4 p-4 border-2 border-dashed rounded-lg bg-gray-50">
       <div>
         <h3 className="text-lg font-semibold mb-2">Scan QR Code</h3>
-        <p className="text-sm text-gray-600">
-          Scan QR codes using camera or upload an image
-        </p>
+        <p className="text-sm text-gray-600">Scan QR codes using camera or upload an image</p>
       </div>
 
       {/* Mode toggle */}
@@ -286,7 +278,8 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
           )}
           {permissionStatus === 'denied' && (
             <div className="text-red-600 text-sm text-center">
-              Camera access is required for scanning. Please enable camera permissions in your browser settings.
+              Camera access is required for scanning. Please enable camera permissions in your
+              browser settings.
             </div>
           )}
           {permissionStatus === 'granted' && (

@@ -59,13 +59,13 @@ sequenceDiagram
 
 ## Event → Internal Status Mapping
 
-| Webhook Event | Internal `PayoutStatus` | Terminal? |
-|---|---|---|
-| `payment_order.pending` | `pending` | No |
-| `payment_order.validated` | `validated` | No |
-| `payment_order.settled` | `settled` | ✅ Yes |
-| `payment_order.refunded` | `refunded` | ✅ Yes |
-| `payment_order.expired` | `expired` | ✅ Yes |
+| Webhook Event             | Internal `PayoutStatus` | Terminal? |
+| ------------------------- | ----------------------- | --------- |
+| `payment_order.pending`   | `pending`               | No        |
+| `payment_order.validated` | `validated`             | No        |
+| `payment_order.settled`   | `settled`               | ✅ Yes    |
+| `payment_order.refunded`  | `refunded`              | ✅ Yes    |
+| `payment_order.expired`   | `expired`               | ✅ Yes    |
 
 Unknown events default to `pending`.
 

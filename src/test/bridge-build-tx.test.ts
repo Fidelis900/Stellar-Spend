@@ -49,7 +49,10 @@ vi.mock('@allbridge/bridge-core-sdk', () => ({
   },
   nodeRpcUrlsDefault: {},
   Messenger: { ALLBRIDGE: 'ALLBRIDGE' },
-  FeePaymentMethod: { WITH_STABLECOIN: 'WITH_STABLECOIN', WITH_NATIVE_CURRENCY: 'WITH_NATIVE_CURRENCY' },
+  FeePaymentMethod: {
+    WITH_STABLECOIN: 'WITH_STABLECOIN',
+    WITH_NATIVE_CURRENCY: 'WITH_NATIVE_CURRENCY',
+  },
 }));
 
 import { POST } from '@/app/api/offramp/bridge/build-tx/route';
@@ -91,7 +94,9 @@ describe('POST /api/offramp/bridge/build-tx', () => {
 
   it('returns { xdr, sourceToken, destinationToken } for valid request', async () => {
     setupSdkSuccess();
-    const res = await POST(makeReq({ amount: '10', fromAddress: VALID_STELLAR, toAddress: VALID_BASE }));
+    const res = await POST(
+      makeReq({ amount: '10', fromAddress: VALID_STELLAR, toAddress: VALID_BASE }),
+    );
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json).toMatchObject({
@@ -103,7 +108,9 @@ describe('POST /api/offramp/bridge/build-tx', () => {
 
   it('returns 400 for invalid amount', async () => {
     vi.mocked(validation.validateAmount).mockReturnValue(false);
-    const res = await POST(makeReq({ amount: '-5', fromAddress: VALID_STELLAR, toAddress: VALID_BASE }));
+    const res = await POST(
+      makeReq({ amount: '-5', fromAddress: VALID_STELLAR, toAddress: VALID_BASE }),
+    );
     expect(res.status).toBe(400);
     const json = await res.json();
     expect(json.error).toMatch(/amount/i);
@@ -112,7 +119,9 @@ describe('POST /api/offramp/bridge/build-tx', () => {
   it('returns 400 for invalid Stellar address', async () => {
     vi.mocked(validation.validateAmount).mockReturnValue(true);
     vi.mocked(validation.validateAddress).mockImplementation((addr, chain) => chain !== 'stellar');
-    const res = await POST(makeReq({ amount: '10', fromAddress: 'not-a-stellar-address', toAddress: VALID_BASE }));
+    const res = await POST(
+      makeReq({ amount: '10', fromAddress: 'not-a-stellar-address', toAddress: VALID_BASE }),
+    );
     expect(res.status).toBe(400);
     const json = await res.json();
     expect(json.error).toMatch(/stellar/i);
@@ -121,7 +130,9 @@ describe('POST /api/offramp/bridge/build-tx', () => {
   it('returns 400 for invalid Base address', async () => {
     vi.mocked(validation.validateAmount).mockReturnValue(true);
     vi.mocked(validation.validateAddress).mockImplementation((addr, chain) => chain !== 'base');
-    const res = await POST(makeReq({ amount: '10', fromAddress: VALID_STELLAR, toAddress: 'invalid' }));
+    const res = await POST(
+      makeReq({ amount: '10', fromAddress: VALID_STELLAR, toAddress: 'invalid' }),
+    );
     expect(res.status).toBe(400);
     const json = await res.json();
     expect(json.error).toMatch(/base/i);
@@ -131,7 +142,9 @@ describe('POST /api/offramp/bridge/build-tx', () => {
     setupSdkSuccess();
     mockSend.mockRejectedValue(new Error('SDK internal failure'));
 
-    const res = await POST(makeReq({ amount: '10', fromAddress: VALID_STELLAR, toAddress: VALID_BASE }));
+    const res = await POST(
+      makeReq({ amount: '10', fromAddress: VALID_STELLAR, toAddress: VALID_BASE }),
+    );
     expect(res.status).toBe(500);
     const json = await res.json();
     expect(typeof json.error).toBe('string');

@@ -73,8 +73,8 @@ describe('Scheduling Service - Execution & Timing Edge Cases', () => {
       const pending = await getPendingScheduledTransactions();
       expect(pending).toHaveLength(1);
       expect(db.query).toHaveBeenCalledWith(
-        expect.stringContaining('WHERE status = \'scheduled\' AND scheduled_for <='),
-        [expect.any(Date)]
+        expect.stringContaining("WHERE status = 'scheduled' AND scheduled_for <="),
+        [expect.any(Date)],
       );
     });
 
@@ -134,10 +134,9 @@ describe('Scheduling Service - Execution & Timing Edge Cases', () => {
       expect(pending).toHaveLength(2);
       expect(pending[0].id).toBe('sched-past-1');
       expect(pending[1].id).toBe('sched-past-2');
-      expect(db.query).toHaveBeenCalledWith(
-        expect.stringContaining('ORDER BY scheduled_for ASC'),
-        [now]
-      );
+      expect(db.query).toHaveBeenCalledWith(expect.stringContaining('ORDER BY scheduled_for ASC'), [
+        now,
+      ]);
     });
 
     it('should execute past-due scheduled transaction and update status to executed', async () => {
@@ -158,7 +157,7 @@ describe('Scheduling Service - Execution & Timing Edge Cases', () => {
 
       expect(db.query).toHaveBeenCalledWith(
         expect.stringContaining("UPDATE scheduled_transactions SET status = 'executed'"),
-        [executedTxId, scheduledId]
+        [executedTxId, scheduledId],
       );
       expect((result as any).rows[0].status).toBe('executed');
       expect((result as any).rows[0].transaction_id).toBe(executedTxId);
@@ -182,7 +181,7 @@ describe('Scheduling Service - Execution & Timing Edge Cases', () => {
 
       expect(db.query).toHaveBeenCalledWith(
         expect.stringContaining("UPDATE scheduled_transactions SET status = 'cancelled'"),
-        [scheduledId]
+        [scheduledId],
       );
       expect((result as any).rows[0].status).toBe('cancelled');
     });
@@ -205,7 +204,7 @@ describe('Scheduling Service - Execution & Timing Edge Cases', () => {
 
       expect(db.query).toHaveBeenCalledWith(
         expect.stringContaining('UPDATE scheduled_transactions SET scheduled_for = $1'),
-        [newScheduledTime, scheduledId]
+        [newScheduledTime, scheduledId],
       );
       expect((result as any).rows[0].scheduled_for).toEqual(newScheduledTime);
     });

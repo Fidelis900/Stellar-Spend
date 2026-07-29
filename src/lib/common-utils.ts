@@ -12,14 +12,9 @@ export async function retryWithBackoff<T>(
     initialDelay?: number;
     maxDelay?: number;
     backoffMultiplier?: number;
-  } = {}
+  } = {},
 ): Promise<T> {
-  const {
-    maxAttempts = 3,
-    initialDelay = 1000,
-    maxDelay = 30000,
-    backoffMultiplier = 2,
-  } = options;
+  const { maxAttempts = 3, initialDelay = 1000, maxDelay = 30000, backoffMultiplier = 2 } = options;
 
   let lastError: Error | null = null;
   let delay = initialDelay;
@@ -47,7 +42,7 @@ export async function retryWithBackoff<T>(
  */
 export function debounce<T extends (...args: any[]) => any>(
   fn: T,
-  delay: number
+  delay: number,
 ): (...args: Parameters<T>) => void {
   let timeoutId: NodeJS.Timeout | null = null;
 
@@ -67,7 +62,7 @@ export function debounce<T extends (...args: any[]) => any>(
  */
 export function throttle<T extends (...args: any[]) => any>(
   fn: T,
-  delay: number
+  delay: number,
 ): (...args: Parameters<T>) => void {
   let lastCall = 0;
   let timeoutId: NodeJS.Timeout | null = null;
@@ -83,11 +78,14 @@ export function throttle<T extends (...args: any[]) => any>(
         timeoutId = null;
       }
     } else if (!timeoutId) {
-      timeoutId = setTimeout(() => {
-        fn(...args);
-        lastCall = Date.now();
-        timeoutId = null;
-      }, delay - (now - lastCall));
+      timeoutId = setTimeout(
+        () => {
+          fn(...args);
+          lastCall = Date.now();
+          timeoutId = null;
+        },
+        delay - (now - lastCall),
+      );
     }
   };
 }

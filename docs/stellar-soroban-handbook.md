@@ -24,16 +24,16 @@
 
 Stellar has three networks. Stellar-Spend targets **Mainnet only** in production.
 
-| Network | Passphrase | Horizon | Soroban RPC |
-|---------|------------|---------|-------------|
-| Mainnet | `Public Global Stellar Network ; September 2015` | `https://horizon.stellar.org` | `https://mainnet.stellar.validationcloud.io/v1/<key>` |
-| Testnet | `Test SDF Network ; September 2015` | `https://horizon-testnet.stellar.org` | `https://soroban-testnet.stellar.org` |
-| Futurenet | `Test SDF Future Network ; September 2015` | `https://horizon-futurenet.stellar.org` | `https://rpc-futurenet.stellar.org` |
+| Network   | Passphrase                                       | Horizon                                 | Soroban RPC                                           |
+| --------- | ------------------------------------------------ | --------------------------------------- | ----------------------------------------------------- |
+| Mainnet   | `Public Global Stellar Network ; September 2015` | `https://horizon.stellar.org`           | `https://mainnet.stellar.validationcloud.io/v1/<key>` |
+| Testnet   | `Test SDF Network ; September 2015`              | `https://horizon-testnet.stellar.org`   | `https://soroban-testnet.stellar.org`                 |
+| Futurenet | `Test SDF Future Network ; September 2015`       | `https://horizon-futurenet.stellar.org` | `https://rpc-futurenet.stellar.org`                   |
 
 Network selection in the wallet adapter (`src/lib/stellar/wallet-adapter.ts`) is enforced at connection time:
 
 ```ts
-const MAINNET_PASSPHRASE = "Public Global Stellar Network ; September 2015";
+const MAINNET_PASSPHRASE = 'Public Global Stellar Network ; September 2015';
 
 // Freighter network check (inside _doConnectFreighter)
 const networkDetails = await freighterApi.getNetworkDetails();
@@ -48,12 +48,12 @@ To target testnet during local development, override `STELLAR_SOROBAN_RPC_URL` a
 
 ## Environment Variables
 
-| Variable | Side | Description |
-|----------|------|-------------|
-| `STELLAR_SOROBAN_RPC_URL` | Server | Soroban JSON-RPC endpoint for transaction simulation and submission |
-| `STELLAR_HORIZON_URL` | Server | Horizon REST endpoint for account info, fee stats, and transaction history |
-| `NEXT_PUBLIC_STELLAR_SOROBAN_RPC_URL` | Browser | Browser-safe Soroban RPC (same value, public prefix required) |
-| `NEXT_PUBLIC_STELLAR_USDC_ISSUER` | Browser | USDC issuer account used for trustline filtering |
+| Variable                              | Side    | Description                                                                |
+| ------------------------------------- | ------- | -------------------------------------------------------------------------- |
+| `STELLAR_SOROBAN_RPC_URL`             | Server  | Soroban JSON-RPC endpoint for transaction simulation and submission        |
+| `STELLAR_HORIZON_URL`                 | Server  | Horizon REST endpoint for account info, fee stats, and transaction history |
+| `NEXT_PUBLIC_STELLAR_SOROBAN_RPC_URL` | Browser | Browser-safe Soroban RPC (same value, public prefix required)              |
+| `NEXT_PUBLIC_STELLAR_USDC_ISSUER`     | Browser | USDC issuer account used for trustline filtering                           |
 
 All variables are validated at startup via `src/lib/env.ts`. A missing required variable throws immediately rather than failing silently at runtime.
 
@@ -66,7 +66,7 @@ The singleton `StellarWalletAdapter` (`src/lib/stellar/wallet-adapter.ts`) handl
 ### Auto-connect (recommended)
 
 ```ts
-import { getStellarWalletAdapter } from "@/lib/stellar/wallet-adapter";
+import { getStellarWalletAdapter } from '@/lib/stellar/wallet-adapter';
 
 const adapter = getStellarWalletAdapter();
 const wallet = await adapter.connectAuto();
@@ -106,33 +106,28 @@ The Allbridge SDK builds the Soroban XDR internally. The API route (`POST /api/o
 
 ```ts
 // 1. Fetch XDR from the server
-const { xdr } = await fetch("/api/offramp/bridge/build-tx", {
-  method: "POST",
+const { xdr } = await fetch('/api/offramp/bridge/build-tx', {
+  method: 'POST',
   body: JSON.stringify({ amount, fromAddress, toAddress, feePaymentMethod }),
-}).then(r => r.json());
+}).then((r) => r.json());
 
 // 2. Sign in the browser with the connected wallet
 const adapter = getStellarWalletAdapter();
 const signedXdr = await adapter.signTransaction(xdr);
 
 // 3. Submit via the server
-const { txHash } = await fetch("/api/offramp/bridge/submit-soroban", {
-  method: "POST",
+const { txHash } = await fetch('/api/offramp/bridge/submit-soroban', {
+  method: 'POST',
   body: JSON.stringify({ signedXdr, fromAddress }),
-}).then(r => r.json());
+}).then((r) => r.json());
 ```
 
 ### Manual XDR construction with stellar-sdk
 
 ```ts
-import {
-  Networks,
-  TransactionBuilder,
-  Operation,
-  Account,
-} from "@stellar/stellar-sdk";
+import { Networks, TransactionBuilder, Operation, Account } from '@stellar/stellar-sdk';
 
-const BASE_FEE = "100"; // stroops
+const BASE_FEE = '100'; // stroops
 
 const tx = new TransactionBuilder(sourceAccount, {
   fee: BASE_FEE,
@@ -141,7 +136,7 @@ const tx = new TransactionBuilder(sourceAccount, {
   .addOperation(
     Operation.invokeContractFunction({
       contract: CONTRACT_ID,
-      method: "transfer",
+      method: 'transfer',
       parameters: [senderScVal, recipientScVal, amountScVal],
     }),
   )
@@ -156,14 +151,14 @@ const xdr = tx.toXDR(); // hand to the wallet for signing
 After a transaction is submitted, the server records the raw signature in the `transaction_signatures` table via `TransactionSigningService` (`src/lib/transaction-signing.ts`):
 
 ```ts
-import { transactionSigningService } from "@/lib/transaction-signing";
+import { transactionSigningService } from '@/lib/transaction-signing';
 
 await transactionSigningService.signTransaction(
   transactionId,
   userAddress,
-  signature,   // hex string
-  publicKey,   // hex string
-  "ed25519",
+  signature, // hex string
+  publicKey, // hex string
+  'ed25519',
 );
 ```
 
@@ -173,15 +168,15 @@ await transactionSigningService.signTransaction(
 
 These are two separate APIs. Use the right one for the job.
 
-| Task | Use |
-|------|-----|
-| Fetch account sequence number / balance | **Horizon** `GET /accounts/{id}` |
-| Fetch transaction by hash | **Horizon** `GET /transactions/{hash}` |
-| Fetch fee stats / base fee | **Horizon** `GET /fee_stats` |
-| Simulate a Soroban contract call | **Soroban RPC** `simulateTransaction` |
-| Submit a signed transaction | **Soroban RPC** `sendTransaction` |
-| Get contract events | **Soroban RPC** `getEvents` |
-| Poll transaction status after submit | **Soroban RPC** `getTransaction` |
+| Task                                    | Use                                    |
+| --------------------------------------- | -------------------------------------- |
+| Fetch account sequence number / balance | **Horizon** `GET /accounts/{id}`       |
+| Fetch transaction by hash               | **Horizon** `GET /transactions/{hash}` |
+| Fetch fee stats / base fee              | **Horizon** `GET /fee_stats`           |
+| Simulate a Soroban contract call        | **Soroban RPC** `simulateTransaction`  |
+| Submit a signed transaction             | **Soroban RPC** `sendTransaction`      |
+| Get contract events                     | **Soroban RPC** `getEvents`            |
+| Poll transaction status after submit    | **Soroban RPC** `getTransaction`       |
 
 ### Horizon example
 
@@ -199,12 +194,12 @@ const account = await res.json();
 const RPC_URL = process.env.STELLAR_SOROBAN_RPC_URL!;
 
 const res = await fetch(RPC_URL, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    jsonrpc: "2.0",
-    id: "1",
-    method: "getTransaction",
+    jsonrpc: '2.0',
+    id: '1',
+    method: 'getTransaction',
     params: { hash: txHash },
   }),
 });
@@ -224,14 +219,14 @@ Soroban fees have two parts:
 `ResourceFeeEstimator` (`src/lib/stellar/resource-fee-estimator.ts`) wraps the simulation call:
 
 ```ts
-import { ResourceFeeEstimator } from "@/lib/stellar/resource-fee-estimator";
-import { Account } from "@stellar/stellar-sdk";
+import { ResourceFeeEstimator } from '@/lib/stellar/resource-fee-estimator';
+import { Account } from '@stellar/stellar-sdk';
 
 const estimator = new ResourceFeeEstimator(process.env.STELLAR_SOROBAN_RPC_URL!);
 
 const estimate = await estimator.estimateContractInvocation(
   CONTRACT_ID,
-  "transfer",
+  'transfer',
   [senderScVal, recipientScVal, amountScVal],
   sourceAccount, // stellar-sdk Account object
 );
@@ -246,10 +241,10 @@ Falls back to safe defaults (`estimatedFeeStroops: 1000`) if simulation fails.
 
 The Allbridge bridge transaction supports two gas fee methods, selected at quote time:
 
-| Method | `feePaymentMethod` | Notes |
-|--------|-------------------|-------|
-| XLM (native) | `"native"` | Deducted from XLM balance; fails if balance < minimum reserve |
-| USDC | `"stablecoin"` | Deducted from USDC amount; slightly higher amount required |
+| Method       | `feePaymentMethod` | Notes                                                         |
+| ------------ | ------------------ | ------------------------------------------------------------- |
+| XLM (native) | `"native"`         | Deducted from XLM balance; fails if balance < minimum reserve |
+| USDC         | `"stablecoin"`     | Deducted from USDC amount; slightly higher amount required    |
 
 Available options are listed by `GET /api/offramp/bridge/gas-fee-options`.
 
@@ -262,21 +257,16 @@ Soroban contracts are invoked via `Operation.invokeContractFunction`. Parameters
 ### ScVal helpers (stellar-sdk)
 
 ```ts
-import {
-  nativeToScVal,
-  scValToNative,
-  Address,
-  xdr,
-} from "@stellar/stellar-sdk";
+import { nativeToScVal, scValToNative, Address, xdr } from '@stellar/stellar-sdk';
 
 // Address
 const addrScVal = new Address(publicKey).toScVal();
 
 // Integer (i128)
-const amountScVal = nativeToScVal(BigInt("1000000"), { type: "i128" });
+const amountScVal = nativeToScVal(BigInt('1000000'), { type: 'i128' });
 
 // String
-const labelScVal = xdr.ScVal.scvString("hello");
+const labelScVal = xdr.ScVal.scvString('hello');
 
 // Decode result
 const result = scValToNative(simulationResult);
@@ -285,13 +275,7 @@ const result = scValToNative(simulationResult);
 ### Full invocation pattern
 
 ```ts
-import {
-  Contract,
-  Networks,
-  TransactionBuilder,
-  Account,
-  rpc,
-} from "@stellar/stellar-sdk";
+import { Contract, Networks, TransactionBuilder, Account, rpc } from '@stellar/stellar-sdk';
 
 const server = new rpc.Server(process.env.STELLAR_SOROBAN_RPC_URL!);
 const contract = new Contract(CONTRACT_ID);
@@ -301,10 +285,10 @@ const account = await server.getAccount(sourcePublicKey);
 
 // Build transaction
 const tx = new TransactionBuilder(account, {
-  fee: "1000",
+  fee: '1000',
   networkPassphrase: Networks.PUBLIC,
 })
-  .addOperation(contract.call("transfer", addrScVal, amountScVal))
+  .addOperation(contract.call('transfer', addrScVal, amountScVal))
   .setTimeout(30)
   .build();
 
@@ -327,12 +311,12 @@ const sendResult = await server.sendTransaction(
 
 ## Contracts in This Repo
 
-| Contract | Path | Purpose |
-|----------|------|---------|
-| `escrow` | `contracts/escrow/` | Holds USDC in escrow during the bridge window; releases on confirmation |
-| `treasury` | `contracts/treasury/` | Protocol treasury; accumulates fee revenue |
-| `fee-manager` | `contracts/fee-manager/` | Computes and collects bridge fees |
-| `multisig-authority` | `contracts/multisig-authority/` | Multi-signer governance for admin operations |
+| Contract             | Path                            | Purpose                                                                 |
+| -------------------- | ------------------------------- | ----------------------------------------------------------------------- |
+| `escrow`             | `contracts/escrow/`             | Holds USDC in escrow during the bridge window; releases on confirmation |
+| `treasury`           | `contracts/treasury/`           | Protocol treasury; accumulates fee revenue                              |
+| `fee-manager`        | `contracts/fee-manager/`        | Computes and collects bridge fees                                       |
+| `multisig-authority` | `contracts/multisig-authority/` | Multi-signer governance for admin operations                            |
 
 Contracts are written in Rust and compiled to WASM. Deploy with:
 
@@ -374,33 +358,37 @@ An account must have an explicit trustline for USDC (`NEXT_PUBLIC_STELLAR_USDC_I
 ## Debugging Tips
 
 **Decode an XDR in the browser console:**
+
 ```js
-import { TransactionBuilder, Networks } from "@stellar/stellar-sdk";
-const tx = TransactionBuilder.fromXDR("<base64-xdr>", Networks.PUBLIC);
-console.log(JSON.stringify(tx.toEnvelope().toXDR("base64")));
+import { TransactionBuilder, Networks } from '@stellar/stellar-sdk';
+const tx = TransactionBuilder.fromXDR('<base64-xdr>', Networks.PUBLIC);
+console.log(JSON.stringify(tx.toEnvelope().toXDR('base64')));
 ```
 
 **Inspect a failed simulation:**
+
 ```ts
 const result = await server.simulateTransaction(tx);
 if (rpc.Api.isSimulationError(result)) {
-  console.error("Simulation error:", result.error);
+  console.error('Simulation error:', result.error);
   // result.events may show contract diagnostics
 }
 ```
 
 **Decode contract return value:**
+
 ```ts
-import { scValToNative } from "@stellar/stellar-sdk";
+import { scValToNative } from '@stellar/stellar-sdk';
 const native = scValToNative(result.result?.retval);
-console.log("Return value:", native);
+console.log('Return value:', native);
 ```
 
 **Poll transaction after submit:**
+
 ```ts
 let status = sendResult.status; // "PENDING" | "DUPLICATE" | "TRY_AGAIN_LATER" | "ERROR"
-while (status === "PENDING" || status === "TRY_AGAIN_LATER") {
-  await new Promise(r => setTimeout(r, 2000));
+while (status === 'PENDING' || status === 'TRY_AGAIN_LATER') {
+  await new Promise((r) => setTimeout(r, 2000));
   const check = await server.getTransaction(sendResult.hash);
   status = check.status;
 }
@@ -416,7 +404,7 @@ while (status === "PENDING" || status === "TRY_AGAIN_LATER") {
 ### Full offramp happy-path (client side)
 
 ```ts
-import { getStellarWalletAdapter } from "@/lib/stellar/wallet-adapter";
+import { getStellarWalletAdapter } from '@/lib/stellar/wallet-adapter';
 
 async function runOfframp(amount: string, currency: string, bankDetails: object) {
   const adapter = getStellarWalletAdapter();
@@ -425,30 +413,30 @@ async function runOfframp(amount: string, currency: string, bankDetails: object)
   const wallet = await adapter.connectAuto();
 
   // 2. Get quote
-  const { rate, bridgeFee } = await fetch("/api/offramp/quote", {
-    method: "POST",
-    body: JSON.stringify({ amount, currency, feeMethod: "USDC" }),
-  }).then(r => r.json());
+  const { rate, bridgeFee } = await fetch('/api/offramp/quote', {
+    method: 'POST',
+    body: JSON.stringify({ amount, currency, feeMethod: 'USDC' }),
+  }).then((r) => r.json());
 
   // 3. Build transaction XDR
-  const { xdr } = await fetch("/api/offramp/bridge/build-tx", {
-    method: "POST",
+  const { xdr } = await fetch('/api/offramp/bridge/build-tx', {
+    method: 'POST',
     body: JSON.stringify({
       amount,
       fromAddress: wallet.publicKey,
       toAddress: process.env.NEXT_PUBLIC_BASE_RETURN_ADDRESS,
-      feePaymentMethod: "stablecoin",
+      feePaymentMethod: 'stablecoin',
     }),
-  }).then(r => r.json());
+  }).then((r) => r.json());
 
   // 4. Sign in wallet
   const signedXdr = await adapter.signTransaction(xdr);
 
   // 5. Submit
-  const { txHash } = await fetch("/api/offramp/bridge/submit-soroban", {
-    method: "POST",
+  const { txHash } = await fetch('/api/offramp/bridge/submit-soroban', {
+    method: 'POST',
     body: JSON.stringify({ signedXdr, fromAddress: wallet.publicKey }),
-  }).then(r => r.json());
+  }).then((r) => r.json());
 
   return txHash;
 }
@@ -457,8 +445,8 @@ async function runOfframp(amount: string, currency: string, bankDetails: object)
 ### Simulate and estimate resource fee
 
 ```ts
-import { ResourceFeeEstimator } from "@/lib/stellar/resource-fee-estimator";
-import { rpc, Account } from "@stellar/stellar-sdk";
+import { ResourceFeeEstimator } from '@/lib/stellar/resource-fee-estimator';
+import { rpc, Account } from '@stellar/stellar-sdk';
 
 const server = new rpc.Server(process.env.STELLAR_SOROBAN_RPC_URL!);
 const estimator = new ResourceFeeEstimator(process.env.STELLAR_SOROBAN_RPC_URL!);
@@ -468,7 +456,7 @@ const sdkAccount = new Account(publicKey, account.sequenceNumber());
 
 const estimate = await estimator.estimateContractInvocation(
   CONTRACT_ID,
-  "transfer",
+  'transfer',
   [recipientScVal, amountScVal],
   sdkAccount,
 );

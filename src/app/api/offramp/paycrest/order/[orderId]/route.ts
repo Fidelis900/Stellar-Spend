@@ -9,12 +9,12 @@ import { PaycrestAdapter, PaycrestHttpError } from '@/lib/offramp/adapters/paycr
 
 /**
  * GET /api/offramp/paycrest/order/[orderId]
- * 
+ *
  * Fetches the status of a Paycrest payout order.
- * 
+ *
  * Path parameters:
  * - orderId: string (required)
- * 
+ *
  * Response:
  * {
  *   data: {
@@ -24,10 +24,7 @@ import { PaycrestAdapter, PaycrestHttpError } from '@/lib/offramp/adapters/paycr
  *   }
  * }
  */
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { orderId: string } }
-) {
+export async function GET(req: NextRequest, { params }: { params: { orderId: string } }) {
   try {
     const { orderId } = params;
 
@@ -52,7 +49,7 @@ export async function GET(
 
     if (err instanceof PaycrestHttpError) {
       if (err.status === 404) {
-        return ErrorHandler.notFound("Order");
+        return ErrorHandler.notFound('Order');
       }
       return ErrorHandler.handle(err, err.status);
     }

@@ -48,7 +48,9 @@ export async function POST(request: NextRequest) {
     const aggregatedQuotes = await aggregateQuotes(receiveAmount, currency, providerList);
 
     if (!aggregatedQuotes.bestQuote) {
-      return ErrorHandler.handle(new ApiError(ErrorType.EXTERNAL_SERVICE, 'No quotes available from any provider'));
+      return ErrorHandler.handle(
+        new ApiError(ErrorType.EXTERNAL_SERVICE, 'No quotes available from any provider'),
+      );
     }
 
     return NextResponse.json(aggregatedQuotes);

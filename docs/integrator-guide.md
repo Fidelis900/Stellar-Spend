@@ -70,12 +70,12 @@ The response includes a `plaintextKey` — store it securely. **It is shown only
 
 ### Scopes
 
-| Scope | Endpoints covered |
-|-------|-------------------|
-| `offramp:read` | GET currencies, institutions, rate, quote, bridge status |
-| `offramp:write` | POST quote, build-tx, submit-soroban, paycrest order |
-| `webhook:read` | Receive webhook events |
-| `admin` | API key management (not available to integrators) |
+| Scope           | Endpoints covered                                        |
+| --------------- | -------------------------------------------------------- |
+| `offramp:read`  | GET currencies, institutions, rate, quote, bridge status |
+| `offramp:write` | POST quote, build-tx, submit-soroban, paycrest order     |
+| `webhook:read`  | Receive webhook events                                   |
+| `admin`         | API key management (not available to integrators)        |
 
 Scopes are assigned when the key is created. Contact support to adjust scopes.
 
@@ -95,14 +95,14 @@ Authorization: Bearer ssp_live_abc123def456.very-secret-value
 
 ## Sandbox vs Production Setup
 
-| Setting | Sandbox | Production |
-|---------|---------|------------|
-| Base URL | `https://sandbox.stellar-spend.example.com` | `https://app.stellar-spend.example.com` |
-| Paycrest key | Sandbox key from Paycrest dashboard | Production key |
-| Stellar network | Testnet | Mainnet |
-| Allbridge | Testnet bridge contracts | Mainnet bridge contracts |
-| Real funds | ❌ No | ✅ Yes |
-| Webhook delivery | To your registered sandbox endpoint | To your production endpoint |
+| Setting          | Sandbox                                     | Production                              |
+| ---------------- | ------------------------------------------- | --------------------------------------- |
+| Base URL         | `https://sandbox.stellar-spend.example.com` | `https://app.stellar-spend.example.com` |
+| Paycrest key     | Sandbox key from Paycrest dashboard         | Production key                          |
+| Stellar network  | Testnet                                     | Mainnet                                 |
+| Allbridge        | Testnet bridge contracts                    | Mainnet bridge contracts                |
+| Real funds       | ❌ No                                       | ✅ Yes                                  |
+| Webhook delivery | To your registered sandbox endpoint         | To your production endpoint             |
 
 ### Sandbox environment variables for local testing
 
@@ -156,19 +156,22 @@ const quote = await res.json();
 ### 3. Build a bridge transaction
 
 ```ts
-const res = await fetch('https://sandbox.stellar-spend.example.com/api/v1/offramp/bridge/build-tx', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'X-API-Key': process.env.STELLAR_SPEND_API_KEY!,
+const res = await fetch(
+  'https://sandbox.stellar-spend.example.com/api/v1/offramp/bridge/build-tx',
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': process.env.STELLAR_SPEND_API_KEY!,
+    },
+    body: JSON.stringify({
+      amount: '99.5',
+      fromAddress: 'GABC...XYZ', // user's Stellar G-address
+      toAddress: '0xabc...def', // server's Base payout address
+      feePaymentMethod: 'stablecoin',
+    }),
   },
-  body: JSON.stringify({
-    amount: '99.5',
-    fromAddress: 'GABC...XYZ',      // user's Stellar G-address
-    toAddress: '0xabc...def',        // server's Base payout address
-    feePaymentMethod: 'stablecoin',
-  }),
-});
+);
 const { xdr } = await res.json();
 // xdr: "AAAAAgAAAA..." — hand this to the user's wallet for signing
 ```
@@ -229,7 +232,11 @@ export class StellarSpendClient {
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      throw new StellarSpendError(res.status, (body as { error?: string }).error ?? res.statusText, body);
+      throw new StellarSpendError(
+        res.status,
+        (body as { error?: string }).error ?? res.statusText,
+        body,
+      );
     }
     return res.json() as Promise<T>;
   }
@@ -249,7 +256,11 @@ export class StellarSpendClient {
   }
 
   /** Get a USDC → fiat conversion quote. */
-  getQuote(params: { amount: string; currency: string; feeMethod: 'USDC' | 'XLM' }): Promise<Quote> {
+  getQuote(params: {
+    amount: string;
+    currency: string;
+    feeMethod: 'USDC' | 'XLM';
+  }): Promise<Quote> {
     return this.request<Quote>('/api/v1/offramp/quote', {
       method: 'POST',
       body: JSON.stringify(params),
@@ -431,6 +442,7 @@ GET  /api/v1/offramp/paycrest/order/:id      → poll order status
 **Terminal statuses:** `settled`, `refunded`, `expired`
 
 Order lifecycle:
+
 ```
 pending → validated → settled   (success)
 pending → validated → refunded  (Paycrest refund)
@@ -443,13 +455,13 @@ Register a webhook endpoint with Paycrest to receive real-time order events. The
 
 **Supported events:**
 
-| Event | Description |
-|-------|-------------|
-| `payment_order.pending` | Order created, awaiting USDC deposit |
+| Event                     | Description                                |
+| ------------------------- | ------------------------------------------ |
+| `payment_order.pending`   | Order created, awaiting USDC deposit       |
 | `payment_order.validated` | USDC received; fiat disbursement initiated |
-| `payment_order.settled` | Bank transfer completed |
-| `payment_order.refunded` | Paycrest refunded USDC |
-| `payment_order.expired` | No USDC deposit within timeout |
+| `payment_order.settled`   | Bank transfer completed                    |
+| `payment_order.refunded`  | Paycrest refunded USDC                     |
+| `payment_order.expired`   | No USDC deposit within timeout             |
 
 #### Verifying webhook signatures
 
@@ -464,14 +476,8 @@ X-Paycrest-Signature: <hmac-sha256-hex-of-raw-body>
 ```typescript
 import { createHmac, timingSafeEqual } from 'crypto';
 
-function verifyPaycrestWebhook(
-  rawBody: Buffer,
-  signature: string,
-  secret: string,
-): boolean {
-  const expected = createHmac('sha256', secret)
-    .update(rawBody)
-    .digest('hex');
+function verifyPaycrestWebhook(rawBody: Buffer, signature: string, secret: string): boolean {
+  const expected = createHmac('sha256', secret).update(rawBody).digest('hex');
   try {
     return timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
   } catch {
@@ -527,9 +533,9 @@ Requests without a valid key return `401 Unauthorized`.
 
 Default limits per API key:
 
-| Limit | Default |
-|-------|---------|
-| Requests per minute | 120 |
+| Limit                | Default          |
+| -------------------- | ---------------- |
+| Requests per minute  | 120              |
 | Burst (short window) | 20 per 5 seconds |
 
 When the limit is exceeded you receive `429 Too Many Requests` with a `Retry-After` header indicating how many seconds to wait.
@@ -555,16 +561,17 @@ Idempotency-Key: order-<your-unique-reference>
 
 Response headers:
 
-| Header | Value | Meaning |
-|--------|-------|---------|
-| `Idempotency-Key` | `order-<ref>` | Echo of your key |
-| `Idempotency-Status` | `created` | First time this key was seen |
-| `Idempotency-Status` | `replayed` | Cached response — no new resource |
-| `Idempotency-Status` | `conflict` | Same key, different request body |
+| Header               | Value         | Meaning                           |
+| -------------------- | ------------- | --------------------------------- |
+| `Idempotency-Key`    | `order-<ref>` | Echo of your key                  |
+| `Idempotency-Status` | `created`     | First time this key was seen      |
+| `Idempotency-Status` | `replayed`    | Cached response — no new resource |
+| `Idempotency-Status` | `conflict`    | Same key, different request body  |
 
 A `conflict` returns `409 Conflict`. Use a fresh key for a genuinely different request.
 
 **Best practices:**
+
 - Use a stable, request-specific ID (e.g., `order-${txHash}`) so retries on network failure are safe.
 - Keys expire after 24 hours (configurable via `IDEMPOTENCY_TTL_MS`).
 
@@ -592,14 +599,14 @@ Validation errors include a `details` map:
 
 ### HTTP status codes
 
-| Code | Meaning | Action |
-|------|---------|--------|
-| `400` | Validation error | Fix the request body |
-| `401` | Invalid or missing API key | Check the key and header name |
-| `409` | Idempotency conflict | Use a different `Idempotency-Key` |
-| `429` | Rate limit | Wait `Retry-After` seconds and retry |
-| `500` | Internal server error | Retry with backoff; contact support if persistent |
-| `502` | Upstream unavailable (Allbridge / Paycrest) | Retry with exponential backoff |
+| Code  | Meaning                                     | Action                                            |
+| ----- | ------------------------------------------- | ------------------------------------------------- |
+| `400` | Validation error                            | Fix the request body                              |
+| `401` | Invalid or missing API key                  | Check the key and header name                     |
+| `409` | Idempotency conflict                        | Use a different `Idempotency-Key`                 |
+| `429` | Rate limit                                  | Wait `Retry-After` seconds and retry              |
+| `500` | Internal server error                       | Retry with backoff; contact support if persistent |
+| `502` | Upstream unavailable (Allbridge / Paycrest) | Retry with exponential backoff                    |
 
 ### Retry strategy
 

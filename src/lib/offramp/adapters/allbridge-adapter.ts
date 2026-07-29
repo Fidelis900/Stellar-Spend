@@ -1,5 +1,10 @@
 import { logger } from '@/lib/logger';
-import { AllbridgeCoreSdk, nodeRpcUrlsDefault, ChainDetailsMap, TokenWithChainDetails } from '@allbridge/bridge-core-sdk';
+import {
+  AllbridgeCoreSdk,
+  nodeRpcUrlsDefault,
+  ChainDetailsMap,
+  TokenWithChainDetails,
+} from '@allbridge/bridge-core-sdk';
 
 // ─── Module-level SDK singleton ───────────────────────────────────────────────
 
@@ -16,7 +21,8 @@ interface CacheEntry<T> {
 }
 
 let _chainDetailsCache: CacheEntry<ChainDetailsMap> | null = null;
-let _tokenInfoCache: CacheEntry<{ stellar: AllbridgeTokenInfo; base: AllbridgeTokenInfo }> | null = null;
+let _tokenInfoCache: CacheEntry<{ stellar: AllbridgeTokenInfo; base: AllbridgeTokenInfo }> | null =
+  null;
 
 function isFresh<T>(entry: CacheEntry<T> | null): entry is CacheEntry<T> {
   return entry !== null && Date.now() < entry.expiresAt;
@@ -125,7 +131,9 @@ export async function getAllbridgeTokens(sdk: AllbridgeCoreSdk): Promise<{
     if (!stellarChain) {
       throw new Error('Stellar chain (SRB) not found in Allbridge chain details');
     }
-    const stellarUsdc = stellarChain.tokens.find((token: TokenWithChainDetails) => token.symbol === 'USDC');
+    const stellarUsdc = stellarChain.tokens.find(
+      (token: TokenWithChainDetails) => token.symbol === 'USDC',
+    );
     if (!stellarUsdc) {
       throw new Error('USDC token not found on Stellar chain');
     }
@@ -135,7 +143,9 @@ export async function getAllbridgeTokens(sdk: AllbridgeCoreSdk): Promise<{
     if (!baseChain) {
       throw new Error('Base chain (BAS) not found in Allbridge chain details');
     }
-    const baseUsdc = baseChain.tokens.find((token: TokenWithChainDetails) => token.symbol === 'USDC');
+    const baseUsdc = baseChain.tokens.find(
+      (token: TokenWithChainDetails) => token.symbol === 'USDC',
+    );
     if (!baseUsdc) {
       throw new Error('USDC token not found on Base chain');
     }
@@ -160,13 +170,15 @@ export async function getAllbridgeTokens(sdk: AllbridgeCoreSdk): Promise<{
 export async function getAllbridgeToken(
   sdk: AllbridgeCoreSdk,
   chainKey: string,
-  tokenSymbol: string
+  tokenSymbol: string,
 ): Promise<TokenWithChainDetails> {
   try {
     const chainDetailsMap = await getCachedChainDetailsMap(sdk);
     const chain = chainDetailsMap[chainKey];
     if (!chain) throw new Error(`Chain ${chainKey} not found in Allbridge details`);
-    const token = chain.tokens.find((t: TokenWithChainDetails) => t.symbol === tokenSymbol.toUpperCase());
+    const token = chain.tokens.find(
+      (t: TokenWithChainDetails) => t.symbol === tokenSymbol.toUpperCase(),
+    );
     if (!token) throw new Error(`${tokenSymbol} not found on chain ${chainKey}`);
     return token;
   } catch (error) {
@@ -180,7 +192,7 @@ export async function getAllbridgeToken(
  */
 export async function getAllbridgeChainTokens(
   sdk: AllbridgeCoreSdk,
-  chainKey: string
+  chainKey: string,
 ): Promise<TokenWithChainDetails[]> {
   try {
     const chainDetailsMap = await getCachedChainDetailsMap(sdk);
@@ -202,7 +214,7 @@ export async function getAllbridgeQuote(
   sdk: AllbridgeCoreSdk,
   sourceToken: TokenWithChainDetails,
   destinationToken: TokenWithChainDetails,
-  amount: string
+  amount: string,
 ): Promise<{
   receiveAmount: string;
   fee: string;
@@ -214,7 +226,7 @@ export async function getAllbridgeQuote(
     const amountToBeReceived = await sdk.getAmountToBeReceived(
       amount,
       sourceToken,
-      destinationToken
+      destinationToken,
     );
 
     const fee = (parseFloat(amount) - parseFloat(amountToBeReceived)).toString();
@@ -222,7 +234,7 @@ export async function getAllbridgeQuote(
     const estimatedTime = await sdk.getAverageTransferTime(
       sourceToken,
       destinationToken,
-      Messenger.ALLBRIDGE
+      Messenger.ALLBRIDGE,
     );
 
     return { receiveAmount: amountToBeReceived, fee, estimatedTime: estimatedTime ?? 0 };

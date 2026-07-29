@@ -8,7 +8,7 @@ services:
         - stellar-spend:latest
     image: stellar-spend:latest
     ports:
-      - "3000:3000"
+      - '3000:3000'
     env_file:
       - .env.local
     environment:
@@ -21,7 +21,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3000/api/health']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -43,12 +43,12 @@ services:
       POSTGRES_PASSWORD: stellar
       POSTGRES_DB: stellar_spend
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres-data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U stellar -d stellar_spend"]
+      test: ['CMD-SHELL', 'pg_isready -U stellar -d stellar_spend']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -67,12 +67,12 @@ services:
     image: redis:7-alpine
     command: redis-server --save 60 1 --loglevel warning
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis-data:/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5

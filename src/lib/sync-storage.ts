@@ -32,7 +32,7 @@ export class SyncStorage {
     if (typeof window === 'undefined') {
       return this.getDefaultSettings();
     }
-    
+
     try {
       const stored = localStorage.getItem(SYNC_SETTINGS_KEY);
       return stored ? JSON.parse(stored) : this.getDefaultSettings();
@@ -126,16 +126,16 @@ export class SyncStorage {
     try {
       const stored = localStorage.getItem(SYNC_QUEUE_KEY);
       const queue = stored ? JSON.parse(stored) : [];
-      
+
       // Remove duplicate entry if exists
       const filtered = queue.filter((item: any) => item.transactionId !== transactionId);
-      
+
       filtered.push({
         transactionId,
         action,
         queuedAt: Date.now(),
       });
-      
+
       localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(filtered));
     } catch (err) {
       logger.error('Failed to add to sync queue:', {}, err);
@@ -145,7 +145,11 @@ export class SyncStorage {
   /**
    * Get sync queue
    */
-  static getQueue(): Array<{ transactionId: string; action: 'create' | 'update' | 'delete'; queuedAt: number }> {
+  static getQueue(): Array<{
+    transactionId: string;
+    action: 'create' | 'update' | 'delete';
+    queuedAt: number;
+  }> {
     if (typeof window === 'undefined') return [];
 
     try {
@@ -172,7 +176,7 @@ export class SyncStorage {
 
     try {
       const queue = this.getQueue();
-      const filtered = queue.filter(item => item.transactionId !== transactionId);
+      const filtered = queue.filter((item) => item.transactionId !== transactionId);
       localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(filtered));
     } catch (err) {
       logger.error('Failed to remove from sync queue:', {}, err);

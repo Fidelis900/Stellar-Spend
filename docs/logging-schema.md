@@ -4,27 +4,27 @@ All application logs are emitted as NDJSON to stdout and ingested by CloudWatch 
 
 ## Log Entry Fields
 
-| Field | Type | Always Present | Description |
-|-------|------|----------------|-------------|
-| `level` | `debug\|info\|warn\|error` | ✅ | Log severity |
-| `event` | `string` | ✅ | Dot-namespaced event name (e.g. `http.request`, `payout.failed`) |
-| `timestamp` | ISO 8601 | ✅ | UTC time of the log entry |
-| `service` | `string` | ✅ | Always `stellar-spend` |
-| `environment` | `string` | ✅ | `production`, `staging`, `development` |
-| `requestId` | `string` | When available | Correlation ID propagated via `X-Request-Id` header |
-| `error.message` | `string` | On errors | Error message |
-| `error.name` | `string` | On errors | Error class name |
-| `error.stack` | `string` | On errors | Stack trace (non-production only) |
+| Field           | Type                       | Always Present | Description                                                      |
+| --------------- | -------------------------- | -------------- | ---------------------------------------------------------------- |
+| `level`         | `debug\|info\|warn\|error` | ✅             | Log severity                                                     |
+| `event`         | `string`                   | ✅             | Dot-namespaced event name (e.g. `http.request`, `payout.failed`) |
+| `timestamp`     | ISO 8601                   | ✅             | UTC time of the log entry                                        |
+| `service`       | `string`                   | ✅             | Always `stellar-spend`                                           |
+| `environment`   | `string`                   | ✅             | `production`, `staging`, `development`                           |
+| `requestId`     | `string`                   | When available | Correlation ID propagated via `X-Request-Id` header              |
+| `error.message` | `string`                   | On errors      | Error message                                                    |
+| `error.name`    | `string`                   | On errors      | Error class name                                                 |
+| `error.stack`   | `string`                   | On errors      | Stack trace (non-production only)                                |
 
 ## HTTP Request Events
 
 Every API request emits an `http.request` event with these additional fields:
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `method` | `string` | HTTP method (`GET`, `POST`, …) |
-| `path` | `string` | URL pathname |
-| `status` | `number` | HTTP response status code |
+| Field        | Type     | Description                      |
+| ------------ | -------- | -------------------------------- |
+| `method`     | `string` | HTTP method (`GET`, `POST`, …)   |
+| `path`       | `string` | URL pathname                     |
+| `status`     | `number` | HTTP response status code        |
 | `durationMs` | `number` | Request duration in milliseconds |
 
 ## Correlation ID Flow
@@ -46,23 +46,23 @@ The logger automatically redacts:
 
 ## Retention Policy
 
-| Storage | Retention |
-|---------|-----------|
-| CloudWatch Logs (staging) | 30 days |
-| CloudWatch Logs (production) | 90 days |
-| S3 (hot) | 90 days |
-| S3 (Glacier) | 90–365 days |
-| S3 (expiry) | 365 days |
+| Storage                      | Retention   |
+| ---------------------------- | ----------- |
+| CloudWatch Logs (staging)    | 30 days     |
+| CloudWatch Logs (production) | 90 days     |
+| S3 (hot)                     | 90 days     |
+| S3 (Glacier)                 | 90–365 days |
+| S3 (expiry)                  | 365 days    |
 
 ## CloudWatch Insights Saved Queries
 
-| Query name | Purpose |
-|------------|---------|
-| `errors-last-hour` | All error logs, most recent first |
-| `slow-requests` | HTTP requests taking > 1 s |
-| `trace-by-request-id` | Full request trace for a given `requestId` |
-| `payout-failures` | Errors related to payout events |
-| `high-latency-requests` | Aggregate latency stats per path |
+| Query name              | Purpose                                    |
+| ----------------------- | ------------------------------------------ |
+| `errors-last-hour`      | All error logs, most recent first          |
+| `slow-requests`         | HTTP requests taking > 1 s                 |
+| `trace-by-request-id`   | Full request trace for a given `requestId` |
+| `payout-failures`       | Errors related to payout events            |
+| `high-latency-requests` | Aggregate latency stats per path           |
 
 ## Usage
 

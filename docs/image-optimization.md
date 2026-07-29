@@ -14,13 +14,13 @@ standard `<picture>` negotiation built into Next.js Image.
 
 ## Responsive Sizes
 
-| Variant   | `sizes` attribute                                      | Quality |
-|-----------|--------------------------------------------------------|---------|
-| `thumbnail` | `(max-width: 640px) 100px, 150px`                  | 75      |
-| `card`    | `(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 400px` | 80 |
-| `hero`    | `(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1200px` | 85 |
-| `icon`    | `64px`                                                 | 90      |
-| `avif`    | `(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1200px` | 80 |
+| Variant     | `sizes` attribute                                            | Quality |
+| ----------- | ------------------------------------------------------------ | ------- |
+| `thumbnail` | `(max-width: 640px) 100px, 150px`                            | 75      |
+| `card`      | `(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 400px`  | 80      |
+| `hero`      | `(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1200px` | 85      |
+| `icon`      | `64px`                                                       | 90      |
+| `avif`      | `(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1200px` | 80      |
 
 `generateAvifSrcSet(basePath, widths, quality)` produces an explicit AVIF srcSet
 string for use outside the Next.js `<Image>` component.
@@ -34,6 +34,7 @@ Pass `priority` (or `variant="hero"`) to `OptimizedImage`:
 ```
 
 When `priority` is truthy the component:
+
 - sets `loading="eager"` (no lazy-loading deferral)
 - sets `fetchpriority="high"` so the browser pre-fetches this resource at high
   network priority
@@ -45,7 +46,7 @@ For critical fonts, call `getCriticalAssetPreloads()` in your root layout to obt
 `<link rel="preload">` descriptors:
 
 ```tsx
-import { getCriticalAssetPreloads } from "@/lib/image-optimization";
+import { getCriticalAssetPreloads } from '@/lib/image-optimization';
 
 export default function RootLayout({ children }) {
   const preloads = getCriticalAssetPreloads();
@@ -53,8 +54,14 @@ export default function RootLayout({ children }) {
     <html>
       <head>
         {preloads.map((p) => (
-          <link key={p.href} rel="preload" href={p.href} as={p.as}
-                type={p.type} crossOrigin={p.crossOrigin} />
+          <link
+            key={p.href}
+            rel="preload"
+            href={p.href}
+            as={p.as}
+            type={p.type}
+            crossOrigin={p.crossOrigin}
+          />
         ))}
       </head>
       <body>{children}</body>
@@ -70,7 +77,7 @@ byte limits. `checkAssetSizeBudget(assetPath, sizeBytes)` throws if the asset
 exceeds its budget — integrate this in CI image-build scripts.
 
 | Category     | Limit  |
-|--------------|--------|
+| ------------ | ------ |
 | `hero-image` | 100 KB |
 | `card-image` | 50 KB  |
 | `thumbnail`  | 20 KB  |
@@ -87,7 +94,7 @@ export const imageConfigs = {
   banner: {
     sizes: getResponsiveSizes(1440),
     quality: 82,
-    placeholder: "blur" as const,
+    placeholder: 'blur' as const,
   },
 } as const;
 ```

@@ -18,7 +18,7 @@ import type { Transaction } from '@/lib/transaction-storage';
 async function expectNoSeriousViolations(container: HTMLElement) {
   const result = await axe.run(container);
   const serious = result.violations.filter(
-    (v) => v.impact === 'serious' || v.impact === 'critical'
+    (v) => v.impact === 'serious' || v.impact === 'critical',
   );
   if (serious.length > 0) {
     const summary = serious
@@ -49,7 +49,7 @@ describe('A11y: DisputeForm', () => {
     const { container } = render(
       <I18nProvider>
         <DisputeForm transactionId="tx-1" onSubmit={vi.fn()} onCancel={vi.fn()} />
-      </I18nProvider>
+      </I18nProvider>,
     );
     await expectNoSeriousViolations(container);
   });
@@ -58,7 +58,7 @@ describe('A11y: DisputeForm', () => {
     render(
       <I18nProvider>
         <DisputeForm transactionId="tx-1" onSubmit={vi.fn()} />
-      </I18nProvider>
+      </I18nProvider>,
     );
     // Reason select and description textarea are reachable by accessible name.
     expect(screen.getByRole('combobox')).toHaveAttribute('id', 'dispute-reason');
@@ -70,7 +70,7 @@ describe('A11y: DisputeForm', () => {
     render(
       <I18nProvider>
         <DisputeForm transactionId="tx-1" onSubmit={vi.fn()} />
-      </I18nProvider>
+      </I18nProvider>,
     );
     const dropzone = screen.getByRole('button', { name: /upload/i });
     expect(dropzone).toHaveAttribute('tabindex', '0');
@@ -84,25 +84,13 @@ describe('A11y: DisputeForm', () => {
 describe('A11y: ReversalModal', () => {
   it('has no serious axe violations when open', async () => {
     const { container } = render(
-      <ReversalModal
-        transaction={eligibleTx}
-        isOpen
-        onClose={vi.fn()}
-        onSuccess={vi.fn()}
-      />
+      <ReversalModal transaction={eligibleTx} isOpen onClose={vi.fn()} onSuccess={vi.fn()} />,
     );
     await expectNoSeriousViolations(container);
   });
 
   it('exposes an accessible dialog that is not hidden from assistive tech', () => {
-    render(
-      <ReversalModal
-        transaction={eligibleTx}
-        isOpen
-        onClose={vi.fn()}
-        onSuccess={vi.fn()}
-      />
-    );
+    render(<ReversalModal transaction={eligibleTx} isOpen onClose={vi.fn()} onSuccess={vi.fn()} />);
     const dialog = screen.getByRole('dialog');
     expect(dialog).toHaveAttribute('aria-modal', 'true');
     expect(dialog).toHaveAccessibleName('Reverse Transaction');

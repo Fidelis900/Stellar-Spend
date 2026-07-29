@@ -31,17 +31,19 @@ vi.mock('@/lib/logger', () => ({
 
 vi.mock('@/lib/error-handler', () => ({
   ErrorHandler: {
-    validation: vi.fn((msg: string) =>
-      new Response(JSON.stringify({ error: msg }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      }),
+    validation: vi.fn(
+      (msg: string) =>
+        new Response(JSON.stringify({ error: msg }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        }),
     ),
-    serverError: vi.fn((err: unknown) =>
-      new Response(JSON.stringify({ error: String(err) }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }),
+    serverError: vi.fn(
+      (err: unknown) =>
+        new Response(JSON.stringify({ error: String(err) }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        }),
     ),
   },
 }));
@@ -71,8 +73,7 @@ function validCSPPayload(overrides: Record<string, unknown> = {}) {
       'document-uri': 'https://app.example.com/dashboard',
       'violated-directive': 'script-src',
       'effective-directive': 'script-src',
-      'original-policy':
-        "default-src 'self'; script-src 'self'; report-uri /api/csp-report",
+      'original-policy': "default-src 'self'; script-src 'self'; report-uri /api/csp-report",
       disposition: 'enforce',
       'blocked-uri': 'https://malicious.example.com/payload.js',
       'source-file': 'https://app.example.com/dashboard',
@@ -189,9 +190,7 @@ describe('CSP report handler unit tests (#844)', () => {
 
   describe('report-only mode', () => {
     it('returns 204 for disposition "report" (Content-Security-Policy-Report-Only)', async () => {
-      const res = await POST(
-        makeCSPRequest(validCSPPayload({ disposition: 'report' })),
-      );
+      const res = await POST(makeCSPRequest(validCSPPayload({ disposition: 'report' })));
       expect(res.status).toBe(204);
     });
   });
@@ -250,7 +249,9 @@ describe('CSP report handler unit tests (#844)', () => {
       for (const payload of badPayloads) {
         const req = makeCSPRequest(payload);
         const res = await POST(req);
-        expect(res.status, `Should not be 500 for payload: ${JSON.stringify(payload)}`).not.toBe(500);
+        expect(res.status, `Should not be 500 for payload: ${JSON.stringify(payload)}`).not.toBe(
+          500,
+        );
       }
     });
   });

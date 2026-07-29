@@ -1,4 +1,4 @@
-import { SkeletonBase } from "./SkeletonBase";
+import { SkeletonBase } from './SkeletonBase';
 
 /**
  * Skeleton for BankAccountInput while bank metadata (mode + field shape)
@@ -7,11 +7,7 @@ import { SkeletonBase } from "./SkeletonBase";
  */
 export function BankAccountInputSkeleton({ fields = 1 }: { fields?: 1 | 2 }) {
   return (
-    <div
-      aria-label="Loading bank account input"
-      aria-busy="true"
-      className="flex flex-col gap-3"
-    >
+    <div aria-label="Loading bank account input" aria-busy="true" className="flex flex-col gap-3">
       {/* Mode tabs */}
       <div className="flex gap-4 border-b border-[#333333] pb-1">
         <SkeletonBase width={50} height={14} aria-label="Loading mode tab…" />

@@ -45,14 +45,15 @@ export function calculateRiskScore(amount: number, currency: string): number {
 
 export async function calculateInsurancePremium(
   amount: number,
-  currency: string
+  currency: string,
 ): Promise<InsuranceQuote> {
   const riskScore = calculateRiskScore(amount, currency);
   const rate = amount >= HIGH_VALUE_THRESHOLD ? HIGH_VALUE_RATE : BASE_PREMIUM_RATE;
   const riskMultiplier = 1 + (riskScore - 50) / 500;
   const premium = parseFloat((amount * rate * riskMultiplier).toFixed(6));
   const coverage = parseFloat((amount * 1.1).toFixed(6));
-  const provider = amount >= HIGH_VALUE_THRESHOLD ? 'enterprise' : amount >= 1000 ? 'premium' : 'default';
+  const provider =
+    amount >= HIGH_VALUE_THRESHOLD ? 'enterprise' : amount >= 1000 ? 'premium' : 'default';
 
   return {
     premium,
@@ -67,28 +68,22 @@ export async function createInsurance(
   transactionId: string,
   premium: number,
   coverage: number,
-  provider: string
+  provider: string,
 ) {
   return db.query(
     `INSERT INTO transaction_insurance (transaction_id, premium_amount, coverage_amount, provider, status, created_at)
      VALUES ($1, $2, $3, $4, 'active', NOW())
      RETURNING *`,
-    [transactionId, premium, coverage, provider]
+    [transactionId, premium, coverage, provider],
   );
 }
 
 export async function getInsuranceStatus(transactionId: string) {
-  return db.query(
-    `SELECT * FROM transaction_insurance WHERE transaction_id = $1`,
-    [transactionId]
-  );
+  return db.query(`SELECT * FROM transaction_insurance WHERE transaction_id = $1`, [transactionId]);
 }
 
 export async function getInsuranceById(insuranceId: string) {
-  return db.query(
-    `SELECT * FROM transaction_insurance WHERE id = $1`,
-    [insuranceId]
-  );
+  return db.query(`SELECT * FROM transaction_insurance WHERE id = $1`, [insuranceId]);
 }
 
 export async function fileClaim(insuranceId: string, reason: string, evidence?: string) {
@@ -98,17 +93,19 @@ export async function fileClaim(insuranceId: string, reason: string, evidence?: 
      SET status = 'claimed', claim_id = $1, claim_reason = $2, claim_evidence = $3, claimed_at = NOW()
      WHERE id = $4
      RETURNING *`,
-    [claimId, reason, evidence || null, insuranceId]
+    [claimId, reason, evidence || null, insuranceId],
   );
 }
 
-export async function verifyClaim(insuranceId: string): Promise<{ valid: boolean; reason?: string }> {
+export async function verifyClaim(
+  insuranceId: string,
+): Promise<{ valid: boolean; reason?: string }> {
   const result = await db.query(
     `SELECT ti.*, t.amount, t.status as tx_status
      FROM transaction_insurance ti
      LEFT JOIN transactions t ON t.id = ti.transaction_id
      WHERE ti.id = $1`,
-    [insuranceId]
+    [insuranceId],
   );
 
   const row = (result as { rows: Record<string, unknown>[] }).rows?.[0];
@@ -130,7 +127,7 @@ export async function approveClaim(insuranceId: string) {
      SET status = 'claim_approved', approved_at = NOW()
      WHERE id = $1
      RETURNING *`,
-    [insuranceId]
+    [insuranceId],
   );
 }
 
@@ -140,15 +137,12 @@ export async function rejectClaim(insuranceId: string, rejectionReason: string) 
      SET status = 'claim_rejected', rejection_reason = $1, reviewed_at = NOW()
      WHERE id = $2
      RETURNING *`,
-    [rejectionReason, insuranceId]
+    [rejectionReason, insuranceId],
   );
 }
 
 export async function processInsurancePayout(insuranceId: string) {
-  const result = await db.query(
-    `SELECT * FROM transaction_insurance WHERE id = $1`,
-    [insuranceId]
-  );
+  const result = await db.query(`SELECT * FROM transaction_insurance WHERE id = $1`, [insuranceId]);
 
   const row = (result as { rows: Record<string, unknown>[] }).rows?.[0];
   if (!row) throw new Error('Insurance record not found');
@@ -161,7 +155,7 @@ export async function processInsurancePayout(insuranceId: string) {
      SET status = 'paid', payout_reference = $1, paid_at = NOW()
      WHERE id = $2
      RETURNING *`,
-    [payoutRef, insuranceId]
+    [payoutRef, insuranceId],
   );
 }
 
@@ -174,7 +168,7 @@ export async function getInsuranceAnalytics(): Promise<InsuranceAnalytics> {
        COALESCE(SUM(coverage_amount) FILTER (WHERE status = 'paid'), 0) as total_paid,
        COUNT(*) FILTER (WHERE status IN ('claimed', 'claim_approved', 'claim_rejected', 'paid')) as total_claims
      FROM transaction_insurance`,
-    []
+    [],
   );
 
   const row = (result as { rows: Record<string, number>[] }).rows?.[0] ?? {};

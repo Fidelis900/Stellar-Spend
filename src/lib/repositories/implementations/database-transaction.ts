@@ -116,10 +116,9 @@ export class DatabaseTransactionRepository implements TransactionRepository {
   }
 
   async getByPayoutOrderId(orderId: string): Promise<Transaction | null> {
-    const result = await timedQuery(
-      'SELECT * FROM transactions WHERE payout_order_id = $1',
-      [orderId],
-    );
+    const result = await timedQuery('SELECT * FROM transactions WHERE payout_order_id = $1', [
+      orderId,
+    ]);
     return result.rows.length > 0 ? this.rowToTransaction(result.rows[0]) : null;
   }
 

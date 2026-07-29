@@ -16,9 +16,9 @@ export default function Features() {
               Seamless Cross-Chain Off-Ramp
             </h2>
             <p className="max-w-2xl text-sm leading-7 text-muted">
-              Connect your Stellar wallet, enter payout details, and receive fiat directly to 
-              your bank account. Powered by Allbridge for cross-chain transfers and Paycrest 
-              for fiat settlement.
+              Connect your Stellar wallet, enter payout details, and receive fiat directly to your
+              bank account. Powered by Allbridge for cross-chain transfers and Paycrest for fiat
+              settlement.
             </p>
           </div>
 
@@ -38,16 +38,14 @@ export default function Features() {
       <div className="flex flex-col gap-6">
         <div className="rounded-[1.75rem] border border-line/70 bg-panel/90 p-6">
           <div className="flex items-center justify-between">
-            <p className="font-space-grotesk text-lg font-medium text-text">
-              Real-time Tracking
-            </p>
+            <p className="font-space-grotesk text-lg font-medium text-text">Real-time Tracking</p>
             <div className="animate-spin-slow rounded-full border border-accent/40 p-2">
               <div className="h-4 w-4 rounded-full bg-accent" />
             </div>
           </div>
           <p className="mt-4 text-sm leading-7 text-muted">
-            Monitor your transaction status in real-time, from Stellar bridge to final 
-            bank settlement.
+            Monitor your transaction status in real-time, from Stellar bridge to final bank
+            settlement.
           </p>
         </div>
 

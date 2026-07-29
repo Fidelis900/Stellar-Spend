@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { cn } from "@/lib/cn";
+import { cn } from '@/lib/cn';
 
 export const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
 
@@ -13,9 +13,9 @@ interface HistoryPaginationProps {
 }
 
 const buttonClass = cn(
-  "text-[10px] tracking-widest uppercase px-3 py-2 min-h-[36px] border border-[#333333] text-[#999999]",
-  "hover:border-[#c9a962] hover:text-[#c9a962] transition-colors duration-150",
-  "disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-[#333333] disabled:hover:text-[#999999]",
+  'text-[10px] tracking-widest uppercase px-3 py-2 min-h-[36px] border border-[#333333] text-[#999999]',
+  'hover:border-[#c9a962] hover:text-[#c9a962] transition-colors duration-150',
+  'disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-[#333333] disabled:hover:text-[#999999]',
 );
 
 /** Client-side pagination controls for the history table. */

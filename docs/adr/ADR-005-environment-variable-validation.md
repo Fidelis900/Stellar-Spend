@@ -50,22 +50,25 @@ The `env` export is imported by adapters and route handlers instead of reading `
 ## Consequences
 
 **Positive:**
+
 - The server fails **immediately at startup** if required environment variables are missing, with a message listing exactly which keys need to be set.
 - The forbidden-public-key check prevents accidental secret exposure in the client bundle.
 - TypeScript types for `env.server.*` and `env.public.*` eliminate `undefined` handling at call sites.
 - The validation logic is self-contained, easy to read, and easy to extend when new required variables are added.
 
 **Negative / Trade-offs:**
+
 - Every test file that imports any module which transitively imports `env.ts` needs the required environment variables set, or must mock the module. Tests use `vi.mock('@/lib/env', ...)` to avoid this.
 - The validation runs eagerly on module load, which means it runs even in contexts where only a subset of variables is needed (e.g., a pure browser component that should never touch server secrets).
 - No runtime coercion (strings are not parsed to numbers, booleans, or URLs) — callers are responsible for parsing when needed.
 
 **Migration note:**  
 When adding new required environment variables, update:
+
 1. `src/lib/env.ts` — add to `requiredServerEnvKeys` or `requiredPublicEnvKeys`.
 2. `.env.example` — document the new variable with a comment.
 3. Docker and CI environment variable lists.
 
 ---
 
-*Related: [[ADR-004-api-versioning-strategy]]*
+_Related: [[ADR-004-api-versioning-strategy]]_

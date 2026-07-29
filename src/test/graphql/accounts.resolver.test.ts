@@ -37,9 +37,9 @@ describe('accountQueries.kycInfo', () => {
   beforeEach(() => vi.resetModules());
 
   it('throws when unauthenticated', async () => {
-    await expect(
-      accountQueries.kycInfo({}, { userId: 'u1' }, anonCtx()),
-    ).rejects.toThrow(/Unauthorized/);
+    await expect(accountQueries.kycInfo({}, { userId: 'u1' }, anonCtx())).rejects.toThrow(
+      /Unauthorized/,
+    );
   });
 
   it('returns null when no KYC record found', async () => {
@@ -47,9 +47,7 @@ describe('accountQueries.kycInfo', () => {
       KYCLimitService: { getKYC: vi.fn().mockReturnValue(null) },
     }));
 
-    const { accountQueries: q } = await import(
-      '@/lib/graphql/resolvers/accounts'
-    );
+    const { accountQueries: q } = await import('@/lib/graphql/resolvers/accounts');
     const result = await q.kycInfo({}, { userId: 'missing' }, authedCtx());
     expect(result).toBeNull();
   });
@@ -67,18 +65,14 @@ describe('accountQueries.kycInfo', () => {
       KYCLimitService: { getKYC: vi.fn().mockReturnValue(fakeKyc) },
     }));
 
-    const { accountQueries: q } = await import(
-      '@/lib/graphql/resolvers/accounts'
-    );
+    const { accountQueries: q } = await import('@/lib/graphql/resolvers/accounts');
     const result = await q.kycInfo({}, { userId: 'u1' }, authedCtx());
     expect(result).toMatchObject({
       userId: 'u1',
       status: 'pending',
       documentType: 'passport',
     });
-    expect(result!.submittedAt).toBe(
-      new Date(1_700_000_000_000).toISOString(),
-    );
+    expect(result!.submittedAt).toBe(new Date(1_700_000_000_000).toISOString());
     expect(result!.verifiedAt).toBeNull();
   });
 });
@@ -89,9 +83,9 @@ describe('accountQueries.userLimits', () => {
   beforeEach(() => vi.resetModules());
 
   it('throws when unauthenticated', async () => {
-    await expect(
-      accountQueries.userLimits({}, { userId: 'u1' }, anonCtx()),
-    ).rejects.toThrow(/Unauthorized/);
+    await expect(accountQueries.userLimits({}, { userId: 'u1' }, anonCtx())).rejects.toThrow(
+      /Unauthorized/,
+    );
   });
 
   it('returns null when no limits record', async () => {
@@ -100,9 +94,7 @@ describe('accountQueries.userLimits', () => {
       TIER_LIMITS: {},
     }));
 
-    const { accountQueries: q } = await import(
-      '@/lib/graphql/resolvers/accounts'
-    );
+    const { accountQueries: q } = await import('@/lib/graphql/resolvers/accounts');
     const result = await q.userLimits({}, { userId: 'u1' }, authedCtx());
     expect(result).toBeNull();
   });
@@ -135,9 +127,7 @@ describe('accountMutations.submitKYC', () => {
       KYCLimitService: { submitKYC: mockSubmitKYC },
     }));
 
-    const { accountMutations: m } = await import(
-      '@/lib/graphql/resolvers/accounts'
-    );
+    const { accountMutations: m } = await import('@/lib/graphql/resolvers/accounts');
     const result = await m.submitKYC(
       {},
       { userId: 'u1', documentType: 'passport', documentId: 'P001' },
@@ -154,9 +144,9 @@ describe('accountMutations.approveKYC', () => {
   beforeEach(() => vi.resetModules());
 
   it('throws when caller is not admin', async () => {
-    await expect(
-      accountMutations.approveKYC({}, { userId: 'u1' }, authedCtx()),
-    ).rejects.toThrow(/Forbidden/);
+    await expect(accountMutations.approveKYC({}, { userId: 'u1' }, authedCtx())).rejects.toThrow(
+      /Forbidden/,
+    );
   });
 
   it('throws when KYC record not found', async () => {
@@ -164,12 +154,8 @@ describe('accountMutations.approveKYC', () => {
       KYCLimitService: { verifyKYC: vi.fn().mockReturnValue(null) },
     }));
 
-    const { accountMutations: m } = await import(
-      '@/lib/graphql/resolvers/accounts'
-    );
-    await expect(
-      m.approveKYC({}, { userId: 'u99' }, adminCtx()),
-    ).rejects.toThrow(/No KYC found/);
+    const { accountMutations: m } = await import('@/lib/graphql/resolvers/accounts');
+    await expect(m.approveKYC({}, { userId: 'u99' }, adminCtx())).rejects.toThrow(/No KYC found/);
   });
 });
 
@@ -180,11 +166,7 @@ describe('accountMutations.rejectKYC', () => {
 
   it('throws when caller is not admin', async () => {
     await expect(
-      accountMutations.rejectKYC(
-        {},
-        { userId: 'u1', reason: 'forged docs' },
-        authedCtx(),
-      ),
+      accountMutations.rejectKYC({}, { userId: 'u1', reason: 'forged docs' }, authedCtx()),
     ).rejects.toThrow(/Forbidden/);
   });
 
@@ -200,14 +182,8 @@ describe('accountMutations.rejectKYC', () => {
       KYCLimitService: { rejectKYC: vi.fn().mockReturnValue(fakeKyc) },
     }));
 
-    const { accountMutations: m } = await import(
-      '@/lib/graphql/resolvers/accounts'
-    );
-    const result = await m.rejectKYC(
-      {},
-      { userId: 'u1', reason: 'forged docs' },
-      adminCtx(),
-    );
+    const { accountMutations: m } = await import('@/lib/graphql/resolvers/accounts');
+    const result = await m.rejectKYC({}, { userId: 'u1', reason: 'forged docs' }, adminCtx());
     expect(result).toMatchObject({
       status: 'rejected',
       rejectionReason: 'forged docs',

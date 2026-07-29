@@ -9,7 +9,7 @@ import { logger } from '@/lib/logger';
  * - Violation logging
  */
 
-import { getCacheClient } from "../../cache/client";
+import { getCacheClient } from '../../cache/client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -29,10 +29,10 @@ export interface RateLimitResult {
 }
 
 export interface RateLimitHeaders {
-  "X-RateLimit-Limit": string;
-  "X-RateLimit-Remaining": string;
-  "X-RateLimit-Reset": string;
-  "Retry-After"?: string;
+  'X-RateLimit-Limit': string;
+  'X-RateLimit-Remaining': string;
+  'X-RateLimit-Reset': string;
+  'Retry-After'?: string;
 }
 
 // ─── Sliding Window Rate Limiter ──────────────────────────────────────────────
@@ -51,10 +51,7 @@ export class SlidingWindowRateLimiter {
    * Uses a sliding window stored as a sorted set (timestamps) in Redis,
    * or a simple counter with expiry in the in-memory fallback.
    */
-  async check(
-    key: string,
-    options?: { isPremium?: boolean },
-  ): Promise<RateLimitResult> {
+  async check(key: string, options?: { isPremium?: boolean }): Promise<RateLimitResult> {
     // Premium bypass
     if (options?.isPremium && this.config.premiumBypass) {
       return {
@@ -122,7 +119,7 @@ export class SlidingWindowRateLimiter {
 function logViolation(namespace: string, key: string, count: number, limit: number): void {
   logger.warn(
     JSON.stringify({
-      event: "rate_limit.violation",
+      event: 'rate_limit.violation',
       timestamp: new Date().toISOString(),
       namespace,
       key,
@@ -136,12 +133,12 @@ function logViolation(namespace: string, key: string, count: number, limit: numb
 
 export function getRateLimitHeaders(result: RateLimitResult): RateLimitHeaders {
   const headers: RateLimitHeaders = {
-    "X-RateLimit-Limit": String(result.limit),
-    "X-RateLimit-Remaining": String(result.remaining),
-    "X-RateLimit-Reset": String(Math.ceil(result.resetAt / 1000)),
+    'X-RateLimit-Limit': String(result.limit),
+    'X-RateLimit-Remaining': String(result.remaining),
+    'X-RateLimit-Reset': String(Math.ceil(result.resetAt / 1000)),
   };
   if (result.retryAfter !== undefined) {
-    headers["Retry-After"] = String(result.retryAfter);
+    headers['Retry-After'] = String(result.retryAfter);
   }
   return headers;
 }
@@ -149,17 +146,17 @@ export function getRateLimitHeaders(result: RateLimitResult): RateLimitHeaders {
 // ─── Key Extraction ───────────────────────────────────────────────────────────
 
 export function getClientIp(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0].trim();
-  const realIp = request.headers.get("x-real-ip");
+  const forwarded = request.headers.get('x-forwarded-for');
+  if (forwarded) return forwarded.split(',')[0].trim();
+  const realIp = request.headers.get('x-real-ip');
   if (realIp) return realIp;
-  return "unknown";
+  return 'unknown';
 }
 
 export function getUserId(request: Request): string | null {
-  const auth = request.headers.get("authorization") ?? "";
-  if (auth.startsWith("Bearer ")) return `user:${auth.slice(7, 15)}`;
-  const apiKey = request.headers.get("x-api-key");
+  const auth = request.headers.get('authorization') ?? '';
+  if (auth.startsWith('Bearer ')) return `user:${auth.slice(7, 15)}`;
+  const apiKey = request.headers.get('x-api-key');
   if (apiKey) return `apikey:${apiKey.slice(0, 8)}`;
   return null;
 }
@@ -171,25 +168,25 @@ export function getRateLimitKey(request: Request): string {
 
 // ─── Pre-configured Limiters ──────────────────────────────────────────────────
 
-export const buildTxLimiter = new SlidingWindowRateLimiter("build-tx", {
+export const buildTxLimiter = new SlidingWindowRateLimiter('build-tx', {
   maxRequests: 10,
   windowMs: 60_000,
   premiumBypass: false,
 });
 
-export const paycrestOrderLimiter = new SlidingWindowRateLimiter("paycrest-order", {
+export const paycrestOrderLimiter = new SlidingWindowRateLimiter('paycrest-order', {
   maxRequests: 5,
   windowMs: 60_000,
   premiumBypass: true,
 });
 
-export const quoteLimiter = new SlidingWindowRateLimiter("quote", {
+export const quoteLimiter = new SlidingWindowRateLimiter('quote', {
   maxRequests: 30,
   windowMs: 60_000,
   premiumBypass: true,
 });
 
-export const globalApiLimiter = new SlidingWindowRateLimiter("global", {
+export const globalApiLimiter = new SlidingWindowRateLimiter('global', {
   maxRequests: 100,
   windowMs: 60_000,
   premiumBypass: true,

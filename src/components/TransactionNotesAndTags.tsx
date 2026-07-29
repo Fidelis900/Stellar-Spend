@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { cn } from "@/lib/cn";
-import { TransactionStorage, type Transaction } from "@/lib/transaction-storage";
+import { useState, useEffect } from 'react';
+import { cn } from '@/lib/cn';
+import { TransactionStorage, type Transaction } from '@/lib/transaction-storage';
 
 interface TransactionNotesAndTagsProps {
   transaction: Transaction;
@@ -11,12 +11,12 @@ interface TransactionNotesAndTagsProps {
 }
 
 const TAG_COLORS = [
-  "#3b82f6", // blue
-  "#ef4444", // red
-  "#10b981", // green
-  "#f59e0b", // amber
-  "#8b5cf6", // purple
-  "#ec4899", // pink
+  '#3b82f6', // blue
+  '#ef4444', // red
+  '#10b981', // green
+  '#f59e0b', // amber
+  '#8b5cf6', // purple
+  '#ec4899', // pink
 ];
 
 export default function TransactionNotesAndTags({
@@ -24,9 +24,9 @@ export default function TransactionNotesAndTags({
   onUpdate,
   className,
 }: TransactionNotesAndTagsProps) {
-  const [note, setNote] = useState(transaction.note || "");
+  const [note, setNote] = useState(transaction.note || '');
   const [tags, setTags] = useState(transaction.tags || []);
-  const [newTagName, setNewTagName] = useState("");
+  const [newTagName, setNewTagName] = useState('');
   const [selectedColor, setSelectedColor] = useState(TAG_COLORS[0]);
   const [allTags, setAllTags] = useState<Array<{ name: string; color: string; count: number }>>([]);
   const [showTagSuggestions, setShowTagSuggestions] = useState(false);
@@ -52,7 +52,7 @@ export default function TransactionNotesAndTags({
       setAllTags(TransactionStorage.getAllTags());
       onUpdate?.(updated);
     }
-    setNewTagName("");
+    setNewTagName('');
     setShowTagSuggestions(false);
   };
 
@@ -78,16 +78,19 @@ export default function TransactionNotesAndTags({
   const filteredSuggestions = allTags.filter(
     (tag) =>
       tag.name.toLowerCase().includes(newTagName.toLowerCase()) &&
-      !tags.some((t) => t.name === tag.name)
+      !tags.some((t) => t.name === tag.name),
   );
 
   return (
-    <div className={cn("space-y-4 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900", className)}>
+    <div
+      className={cn(
+        'space-y-4 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900',
+        className,
+      )}
+    >
       {/* Notes Section */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Notes
-        </label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
         <textarea
           value={note}
           onChange={(e) => handleNoteChange(e.target.value)}
@@ -103,9 +106,7 @@ export default function TransactionNotesAndTags({
 
       {/* Tags Section */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Tags
-        </label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tags</label>
 
         {/* Display Tags */}
         {tags.length > 0 && (
@@ -187,9 +188,7 @@ export default function TransactionNotesAndTags({
       {/* Tag Filtering */}
       {allTags.length > 0 && (
         <div>
-          <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
-            All Tags
-          </p>
+          <p className="text-xs font-medium text-gray-600 dark:text-gray-400">All Tags</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {allTags.map((tag) => (
               <button

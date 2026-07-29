@@ -33,7 +33,7 @@ function SparkBar({ values, color = '#3b82f6' }: { values: number[]; color?: str
 function PieChart({ slices }: { slices: { label: string; value: number; color: string }[] }) {
   const total = slices.reduce((s, x) => s + x.value, 0) || 1;
   let cumulative = 0;
-  const paths = slices.map(slice => {
+  const paths = slices.map((slice) => {
     const pct = slice.value / total;
     const start = cumulative;
     cumulative += pct;
@@ -44,19 +44,28 @@ function PieChart({ slices }: { slices: { label: string; value: number; color: s
     const x2 = 50 + 40 * Math.cos(endAngle);
     const y2 = 50 + 40 * Math.sin(endAngle);
     const largeArc = pct > 0.5 ? 1 : 0;
-    return { d: `M50,50 L${x1},${y1} A40,40 0 ${largeArc},1 ${x2},${y2} Z`, color: slice.color, label: slice.label, pct };
+    return {
+      d: `M50,50 L${x1},${y1} A40,40 0 ${largeArc},1 ${x2},${y2} Z`,
+      color: slice.color,
+      label: slice.label,
+      pct,
+    };
   });
 
   return (
     <div className="flex items-center gap-4">
       <svg viewBox="0 0 100 100" className="w-24 h-24 shrink-0">
-        {paths.map((p, i) => <path key={i} d={p.d} fill={p.color} />)}
+        {paths.map((p, i) => (
+          <path key={i} d={p.d} fill={p.color} />
+        ))}
       </svg>
       <ul className="space-y-1">
         {paths.map((p, i) => (
           <li key={i} className="flex items-center gap-2 text-xs">
             <span className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: p.color }} />
-            <span>{p.label} — {(p.pct * 100).toFixed(1)}%</span>
+            <span>
+              {p.label} — {(p.pct * 100).toFixed(1)}%
+            </span>
           </li>
         ))}
       </ul>
@@ -68,7 +77,15 @@ function PieChart({ slices }: { slices: { label: string; value: number; color: s
 // Comparison badge
 // ---------------------------------------------------------------------------
 
-function DeltaBadge({ current, previous, label }: { current: number; previous: number; label: string }) {
+function DeltaBadge({
+  current,
+  previous,
+  label,
+}: {
+  current: number;
+  previous: number;
+  label: string;
+}) {
   if (!previous) return null;
   const delta = ((current - previous) / previous) * 100;
   const up = delta >= 0;
@@ -86,9 +103,9 @@ function DeltaBadge({ current, previous, label }: { current: number; previous: n
 function exportAnalyticsCSV(analytics: AnalyticsPeriod) {
   const rows = [
     ['Date', 'Transactions', 'Amount'],
-    ...analytics.spendingPatterns.map(sp => [sp.date, sp.transactionCount, sp.amount]),
+    ...analytics.spendingPatterns.map((sp) => [sp.date, sp.transactionCount, sp.amount]),
   ];
-  const csv = rows.map(r => r.join(',')).join('\n');
+  const csv = rows.map((r) => r.join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -115,18 +132,21 @@ export function AnalyticsDashboard({ userAddress }: AnalyticsDashboardProps) {
   const [error, setError] = useState('');
   const [period, setPeriod] = useState<'7d' | '30d' | '90d'>('30d');
 
-  const fetchPeriod = useCallback(async (p: '7d' | '30d' | '90d', signal?: AbortSignal) => {
-    const now = Date.now();
-    const daysMap = { '7d': 7, '30d': 30, '90d': 90 };
-    const days = daysMap[p];
-    const startDate = now - days * 86_400_000;
-    const res = await fetch(
-      `/api/transactions/analytics?startDate=${startDate}&endDate=${now}&period=${p}`,
-      { headers: { 'x-user-address': userAddress }, signal }
-    );
-    if (!res.ok) throw new Error('Failed to fetch analytics');
-    return res.json() as Promise<AnalyticsPeriod>;
-  }, [userAddress]);
+  const fetchPeriod = useCallback(
+    async (p: '7d' | '30d' | '90d', signal?: AbortSignal) => {
+      const now = Date.now();
+      const daysMap = { '7d': 7, '30d': 30, '90d': 90 };
+      const days = daysMap[p];
+      const startDate = now - days * 86_400_000;
+      const res = await fetch(
+        `/api/transactions/analytics?startDate=${startDate}&endDate=${now}&period=${p}`,
+        { headers: { 'x-user-address': userAddress }, signal },
+      );
+      if (!res.ok) throw new Error('Failed to fetch analytics');
+      return res.json() as Promise<AnalyticsPeriod>;
+    },
+    [userAddress],
+  );
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -146,14 +166,16 @@ export function AnalyticsDashboard({ userAddress }: AnalyticsDashboardProps) {
       fetchPeriod(period, ctrl.signal),
       fetch(
         `/api/transactions/analytics?startDate=${prevStart}&endDate=${prevEnd}&period=${prevPeriod}`,
-        { headers: { 'x-user-address': userAddress }, signal: ctrl.signal }
-      ).then(r => r.ok ? r.json() : null).catch(() => null),
+        { headers: { 'x-user-address': userAddress }, signal: ctrl.signal },
+      )
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null),
     ])
       .then(([curr, prev]) => {
         setAnalytics(curr);
         setPrevAnalytics(prev);
       })
-      .catch(err => {
+      .catch((err) => {
         if (err.name !== 'AbortError') setError(err.message ?? 'Failed to load analytics');
       })
       .finally(() => setLoading(false));
@@ -169,13 +191,14 @@ export function AnalyticsDashboard({ userAddress }: AnalyticsDashboardProps) {
   const prev = prevAnalytics?.analytics;
 
   // Spending trend values for sparkbar
-  const trendValues = spendingPatterns.map(sp => parseFloat(sp.amount) || 0);
-  const txTrendValues = spendingPatterns.map(sp => sp.transactionCount);
+  const trendValues = spendingPatterns.map((sp) => parseFloat(sp.amount) || 0);
+  const txTrendValues = spendingPatterns.map((sp) => sp.transactionCount);
 
   // Average tx size
-  const avgTxSize = stats.totalTransactions > 0
-    ? (parseFloat(stats.totalVolume) / stats.totalTransactions).toFixed(2)
-    : '0.00';
+  const avgTxSize =
+    stats.totalTransactions > 0
+      ? (parseFloat(stats.totalVolume) / stats.totalTransactions).toFixed(2)
+      : '0.00';
 
   // Fee savings estimate (USDC fee vs XLM fee — assume XLM fee is 0.5% more)
   const feeSavings = (parseFloat(feeAnalysis.totalFeesPaid) * 0.005).toFixed(2);
@@ -213,14 +236,26 @@ export function AnalyticsDashboard({ userAddress }: AnalyticsDashboardProps) {
       {/* Key Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <MetricCard label="Total Transactions" value={stats.totalTransactions.toString()}>
-          <DeltaBadge current={stats.totalTransactions} previous={prev?.totalTransactions ?? 0} label={period} />
+          <DeltaBadge
+            current={stats.totalTransactions}
+            previous={prev?.totalTransactions ?? 0}
+            label={period}
+          />
         </MetricCard>
         <MetricCard label="Total Volume" value={`$${stats.totalVolume}`}>
-          <DeltaBadge current={parseFloat(stats.totalVolume)} previous={parseFloat(prev?.totalVolume ?? '0')} label={period} />
+          <DeltaBadge
+            current={parseFloat(stats.totalVolume)}
+            previous={parseFloat(prev?.totalVolume ?? '0')}
+            label={period}
+          />
         </MetricCard>
         <MetricCard label="Avg Transaction" value={`$${avgTxSize}`} />
         <MetricCard label="Success Rate" value={`${stats.successRate.toFixed(1)}%`}>
-          <DeltaBadge current={stats.successRate} previous={prev?.successRate ?? 0} label={period} />
+          <DeltaBadge
+            current={stats.successRate}
+            previous={prev?.successRate ?? 0}
+            label={period}
+          />
         </MetricCard>
       </div>
 
@@ -259,7 +294,9 @@ export function AnalyticsDashboard({ userAddress }: AnalyticsDashboardProps) {
         <div className="bg-gray-900 p-6 rounded-lg border border-gray-700">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-white">Conversion Funnel</h3>
-            <span className="text-sm text-gray-400">{funnel.totalSessions.toLocaleString()} sessions</span>
+            <span className="text-sm text-gray-400">
+              {funnel.totalSessions.toLocaleString()} sessions
+            </span>
           </div>
           <FunnelChart data={funnel} />
         </div>
@@ -298,7 +335,10 @@ export function AnalyticsDashboard({ userAddress }: AnalyticsDashboardProps) {
         <h3 className="text-lg font-semibold mb-4">Spending Patterns</h3>
         <div className="space-y-2 max-h-64 overflow-y-auto">
           {spendingPatterns.map((sp) => (
-            <div key={sp.date} className="flex items-center justify-between py-2 border-b last:border-0">
+            <div
+              key={sp.date}
+              className="flex items-center justify-between py-2 border-b last:border-0"
+            >
               <div>
                 <p className="font-medium text-sm">{new Date(sp.date).toLocaleDateString()}</p>
                 <p className="text-xs text-gray-500">{sp.transactionCount} transactions</p>
@@ -312,7 +352,15 @@ export function AnalyticsDashboard({ userAddress }: AnalyticsDashboardProps) {
   );
 }
 
-function MetricCard({ label, value, children }: { label: string; value: string; children?: React.ReactNode }) {
+function MetricCard({
+  label,
+  value,
+  children,
+}: {
+  label: string;
+  value: string;
+  children?: React.ReactNode;
+}) {
   return (
     <div className="bg-white p-4 rounded-lg border">
       <p className="text-sm text-gray-600 mb-1">{label}</p>

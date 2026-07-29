@@ -101,11 +101,7 @@ describe('#852 — MerchantService unit tests', () => {
     it('returns a fully-typed MerchantAccount on success', async () => {
       poolQueryMock.mockResolvedValueOnce({ rows: [makeMerchantRow()] });
 
-      const result = await service.createMerchant(
-        'user-001',
-        'Acme Corp',
-        'billing@acme.com',
-      );
+      const result = await service.createMerchant('user-001', 'Acme Corp', 'billing@acme.com');
 
       expect(result.id).toBe('merchant-uuid-001');
       expect(result.userId).toBe('user-001');
@@ -136,7 +132,9 @@ describe('#852 — MerchantService unit tests', () => {
       await service.createMerchant('user-dup', 'First Biz', 'first@biz.com');
 
       // Second call simulates the DB unique-constraint violation
-      const pgError: any = new Error('duplicate key value violates unique constraint "merchant_accounts_user_id_idx"');
+      const pgError: any = new Error(
+        'duplicate key value violates unique constraint "merchant_accounts_user_id_idx"',
+      );
       pgError.code = '23505';
       pgError.constraint = 'merchant_accounts_user_id_idx';
       poolQueryMock.mockRejectedValueOnce(pgError);
@@ -164,27 +162,25 @@ describe('#852 — MerchantService unit tests', () => {
 
   describe('createMerchant() — missing / invalid required metadata', () => {
     it('throws when userId is empty string', async () => {
-      await expect(
-        service.createMerchant('', 'Acme', 'acme@test.com'),
-      ).rejects.toThrow(/userId.*required|required.*userId/i);
+      await expect(service.createMerchant('', 'Acme', 'acme@test.com')).rejects.toThrow(
+        /userId.*required|required.*userId/i,
+      );
     });
 
     it('throws when businessName is empty string', async () => {
-      await expect(
-        service.createMerchant('user-001', '', 'acme@test.com'),
-      ).rejects.toThrow(/businessName.*required|required.*businessName/i);
+      await expect(service.createMerchant('user-001', '', 'acme@test.com')).rejects.toThrow(
+        /businessName.*required|required.*businessName/i,
+      );
     });
 
     it('throws when businessEmail is empty string', async () => {
-      await expect(
-        service.createMerchant('user-001', 'Acme', ''),
-      ).rejects.toThrow(/businessEmail.*required|required.*businessEmail/i);
+      await expect(service.createMerchant('user-001', 'Acme', '')).rejects.toThrow(
+        /businessEmail.*required|required.*businessEmail/i,
+      );
     });
 
     it('throws when all three required fields are missing', async () => {
-      await expect(
-        service.createMerchant('', '', ''),
-      ).rejects.toThrow(/required/i);
+      await expect(service.createMerchant('', '', '')).rejects.toThrow(/required/i);
     });
 
     it('does NOT call the database when required fields are missing', async () => {
@@ -272,9 +268,9 @@ describe('#852 — MerchantService unit tests', () => {
 
   describe('createBulkPayout() — missing / invalid required metadata', () => {
     it('throws when merchantId is empty', async () => {
-      await expect(
-        service.createBulkPayout('', 'idem-key', makeValidBulkItems()),
-      ).rejects.toThrow(/merchantId.*required|required/i);
+      await expect(service.createBulkPayout('', 'idem-key', makeValidBulkItems())).rejects.toThrow(
+        /merchantId.*required|required/i,
+      );
     });
 
     it('throws when idempotencyKey is empty', async () => {
@@ -284,15 +280,13 @@ describe('#852 — MerchantService unit tests', () => {
     });
 
     it('throws when items array is empty', async () => {
-      await expect(
-        service.createBulkPayout('merchant-001', 'idem-key', []),
-      ).rejects.toThrow(/items.*required|required/i);
+      await expect(service.createBulkPayout('merchant-001', 'idem-key', [])).rejects.toThrow(
+        /items.*required|required/i,
+      );
     });
 
     it('does NOT call the database when required fields are missing', async () => {
-      await expect(
-        service.createBulkPayout('', '', []),
-      ).rejects.toThrow();
+      await expect(service.createBulkPayout('', '', [])).rejects.toThrow();
       expect(poolQueryMock).not.toHaveBeenCalled();
     });
   });
@@ -350,12 +344,14 @@ describe('#852 — MerchantService unit tests', () => {
   describe('getMerchantStats()', () => {
     it('calculates success rate correctly', async () => {
       poolQueryMock.mockResolvedValueOnce({
-        rows: [{
-          total_payouts: '10',
-          completed_payouts: '8',
-          failed_payouts: '2',
-          total_volume: '50000.000000',
-        }],
+        rows: [
+          {
+            total_payouts: '10',
+            completed_payouts: '8',
+            failed_payouts: '2',
+            total_volume: '50000.000000',
+          },
+        ],
       });
 
       const stats = await service.getMerchantStats('merchant-001');
@@ -368,12 +364,14 @@ describe('#852 — MerchantService unit tests', () => {
 
     it('returns 0% success rate when no payouts exist', async () => {
       poolQueryMock.mockResolvedValueOnce({
-        rows: [{
-          total_payouts: '0',
-          completed_payouts: '0',
-          failed_payouts: '0',
-          total_volume: '0',
-        }],
+        rows: [
+          {
+            total_payouts: '0',
+            completed_payouts: '0',
+            failed_payouts: '0',
+            total_volume: '0',
+          },
+        ],
       });
 
       const stats = await service.getMerchantStats('new-merchant');

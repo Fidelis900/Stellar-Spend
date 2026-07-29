@@ -91,19 +91,19 @@ npm run dev
 
 ## Config reference
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `currency` | string | ISO 4217 code (3 letters) |
-| `country` | string | ISO 3166-1 alpha-2 |
-| `displayName` | string | Human-readable label |
-| `active` | boolean | Whether the corridor is live |
-| `validators.fields.account` | object | Account number rules (pattern, minLength, maxLength) |
-| `validators.fields.routing` | object | Routing/IFSC code rules |
-| `validators.fields.iban.enabled` | boolean | Whether IBAN is accepted |
-| `institutions` | array | Known institutions for the corridor |
-| `kycDefaults.verificationTier` | string | Tier granted after KYC (tier1/tier2/tier3) |
-| `kycDefaults.tierOverrides` | object | Per-tier limit overrides |
-| `providers` | array | Payout provider support flags |
+| Field                            | Type    | Description                                          |
+| -------------------------------- | ------- | ---------------------------------------------------- |
+| `currency`                       | string  | ISO 4217 code (3 letters)                            |
+| `country`                        | string  | ISO 3166-1 alpha-2                                   |
+| `displayName`                    | string  | Human-readable label                                 |
+| `active`                         | boolean | Whether the corridor is live                         |
+| `validators.fields.account`      | object  | Account number rules (pattern, minLength, maxLength) |
+| `validators.fields.routing`      | object  | Routing/IFSC code rules                              |
+| `validators.fields.iban.enabled` | boolean | Whether IBAN is accepted                             |
+| `institutions`                   | array   | Known institutions for the corridor                  |
+| `kycDefaults.verificationTier`   | string  | Tier granted after KYC (tier1/tier2/tier3)           |
+| `kycDefaults.tierOverrides`      | object  | Per-tier limit overrides                             |
+| `providers`                      | array   | Payout provider support flags                        |
 
 ---
 

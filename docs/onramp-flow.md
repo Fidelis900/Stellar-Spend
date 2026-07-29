@@ -90,16 +90,16 @@ draft → quoted → order_created → deposit_pending → deposit_confirmed
                   Any state ─────────────────────► failed / expired
 ```
 
-| State | Description |
-|---|---|
-| `draft` | Initial state before quoting |
-| `quoted` | Quote generated |
-| `order_created` | Order created, deposit address returned |
-| `deposit_pending` | Waiting for user fiat deposit |
-| `deposit_confirmed` | Provider confirmed fiat receipt |
-| `bridge_pending` | Bridging USDC from Base → Stellar |
-| `bridge_completed` | USDC arrived on Stellar |
-| `completed` | User received USDC on Stellar |
+| State               | Description                             |
+| ------------------- | --------------------------------------- |
+| `draft`             | Initial state before quoting            |
+| `quoted`            | Quote generated                         |
+| `order_created`     | Order created, deposit address returned |
+| `deposit_pending`   | Waiting for user fiat deposit           |
+| `deposit_confirmed` | Provider confirmed fiat receipt         |
+| `bridge_pending`    | Bridging USDC from Base → Stellar       |
+| `bridge_completed`  | USDC arrived on Stellar                 |
+| `completed`         | User received USDC on Stellar           |
 
 ---
 
@@ -110,6 +110,7 @@ draft → quoted → order_created → deposit_pending → deposit_confirmed
 Fetches a fiat → stablecoin quote.
 
 **Request:**
+
 ```json
 {
   "fiatAmount": "100.00",
@@ -121,6 +122,7 @@ Fetches a fiat → stablecoin quote.
 ```
 
 **Response:**
+
 ```json
 {
   "quoteId": "uuid",
@@ -143,6 +145,7 @@ Fetches a fiat → stablecoin quote.
 Creates an on-ramp order. Requires `Idempotency-Key` header.
 
 **Request:**
+
 ```json
 {
   "quoteId": "uuid",
@@ -157,6 +160,7 @@ Creates an on-ramp order. Requires `Idempotency-Key` header.
 ```
 
 **Response (201):**
+
 ```json
 {
   "orderId": "uuid",
@@ -181,6 +185,7 @@ Creates an on-ramp order. Requires `Idempotency-Key` header.
 Returns current order status.
 
 **Response:**
+
 ```json
 {
   "orderId": "uuid",
@@ -205,6 +210,7 @@ Receives deposit/bridge confirmation webhooks from providers.
 Triggers reconciliation for a pending bridge.
 
 **Request:**
+
 ```json
 { "orderId": "uuid" }
 ```

@@ -1,16 +1,20 @@
 # RB-004: High Error Rate
 
 ## Severity
+
 P2
 
 ## Triggering Alerts
+
 - `ALERT_ERROR_RATE_HIGH` — 5xx rate > 5% over a 5-minute window
 - Sentry alert: unhandled exception spike
 
 ## Impact
+
 Degraded service. Some users experience errors. Transactions may fail but no funds are at risk unless the error is in the payout path.
 
 ## Prerequisites
+
 - CloudWatch Logs Insights access
 - Sentry access: https://sentry.io
 - Read-only DB access
@@ -69,14 +73,15 @@ If 429s (not 5xx) are elevated, review rate limit config in `src/lib/rate-limiti
 
 ## Escalation
 
-| Time elapsed | Action |
-|-------------|--------|
-| 0–30 min | On-call diagnoses and applies fix |
-| 30 min | Escalate to engineering manager if not resolved |
+| Time elapsed | Action                                          |
+| ------------ | ----------------------------------------------- |
+| 0–30 min     | On-call diagnoses and applies fix               |
+| 30 min       | Escalate to engineering manager if not resolved |
 
 ---
 
 ## Related Runbooks
+
 - [RB-001: Stuck Bridge](./stuck-bridge.md)
 - [RB-002: Provider Outage](./provider-outage.md)
 - [RB-003: Database Failover](./database-failover.md)

@@ -6,14 +6,14 @@
  */
 
 export const FUNNEL_STEPS = [
-  "wallet_connect",
-  "form_fill",
-  "quote_received",
-  "signature_requested",
-  "tx_submitted",
-  "bridge_processing",
-  "payout_settling",
-  "completed",
+  'wallet_connect',
+  'form_fill',
+  'quote_received',
+  'signature_requested',
+  'tx_submitted',
+  'bridge_processing',
+  'payout_settling',
+  'completed',
 ] as const;
 
 export type FunnelStep = (typeof FUNNEL_STEPS)[number];
@@ -36,14 +36,14 @@ export interface FunnelData {
 }
 
 const STEP_LABELS: Record<FunnelStep, string> = {
-  wallet_connect: "Wallet Connected",
-  form_fill: "Form Filled",
-  quote_received: "Quote Received",
-  signature_requested: "Signature Requested",
-  tx_submitted: "TX Submitted",
-  bridge_processing: "Bridge Processing",
-  payout_settling: "Payout Settling",
-  completed: "Completed",
+  wallet_connect: 'Wallet Connected',
+  form_fill: 'Form Filled',
+  quote_received: 'Quote Received',
+  signature_requested: 'Signature Requested',
+  tx_submitted: 'TX Submitted',
+  bridge_processing: 'Bridge Processing',
+  payout_settling: 'Payout Settling',
+  completed: 'Completed',
 };
 
 export function getStepLabel(step: FunnelStep): string {

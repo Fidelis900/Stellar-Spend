@@ -4,7 +4,7 @@ import { withApiKeyAuth } from '@/lib/api-keys/auth';
 
 export async function GET(
   request: NextRequest,
-  context: { params: Promise<{ currency: string }> }
+  context: { params: Promise<{ currency: string }> },
 ) {
   return withApiKeyAuth(request, async () => baseGET(request, context));
 }

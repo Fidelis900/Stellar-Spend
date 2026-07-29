@@ -24,11 +24,7 @@ import {
   calculateAmountAfterFees,
 } from '@/lib/fee-calculation';
 
-import {
-  ErrorType,
-  ERROR_STATUS_CODES,
-  ApiError,
-} from '@/lib/error-types';
+import { ErrorType, ERROR_STATUS_CODES, ApiError } from '@/lib/error-types';
 
 import { mapPaycrestStatus } from '@/lib/offramp/adapters/paycrest-adapter';
 
@@ -317,10 +313,18 @@ function mockLocalStorage() {
   let store: Record<string, string> = {};
   return {
     getItem: (k: string) => store[k] ?? null,
-    setItem: (k: string, v: string) => { store[k] = v; },
-    removeItem: (k: string) => { delete store[k]; },
-    clear: () => { store = {}; },
-    get length() { return Object.keys(store).length; },
+    setItem: (k: string, v: string) => {
+      store[k] = v;
+    },
+    removeItem: (k: string) => {
+      delete store[k];
+    },
+    clear: () => {
+      store = {};
+    },
+    get length() {
+      return Object.keys(store).length;
+    },
     key: (i: number) => Object.keys(store)[i] ?? null,
   };
 }
@@ -350,7 +354,7 @@ describe('KYCLimitService: tier transaction limits', () => {
 
   it('allowed is boolean true — not just truthy', () => {
     const result = KYCLimitService.canTransact(uid, 100);
-    expect(result.allowed).toBe(true);   // strict toBe, not toBeTruthy
+    expect(result.allowed).toBe(true); // strict toBe, not toBeTruthy
   });
 
   it('blocked result has a non-empty reason string', () => {

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useEffect, useState, useMemo, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 
 export interface CommandAction {
   id: string;
@@ -29,7 +29,7 @@ export function CommandPalette({
   recentCommands = [],
   onCommandExecute,
 }: CommandPaletteProps) {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -40,9 +40,7 @@ export function CommandPalette({
       // Show recent commands first when no search
       const recent = commands
         .filter((cmd) => recentCommands.includes(cmd.id))
-        .sort(
-          (a, b) => recentCommands.indexOf(a.id) - recentCommands.indexOf(b.id),
-        );
+        .sort((a, b) => recentCommands.indexOf(a.id) - recentCommands.indexOf(b.id));
       const rest = commands.filter((cmd) => !recentCommands.includes(cmd.id));
       return [...recent, ...rest];
     }
@@ -52,7 +50,7 @@ export function CommandPalette({
       .map((cmd) => {
         let score = 0;
         const label = cmd.label.toLowerCase();
-        const description = cmd.description?.toLowerCase() || "";
+        const description = cmd.description?.toLowerCase() || '';
         const keywords = cmd.keywords?.map((k) => k.toLowerCase()) || [];
 
         // Exact match
@@ -88,7 +86,7 @@ export function CommandPalette({
   const groupedCommands = useMemo(() => {
     const groups: Record<string, CommandAction[]> = {};
     filteredCommands.forEach((cmd) => {
-      const section = cmd.section || "Commands";
+      const section = cmd.section || 'Commands';
       if (!groups[section]) groups[section] = [];
       groups[section].push(cmd);
     });
@@ -104,7 +102,7 @@ export function CommandPalette({
   useEffect(() => {
     if (isOpen) {
       inputRef.current?.focus();
-      setSearch("");
+      setSearch('');
       setSelectedIndex(0);
     }
   }, [isOpen]);
@@ -112,15 +110,13 @@ export function CommandPalette({
   // Keyboard navigation
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === "ArrowDown") {
+      if (e.key === 'ArrowDown') {
         e.preventDefault();
-        setSelectedIndex((prev) =>
-          Math.min(prev + 1, filteredCommands.length - 1),
-        );
-      } else if (e.key === "ArrowUp") {
+        setSelectedIndex((prev) => Math.min(prev + 1, filteredCommands.length - 1));
+      } else if (e.key === 'ArrowUp') {
         e.preventDefault();
         setSelectedIndex((prev) => Math.max(prev - 1, 0));
-      } else if (e.key === "Enter") {
+      } else if (e.key === 'Enter') {
         e.preventDefault();
         const cmd = filteredCommands[selectedIndex];
         if (cmd) {
@@ -128,7 +124,7 @@ export function CommandPalette({
           onCommandExecute?.(cmd.id);
           onClose();
         }
-      } else if (e.key === "Escape") {
+      } else if (e.key === 'Escape') {
         e.preventDefault();
         onClose();
       }
@@ -138,10 +134,8 @@ export function CommandPalette({
 
   // Scroll selected item into view
   useEffect(() => {
-    const selectedEl = listRef.current?.querySelector(
-      `[data-index="${selectedIndex}"]`,
-    );
-    selectedEl?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    const selectedEl = listRef.current?.querySelector(`[data-index="${selectedIndex}"]`);
+    selectedEl?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }, [selectedIndex]);
 
   if (!isOpen) return null;
@@ -176,12 +170,7 @@ export function CommandPalette({
         </div>
 
         {/* Commands List */}
-        <div
-          ref={listRef}
-          id="command-list"
-          className="max-h-96 overflow-y-auto"
-          role="listbox"
-        >
+        <div ref={listRef} id="command-list" className="max-h-96 overflow-y-auto" role="listbox">
           {filteredCommands.length === 0 ? (
             <div className="p-8 text-center text-gray-500 dark:text-gray-400">
               No commands found
@@ -206,8 +195,8 @@ export function CommandPalette({
                       aria-selected={isSelected}
                       className={`w-full text-left px-4 py-3 flex items-center justify-between transition-colors ${
                         isSelected
-                          ? "bg-blue-50 dark:bg-blue-900/20"
-                          : "hover:bg-gray-50 dark:hover:bg-gray-800"
+                          ? 'bg-blue-50 dark:bg-blue-900/20'
+                          : 'hover:bg-gray-50 dark:hover:bg-gray-800'
                       }`}
                       onClick={() => {
                         cmd.action();
@@ -217,9 +206,7 @@ export function CommandPalette({
                       onMouseEnter={() => setSelectedIndex(globalIndex)}
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        {cmd.icon && (
-                          <span className="text-xl">{cmd.icon}</span>
-                        )}
+                        {cmd.icon && <span className="text-xl">{cmd.icon}</span>}
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
                             {cmd.label}
@@ -249,19 +236,19 @@ export function CommandPalette({
           <span>
             <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600">
               ↑↓
-            </kbd>{" "}
+            </kbd>{' '}
             Navigate
           </span>
           <span>
             <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600">
               Enter
-            </kbd>{" "}
+            </kbd>{' '}
             Select
           </span>
           <span>
             <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600">
               Esc
-            </kbd>{" "}
+            </kbd>{' '}
             Close
           </span>
         </div>

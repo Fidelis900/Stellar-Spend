@@ -110,7 +110,8 @@ describe('POST /api/offramp/paycrest/order', () => {
   });
 
   it('propagates Paycrest HTTP error status', async () => {
-    const PaycrestHttpError = (await import('@/lib/offramp/adapters/paycrest-adapter')).PaycrestHttpError;
+    const PaycrestHttpError = (await import('@/lib/offramp/adapters/paycrest-adapter'))
+      .PaycrestHttpError;
     mockCreateOrder.mockRejectedValue(new PaycrestHttpError('Unauthorized', 401));
     const res = await POST(makeReq(VALID_BODY));
     expect(res.status).toBe(401);

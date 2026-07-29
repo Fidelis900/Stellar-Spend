@@ -8,7 +8,9 @@ export async function GET(request: NextRequest) {
   if (unauthorized) return unauthorized;
 
   const { searchParams } = request.nextUrl;
-  const startDate = searchParams.get('startDate') ? Number(searchParams.get('startDate')) : undefined;
+  const startDate = searchParams.get('startDate')
+    ? Number(searchParams.get('startDate'))
+    : undefined;
   const endDate = searchParams.get('endDate') ? Number(searchParams.get('endDate')) : undefined;
 
   try {

@@ -6,19 +6,19 @@ import { NextResponse } from 'next/server';
 export const SECURITY_HEADERS = {
   // Prevent clickjacking attacks
   'X-Frame-Options': 'DENY',
-  
+
   // Prevent MIME type sniffing
   'X-Content-Type-Options': 'nosniff',
-  
+
   // Enable XSS protection in older browsers
   'X-XSS-Protection': '1; mode=block',
-  
+
   // Enforce HTTPS
   'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
-  
+
   // Control referrer information
   'Referrer-Policy': 'strict-origin-when-cross-origin',
-  
+
   // Control browser features and APIs
   'Permissions-Policy': [
     'accelerometer=()',
@@ -47,7 +47,7 @@ export const SECURITY_HEADERS = {
     'vr=()',
     'xr-spatial-tracking=()',
   ].join(', '),
-  
+
   // Content Security Policy
   'Content-Security-Policy': [
     "default-src 'self'",
@@ -69,12 +69,12 @@ export function addSecurityHeaders(response: NextResponse): NextResponse {
   Object.entries(SECURITY_HEADERS).forEach(([key, value]) => {
     response.headers.set(key, value);
   });
-  
+
   // Additional headers
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('X-XSS-Protection', '1; mode=block');
-  
+
   return response;
 }
 

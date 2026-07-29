@@ -35,9 +35,9 @@ describe('transactionQueries.transaction', () => {
   });
 
   it('throws when unauthenticated', async () => {
-    await expect(
-      transactionQueries.transaction({}, { id: 'tx_1' }, anonCtx()),
-    ).rejects.toThrow(/Unauthorized/);
+    await expect(transactionQueries.transaction({}, { id: 'tx_1' }, anonCtx())).rejects.toThrow(
+      /Unauthorized/,
+    );
   });
 
   it('calls getTransactionById with provided id', async () => {
@@ -46,9 +46,7 @@ describe('transactionQueries.transaction', () => {
       getTransactionById: vi.fn().mockResolvedValue(fakeTx),
     }));
 
-    const { transactionQueries: q } = await import(
-      '@/lib/graphql/resolvers/transactions'
-    );
+    const { transactionQueries: q } = await import('@/lib/graphql/resolvers/transactions');
     const result = await q.transaction({}, { id: 'tx_1' }, authedCtx());
     expect(result).toEqual(fakeTx);
   });
@@ -58,9 +56,9 @@ describe('transactionQueries.transactions', () => {
   beforeEach(() => vi.resetModules());
 
   it('throws when unauthenticated', async () => {
-    await expect(
-      transactionQueries.transactions({}, {}, anonCtx()),
-    ).rejects.toThrow(/Unauthorized/);
+    await expect(transactionQueries.transactions({}, {}, anonCtx())).rejects.toThrow(
+      /Unauthorized/,
+    );
   });
 
   it('calls getTransactions with default pagination', async () => {
@@ -69,9 +67,7 @@ describe('transactionQueries.transactions', () => {
       getTransactions: mockGetTransactions,
     }));
 
-    const { transactionQueries: q } = await import(
-      '@/lib/graphql/resolvers/transactions'
-    );
+    const { transactionQueries: q } = await import('@/lib/graphql/resolvers/transactions');
     await q.transactions({}, {}, authedCtx());
     expect(mockGetTransactions).toHaveBeenCalledWith({
       limit: 20,
@@ -87,9 +83,7 @@ describe('transactionQueries.transactions', () => {
       getTransactions: mockGetTransactions,
     }));
 
-    const { transactionQueries: q } = await import(
-      '@/lib/graphql/resolvers/transactions'
-    );
+    const { transactionQueries: q } = await import('@/lib/graphql/resolvers/transactions');
     await q.transactions(
       {},
       { limit: 5, offset: 10, status: 'completed', currency: 'NGN' },
@@ -109,11 +103,7 @@ describe('transactionQueries.quote', () => {
 
   it('throws when unauthenticated', async () => {
     await expect(
-      transactionQueries.quote(
-        {},
-        { amount: '100', currency: 'NGN' },
-        anonCtx(),
-      ),
+      transactionQueries.quote({}, { amount: '100', currency: 'NGN' }, anonCtx()),
     ).rejects.toThrow(/Unauthorized/);
   });
 
@@ -123,9 +113,7 @@ describe('transactionQueries.quote', () => {
       getQuote: mockGetQuote,
     }));
 
-    const { transactionQueries: q } = await import(
-      '@/lib/graphql/resolvers/transactions'
-    );
+    const { transactionQueries: q } = await import('@/lib/graphql/resolvers/transactions');
     await q.quote({}, { amount: '100', currency: 'NGN' }, authedCtx());
     expect(mockGetQuote).toHaveBeenCalledWith({
       amount: '100',
@@ -139,9 +127,7 @@ describe('transactionQueries.currencies', () => {
   beforeEach(() => vi.resetModules());
 
   it('throws when unauthenticated', async () => {
-    await expect(
-      transactionQueries.currencies({}, {}, anonCtx()),
-    ).rejects.toThrow(/Unauthorized/);
+    await expect(transactionQueries.currencies({}, {}, anonCtx())).rejects.toThrow(/Unauthorized/);
   });
 
   it('calls getCurrencies', async () => {
@@ -150,9 +136,7 @@ describe('transactionQueries.currencies', () => {
       getCurrencies: mockGetCurrencies,
     }));
 
-    const { transactionQueries: q } = await import(
-      '@/lib/graphql/resolvers/transactions'
-    );
+    const { transactionQueries: q } = await import('@/lib/graphql/resolvers/transactions');
     const result = await q.currencies({}, {}, authedCtx());
     expect(result).toEqual([{ code: 'NGN' }]);
   });
@@ -162,9 +146,7 @@ describe('transactionQueries.rate', () => {
   beforeEach(() => vi.resetModules());
 
   it('throws when unauthenticated', async () => {
-    await expect(
-      transactionQueries.rate({}, {}, anonCtx()),
-    ).rejects.toThrow(/Unauthorized/);
+    await expect(transactionQueries.rate({}, {}, anonCtx())).rejects.toThrow(/Unauthorized/);
   });
 
   it('returns rate object with updatedAt', async () => {
@@ -172,9 +154,7 @@ describe('transactionQueries.rate', () => {
       getRate: vi.fn().mockResolvedValue(1598),
     }));
 
-    const { transactionQueries: q } = await import(
-      '@/lib/graphql/resolvers/transactions'
-    );
+    const { transactionQueries: q } = await import('@/lib/graphql/resolvers/transactions');
     const result = await q.rate({}, { currency: 'NGN' }, authedCtx());
     expect(result).toMatchObject({ rate: 1598, currency: 'NGN' });
     expect(result.updatedAt).toBeDefined();
@@ -185,20 +165,14 @@ describe('transactionQueries.rate', () => {
 
 describe('transactionSubscriptions', () => {
   it('transactionStatusChanged has subscribe function', () => {
-    expect(
-      typeof transactionSubscriptions.transactionStatusChanged.subscribe,
-    ).toBe('function');
+    expect(typeof transactionSubscriptions.transactionStatusChanged.subscribe).toBe('function');
   });
 
   it('rateUpdated has subscribe function', () => {
-    expect(typeof transactionSubscriptions.rateUpdated.subscribe).toBe(
-      'function',
-    );
+    expect(typeof transactionSubscriptions.rateUpdated.subscribe).toBe('function');
   });
 
   it('transactionCreated has subscribe function', () => {
-    expect(
-      typeof transactionSubscriptions.transactionCreated.subscribe,
-    ).toBe('function');
+    expect(typeof transactionSubscriptions.transactionCreated.subscribe).toBe('function');
   });
 });

@@ -4,11 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import {
-  CircuitBreaker,
-  CircuitOpenError,
-  CircuitTimeoutError,
-} from './circuit-breaker';
+import { CircuitBreaker, CircuitOpenError, CircuitTimeoutError } from './circuit-breaker';
 
 describe('CircuitBreaker', () => {
   afterEach(() => {
@@ -71,7 +67,12 @@ describe('CircuitBreaker', () => {
 
   describe('OPEN state', () => {
     async function openBreaker(threshold = 3, timeoutMs = 0) {
-      const breaker = new CircuitBreaker({ name: 'test', failureThreshold: threshold, timeoutMs, resetTimeoutMs: 30_000 });
+      const breaker = new CircuitBreaker({
+        name: 'test',
+        failureThreshold: threshold,
+        timeoutMs,
+        resetTimeoutMs: 30_000,
+      });
       const fn = vi.fn().mockRejectedValue(new Error('boom'));
       for (let i = 0; i < threshold; i++) {
         await expect(breaker.execute(fn)).rejects.toThrow();
@@ -109,7 +110,12 @@ describe('CircuitBreaker', () => {
   describe('OPEN → HALF_OPEN transition', () => {
     it('transitions to HALF_OPEN after resetTimeout elapses', async () => {
       vi.useFakeTimers();
-      const breaker = new CircuitBreaker({ name: 'test', failureThreshold: 1, timeoutMs: 0, resetTimeoutMs: 5_000 });
+      const breaker = new CircuitBreaker({
+        name: 'test',
+        failureThreshold: 1,
+        timeoutMs: 0,
+        resetTimeoutMs: 5_000,
+      });
       const fail = vi.fn().mockRejectedValue(new Error('boom'));
 
       await expect(breaker.execute(fail)).rejects.toThrow();
@@ -126,7 +132,12 @@ describe('CircuitBreaker', () => {
 
     it('re-opens on probe failure in HALF_OPEN', async () => {
       vi.useFakeTimers();
-      const breaker = new CircuitBreaker({ name: 'test', failureThreshold: 1, timeoutMs: 0, resetTimeoutMs: 5_000 });
+      const breaker = new CircuitBreaker({
+        name: 'test',
+        failureThreshold: 1,
+        timeoutMs: 0,
+        resetTimeoutMs: 5_000,
+      });
       const fail = vi.fn().mockRejectedValue(new Error('boom'));
 
       await expect(breaker.execute(fail)).rejects.toThrow();
@@ -144,9 +155,10 @@ describe('CircuitBreaker', () => {
       vi.useFakeTimers();
       const breaker = new CircuitBreaker({ name: 'test', failureThreshold: 10, timeoutMs: 100 });
 
-      const slowFn = () => new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('should not reach')), 5_000);
-      });
+      const slowFn = () =>
+        new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('should not reach')), 5_000);
+        });
 
       const exec = breaker.execute(slowFn);
       vi.advanceTimersByTime(101);

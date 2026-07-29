@@ -33,8 +33,12 @@ const cacheStore = new Map<string, string>();
 vi.mock('@/lib/cache/client', () => ({
   getCacheClient: () => ({
     get: async (key: string) => cacheStore.get(key) ?? null,
-    set: async (key: string, value: string) => { cacheStore.set(key, value); },
-    del: async (key: string) => { cacheStore.delete(key); },
+    set: async (key: string, value: string) => {
+      cacheStore.set(key, value);
+    },
+    del: async (key: string) => {
+      cacheStore.delete(key);
+    },
   }),
 }));
 
@@ -52,9 +56,7 @@ function makeLimiter(config: Partial<RateLimitConfig> = {}): SlidingWindowRateLi
   });
 }
 
-function makeRequest(
-  opts: { ip?: string; bearer?: string; apiKey?: string } = {},
-): NextRequest {
+function makeRequest(opts: { ip?: string; bearer?: string; apiKey?: string } = {}): NextRequest {
   const headers: Record<string, string> = {};
   if (opts.ip) headers['x-forwarded-for'] = opts.ip;
   if (opts.bearer) headers['authorization'] = `Bearer ${opts.bearer}`;
@@ -224,19 +226,35 @@ describe('getClientIp', () => {
 
 describe('getRateLimitHeaders', () => {
   it('returns X-RateLimit-Limit, -Remaining, and -Reset', () => {
-    const h = getRateLimitHeaders({ allowed: true, limit: 30, remaining: 15, resetAt: 1_700_000_060_000 });
+    const h = getRateLimitHeaders({
+      allowed: true,
+      limit: 30,
+      remaining: 15,
+      resetAt: 1_700_000_060_000,
+    });
     expect(h['X-RateLimit-Limit']).toBe('30');
     expect(h['X-RateLimit-Remaining']).toBe('15');
     expect(h['X-RateLimit-Reset']).toBeDefined();
   });
 
   it('includes Retry-After when retryAfter is provided', () => {
-    const h = getRateLimitHeaders({ allowed: false, limit: 5, remaining: 0, resetAt: 1_700_000_060_000, retryAfter: 45 });
+    const h = getRateLimitHeaders({
+      allowed: false,
+      limit: 5,
+      remaining: 0,
+      resetAt: 1_700_000_060_000,
+      retryAfter: 45,
+    });
     expect(h['Retry-After']).toBe('45');
   });
 
   it('omits Retry-After when request is allowed', () => {
-    const h = getRateLimitHeaders({ allowed: true, limit: 5, remaining: 4, resetAt: 1_700_000_060_000 });
+    const h = getRateLimitHeaders({
+      allowed: true,
+      limit: 5,
+      remaining: 4,
+      resetAt: 1_700_000_060_000,
+    });
     expect(h['Retry-After']).toBeUndefined();
   });
 });
@@ -261,7 +279,10 @@ describe('applyRateLimit', () => {
     const config = RATE_LIMIT_REGISTRY[namespace];
     const storeKey = `rl:${namespace}:blocked_test_ip`;
     // Pre-fill window with maxRequests timestamps
-    cacheStore.set(storeKey, JSON.stringify(Array.from({ length: config.maxRequests }, () => Date.now())));
+    cacheStore.set(
+      storeKey,
+      JSON.stringify(Array.from({ length: config.maxRequests }, () => Date.now())),
+    );
 
     const req = makeRequest({ ip: 'blocked_test_ip' });
     const response = await applyRateLimit(req, namespace);
@@ -273,7 +294,10 @@ describe('applyRateLimit', () => {
     const namespace = 'build-tx';
     const config = RATE_LIMIT_REGISTRY[namespace];
     const storeKey = `rl:${namespace}:another_blocked_ip`;
-    cacheStore.set(storeKey, JSON.stringify(Array.from({ length: config.maxRequests }, () => Date.now())));
+    cacheStore.set(
+      storeKey,
+      JSON.stringify(Array.from({ length: config.maxRequests }, () => Date.now())),
+    );
 
     const req = makeRequest({ ip: 'another_blocked_ip' });
     const response = await applyRateLimit(req, namespace);

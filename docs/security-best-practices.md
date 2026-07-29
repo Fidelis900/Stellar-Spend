@@ -27,18 +27,18 @@ This document covers security guidelines for contributors and operators of Stell
 
 All application secrets are documented in [`docs/secrets-management.md`](./secrets-management.md). The following secrets are server-only and must **never** be exposed to the client:
 
-| Secret | Purpose |
-|---|---|
-| `PAYCREST_API_KEY` | Authenticates requests to the Paycrest API |
-| `PAYCREST_WEBHOOK_SECRET` | Verifies HMAC signatures on Paycrest webhook events |
-| `BASE_PRIVATE_KEY` | Signs on-chain payout transactions on the Base network |
-| `BASE_RETURN_ADDRESS` | Treasury address for refunds |
-| `BASE_RPC_URL` | Base mainnet RPC provider URL |
-| `STELLAR_SOROBAN_RPC_URL` | Soroban RPC for server-side transaction building |
-| `STELLAR_HORIZON_URL` | Horizon endpoint for account and trustline lookups |
-| `DATABASE_URL` | PostgreSQL connection string |
-| `API_KEY_ADMIN_TOKEN` | Bearer token for admin API key management |
-| `SENTRY_AUTH_TOKEN` | Sentry token for source map uploads (CI only) |
+| Secret                    | Purpose                                                |
+| ------------------------- | ------------------------------------------------------ |
+| `PAYCREST_API_KEY`        | Authenticates requests to the Paycrest API             |
+| `PAYCREST_WEBHOOK_SECRET` | Verifies HMAC signatures on Paycrest webhook events    |
+| `BASE_PRIVATE_KEY`        | Signs on-chain payout transactions on the Base network |
+| `BASE_RETURN_ADDRESS`     | Treasury address for refunds                           |
+| `BASE_RPC_URL`            | Base mainnet RPC provider URL                          |
+| `STELLAR_SOROBAN_RPC_URL` | Soroban RPC for server-side transaction building       |
+| `STELLAR_HORIZON_URL`     | Horizon endpoint for account and trustline lookups     |
+| `DATABASE_URL`            | PostgreSQL connection string                           |
+| `API_KEY_ADMIN_TOKEN`     | Bearer token for admin API key management              |
+| `SENTRY_AUTH_TOKEN`       | Sentry token for source map uploads (CI only)          |
 
 ### Rules
 
@@ -96,6 +96,7 @@ Stellar-Spend supports programmatic API key rotation. Keys follow a lifecycle: `
 ### Rotation Procedure
 
 1. **Create a replacement key** via the admin API:
+
    ```http
    POST /api/admin/api-keys
    Authorization: Bearer <API_KEY_ADMIN_TOKEN>
@@ -107,6 +108,7 @@ Stellar-Spend supports programmatic API key rotation. Keys follow a lifecycle: `
      "rateLimitWindowMs": 60000
    }
    ```
+
    Save the returned key value securely — it is shown only once.
 
 2. **Update your application** to use the new key.
@@ -114,12 +116,14 @@ Stellar-Spend supports programmatic API key rotation. Keys follow a lifecycle: `
 3. **Verify the new key works** in a non-production environment first.
 
 4. **Rotate the old key** (marks it `rotated`, stops accepting requests):
+
    ```http
    POST /api/admin/api-keys/:id/rotate
    Authorization: Bearer <API_KEY_ADMIN_TOKEN>
    ```
 
 5. **Revoke the old key** after confirming the new key is in use:
+
    ```http
    DELETE /api/admin/api-keys/:id
    Authorization: Bearer <API_KEY_ADMIN_TOKEN>
@@ -146,10 +150,10 @@ Rate limiting is enforced per API key using a sliding window algorithm.
 
 ### Default Limits
 
-| Setting | Default Value |
-|---|---|
-| `rate_limit_max_requests` | 60 requests |
-| `rate_limit_window_ms` | 60,000 ms (1 minute) |
+| Setting                   | Default Value        |
+| ------------------------- | -------------------- |
+| `rate_limit_max_requests` | 60 requests          |
+| `rate_limit_window_ms`    | 60,000 ms (1 minute) |
 
 These defaults are configurable per key at creation time.
 
@@ -182,12 +186,12 @@ When a rate limit is exceeded, the API returns **429 Too Many Requests**. Client
 
 Monitoring alert thresholds are defined in `src/lib/monitoring.ts`:
 
-| Alert | Threshold |
-|---|---|
-| Queue depth warning | 50 items |
-| Queue depth critical | 200 items |
-| Error rate P2 | 3 errors/minute |
-| Error rate P1 | 10 errors/minute |
+| Alert                | Threshold        |
+| -------------------- | ---------------- |
+| Queue depth warning  | 50 items         |
+| Queue depth critical | 200 items        |
+| Error rate P2        | 3 errors/minute  |
+| Error rate P1        | 10 errors/minute |
 
 ---
 
@@ -245,12 +249,9 @@ import crypto from 'crypto';
 function verifyWebhookSignature(
   rawBody: Buffer,
   receivedSignature: string,
-  secret: string
+  secret: string,
 ): boolean {
-  const expected = crypto
-    .createHmac('sha512', secret)
-    .update(rawBody)
-    .digest('hex');
+  const expected = crypto.createHmac('sha512', secret).update(rawBody).digest('hex');
 
   // Use timingSafeEqual to prevent timing attacks
   const expectedBuf = Buffer.from(expected, 'hex');
@@ -283,7 +284,7 @@ All database queries in Stellar-Spend use **parameterised queries** via the `pg`
 // ✅ Correct — parameterised query
 const result = await pool.query(
   'SELECT * FROM transactions WHERE user_address = $1 AND status = $2',
-  [userAddress, status]
+  [userAddress, status],
 );
 ```
 
@@ -291,9 +292,7 @@ const result = await pool.query(
 
 ```typescript
 // ❌ Never do this — vulnerable to SQL injection
-const result = await pool.query(
-  `SELECT * FROM transactions WHERE user_address = '${userAddress}'`
-);
+const result = await pool.query(`SELECT * FROM transactions WHERE user_address = '${userAddress}'`);
 ```
 
 ### Guidelines for Contributors
@@ -333,6 +332,7 @@ Stellar-Spend is a Next.js application. React's JSX automatically HTML-encodes v
 ### Sentry Precautions
 
 The Sentry client config (`sentry.client.config.ts`) enables:
+
 - `maskAllText: true` — prevents sensitive text from being captured in session replays
 - `blockAllMedia: true` — prevents media from being captured
 
@@ -346,12 +346,12 @@ Session management is implemented in [`src/lib/session-management.ts`](../src/li
 
 ### Session Lifecycle
 
-| Property | Value |
-|---|---|
-| Session timeout | 30 minutes of inactivity |
-| Refresh token expiry | 7 days |
-| Token format | 32-byte cryptographically random hex string |
-| Session ID format | `session_<timestamp>_<8 random bytes hex>` |
+| Property             | Value                                       |
+| -------------------- | ------------------------------------------- |
+| Session timeout      | 30 minutes of inactivity                    |
+| Refresh token expiry | 7 days                                      |
+| Token format         | 32-byte cryptographically random hex string |
+| Session ID format    | `session_<timestamp>_<8 random bytes hex>`  |
 
 ### Security Properties
 
@@ -387,11 +387,11 @@ await sessionService.revokeSession(sessionId, 'User requested logout');
 
 ### TOTP Configuration
 
-| Property | Value |
-|---|---|
-| Algorithm | HMAC-SHA1 |
-| Time window | 30 seconds |
-| Digits | 6 |
+| Property             | Value                   |
+| -------------------- | ----------------------- |
+| Algorithm            | HMAC-SHA1               |
+| Time window          | 30 seconds              |
+| Digits               | 6                       |
 | Clock skew tolerance | ±1 window (±30 seconds) |
 
 ### Guidelines
@@ -423,6 +423,7 @@ await ipWhitelistService.addEntry({
 ### Violation Logging
 
 All requests from non-allowlisted IPs are logged to `ip_violations` with:
+
 - The requesting IP address
 - Violation type (e.g., `not_whitelisted`, `range_exceeded`)
 - Severity level

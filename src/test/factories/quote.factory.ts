@@ -14,7 +14,7 @@ const RATES: Record<string, number> = { NGN: 1598, KES: 130, GHS: 12, UGX: 3700 
 
 export function makeQuote(
   overrides: Partial<QuoteResponse> = {},
-  _rng: Rng = getDefaultRng()
+  _rng: Rng = getDefaultRng(),
 ): QuoteResponse {
   const currency = overrides.currency ?? 'NGN';
   const rate = overrides.rate ?? RATES[currency] ?? 1598;
@@ -33,7 +33,7 @@ export function makeQuote(
 export function makeQuoteForCurrency(
   currency: (typeof CURRENCIES)[number],
   overrides: Partial<QuoteResponse> = {},
-  rng?: Rng
+  rng?: Rng,
 ): QuoteResponse {
   return makeQuote({ currency, ...overrides }, rng);
 }
@@ -41,7 +41,7 @@ export function makeQuoteForCurrency(
 export function makeQuotes(
   count: number,
   overrides: Partial<QuoteResponse> = {},
-  rng?: Rng
+  rng?: Rng,
 ): QuoteResponse[] {
   return Array.from({ length: count }, () => makeQuote(overrides, rng));
 }

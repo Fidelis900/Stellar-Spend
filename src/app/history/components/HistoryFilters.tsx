@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import type { SavedView } from "@/lib/saved-views";
-import type { Filters } from "../filters";
-import { SavedViewsBar } from "./SavedViewsBar";
-import { FilterInputs } from "./FilterInputs";
+import type { SavedView } from '@/lib/saved-views';
+import type { Filters } from '../filters';
+import { SavedViewsBar } from './SavedViewsBar';
+import { FilterInputs } from './FilterInputs';
 
 interface HistoryFiltersProps {
   filters: Filters;
@@ -39,7 +39,7 @@ export function HistoryFilters({
         <h2 className="text-[10px] tracking-widest uppercase text-[#aaaaaa]">Filters</h2>
         {hasActiveFilters && (
           <span
-            aria-label={`${filterCount} active filter${filterCount === 1 ? "" : "s"}`}
+            aria-label={`${filterCount} active filter${filterCount === 1 ? '' : 's'}`}
             className="inline-flex items-center justify-center min-w-[20px] h-[20px] px-1.5 text-[10px] font-bold rounded-full bg-[#c9a962] text-[#0a0a0a]"
           >
             {filterCount}

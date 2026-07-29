@@ -38,7 +38,12 @@ export const paycrestHandlers = [
 
   http.post('https://api.paycrest.io/v1/sender/verify-account', () => {
     return HttpResponse.json({
-      data: { accountName: 'Test User', accountNumber: '1234567890', institution: 'GTB', status: 'verified' },
+      data: {
+        accountName: 'Test User',
+        accountNumber: '1234567890',
+        institution: 'GTB',
+        status: 'verified',
+      },
     });
   }),
 ];
@@ -69,8 +74,18 @@ export const allbridgeHandlers = [
   http.post('https://api.allbridge.io/v1/build-tx', () => {
     return HttpResponse.json({
       xdr: 'AAAAAgAAAAB...',
-      sourceToken: { symbol: 'USDC', decimals: 7, contract: 'GBUQWP3BOUZX34ULNQG23RQ6F4YUSXHTQSXUSMIQ75XABZEYYWRB6HP', chain: 'STELLAR' },
-      destinationToken: { symbol: 'USDC', decimals: 6, contract: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', chain: 'BASE' },
+      sourceToken: {
+        symbol: 'USDC',
+        decimals: 7,
+        contract: 'GBUQWP3BOUZX34ULNQG23RQ6F4YUSXHTQSXUSMIQ75XABZEYYWRB6HP',
+        chain: 'STELLAR',
+      },
+      destinationToken: {
+        symbol: 'USDC',
+        decimals: 6,
+        contract: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        chain: 'BASE',
+      },
     });
   }),
 ];
@@ -86,17 +101,30 @@ export const stellarHandlers = [
       account_id: params.address,
       balances: [
         { balance: '1000.0000000', asset_type: 'native' },
-        { balance: '500.0000000', asset_code: 'USDC', asset_issuer: 'GBUQWP3BOUZX34ULNQG23RQ6F4YUSXHTQSXUSMIQ75XABZEYYWRB6HP' },
+        {
+          balance: '500.0000000',
+          asset_code: 'USDC',
+          asset_issuer: 'GBUQWP3BOUZX34ULNQG23RQ6F4YUSXHTQSXUSMIQ75XABZEYYWRB6HP',
+        },
       ],
     });
   }),
 
   http.get('https://horizon.stellar.org/transactions/:hash', ({ params }) => {
-    return HttpResponse.json({ id: params.hash, hash: params.hash, status: 'success', created_at: new Date().toISOString() });
+    return HttpResponse.json({
+      id: params.hash,
+      hash: params.hash,
+      status: 'success',
+      created_at: new Date().toISOString(),
+    });
   }),
 
   http.post('https://soroban-testnet.stellar.org/soroban/rpc', () => {
-    return HttpResponse.json({ jsonrpc: '2.0', id: 1, result: { status: 'SUCCESS', ledger: 12345 } });
+    return HttpResponse.json({
+      jsonrpc: '2.0',
+      id: 1,
+      result: { status: 'SUCCESS', ledger: 12345 },
+    });
   }),
 ];
 
@@ -114,7 +142,12 @@ export const offrampHandlers = [
   }),
 
   http.get('/api/offramp/institutions/:currency', () => {
-    return HttpResponse.json({ institutions: [{ id: 'bank_1', name: 'Test Bank 1', code: 'TB1' }, { id: 'bank_2', name: 'Test Bank 2', code: 'TB2' }] });
+    return HttpResponse.json({
+      institutions: [
+        { id: 'bank_1', name: 'Test Bank 1', code: 'TB1' },
+        { id: 'bank_2', name: 'Test Bank 2', code: 'TB2' },
+      ],
+    });
   }),
 
   http.post('/api/offramp/verify-account', () => {
@@ -126,7 +159,11 @@ export const offrampHandlers = [
   }),
 
   http.post('/api/offramp/bridge/build-tx', () => {
-    return HttpResponse.json({ xdr: 'AAAAAgAAAAB...', sourceToken: { symbol: 'USDC', decimals: 7, chain: 'STELLAR' }, destinationToken: { symbol: 'USDC', decimals: 6, chain: 'BASE' } });
+    return HttpResponse.json({
+      xdr: 'AAAAAgAAAAB...',
+      sourceToken: { symbol: 'USDC', decimals: 7, chain: 'STELLAR' },
+      destinationToken: { symbol: 'USDC', decimals: 6, chain: 'BASE' },
+    });
   }),
 
   http.post('/api/offramp/bridge/submit-soroban', () => {
@@ -152,11 +189,15 @@ export const offrampHandlers = [
 
 export const errorHandlers = {
   paycrestError: http.post('https://api.paycrest.io/v1/sender/orders', () => {
-    return HttpResponse.json(paycrestErrors.invalid_amount.body, { status: paycrestErrors.invalid_amount.status });
+    return HttpResponse.json(paycrestErrors.invalid_amount.body, {
+      status: paycrestErrors.invalid_amount.status,
+    });
   }),
 
   allbridgeTimeout: http.post('https://api.allbridge.io/v1/build-tx', () => {
-    return HttpResponse.json(allbridgeErrorsData.timeout.body, { status: allbridgeErrorsData.timeout.status });
+    return HttpResponse.json(allbridgeErrorsData.timeout.body, {
+      status: allbridgeErrorsData.timeout.status,
+    });
   }),
 
   stellarNotFound: http.get('https://horizon.stellar.org/accounts/:address', () => {
@@ -177,7 +218,13 @@ export function generateMockPaycrestOrder(overrides?: Record<string, unknown>) {
 }
 
 export function generateMockBridgeQuote(overrides?: Record<string, unknown>) {
-  return { sourceAmount: '100', destinationAmount: '99.5', fee: '0.5', estimatedTime: 300, ...overrides };
+  return {
+    sourceAmount: '100',
+    destinationAmount: '99.5',
+    fee: '0.5',
+    estimatedTime: 300,
+    ...overrides,
+  };
 }
 
 export function generateMockStellarAccount(address: string, overrides?: Record<string, unknown>) {
@@ -193,11 +240,15 @@ export function generateMockStellarAccount(address: string, overrides?: Record<s
 // MOCK VALIDATION
 // ============================================================================
 
-export function validateMockRequest(request: Request, expectedMethod: string, expectedPath: string): boolean {
+export function validateMockRequest(
+  request: Request,
+  expectedMethod: string,
+  expectedPath: string,
+): boolean {
   return request.method === expectedMethod && request.url.includes(expectedPath);
 }
 
 export function validateMockResponse(response: unknown, expectedFields: string[]): boolean {
   if (typeof response !== 'object' || response === null) return false;
-  return expectedFields.every(field => field in response);
+  return expectedFields.every((field) => field in response);
 }

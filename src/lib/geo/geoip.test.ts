@@ -2,10 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { NextRequest } from 'next/server';
 import { lookupCountry, getCountryOverride, hasDeniedGeoConsent, resolveGeo } from './geoip';
 
-function makeRequest(opts: {
-  headers?: Record<string, string>;
-  cookie?: string;
-}) {
+function makeRequest(opts: { headers?: Record<string, string>; cookie?: string }) {
   const headers = new Headers(opts.headers ?? {});
   if (opts.cookie) headers.set('cookie', opts.cookie);
   return new NextRequest('http://localhost/api/transactions', { headers });

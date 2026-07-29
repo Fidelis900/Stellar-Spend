@@ -32,7 +32,7 @@ describe('withApiKeyAuth', () => {
 
   it('returns 401 when the API key is missing', async () => {
     const response = await withApiKeyAuth(makeRequest(), async () =>
-      NextResponse.json({ ok: true })
+      NextResponse.json({ ok: true }),
     );
 
     expect(response.status).toBe(401);
@@ -48,13 +48,13 @@ describe('withApiKeyAuth', () => {
 
     const response = await withApiKeyAuth(
       makeRequest({ 'x-api-key': 'ssp_live_test.secret' }),
-      async () => NextResponse.json({ ok: true })
+      async () => NextResponse.json({ ok: true }),
     );
 
     expect(response.status).toBe(429);
     expect(response.headers.get('Retry-After')).toBe('42');
     expect(recordApiKeyUsageMock).toHaveBeenCalledWith(
-      expect.objectContaining({ apiKeyId: 'key_1', limited: true, statusCode: 429 })
+      expect.objectContaining({ apiKeyId: 'key_1', limited: true, statusCode: 429 }),
     );
   });
 
@@ -68,13 +68,13 @@ describe('withApiKeyAuth', () => {
 
     const response = await withApiKeyAuth(
       makeRequest({ authorization: 'Bearer ssp_live_test.secret' }),
-      async () => NextResponse.json({ ok: true }, { status: 200 })
+      async () => NextResponse.json({ ok: true }, { status: 200 }),
     );
 
     expect(response.status).toBe(200);
     expect(response.headers.get('X-API-Key-Id')).toBe('key_1');
     expect(recordApiKeyUsageMock).toHaveBeenCalledWith(
-      expect.objectContaining({ apiKeyId: 'key_1', limited: false, statusCode: 200 })
+      expect.objectContaining({ apiKeyId: 'key_1', limited: false, statusCode: 200 }),
     );
   });
 });

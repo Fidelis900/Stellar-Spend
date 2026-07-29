@@ -24,17 +24,18 @@ export class OnrampProviderRegistry {
 
   getProvidersForCorridor(fiatCurrency: string, destinationToken: string): string[] {
     const direct = this.routes
-      .filter(r => r.fiatCurrency === fiatCurrency && r.destinationToken === destinationToken)
+      .filter((r) => r.fiatCurrency === fiatCurrency && r.destinationToken === destinationToken)
       .sort((a, b) => a.priority - b.priority)
-      .map(r => r.provider);
+      .map((r) => r.provider);
 
     const byCapability = Array.from(this.capabilities.entries())
-      .filter(([name, caps]) =>
-        caps.supportedFiatCurrencies.includes(fiatCurrency) &&
-        caps.supportedDestinationTokens.includes(destinationToken)
+      .filter(
+        ([name, caps]) =>
+          caps.supportedFiatCurrencies.includes(fiatCurrency) &&
+          caps.supportedDestinationTokens.includes(destinationToken),
       )
       .map(([name]) => name)
-      .filter(name => !direct.includes(name));
+      .filter((name) => !direct.includes(name));
 
     return [...new Set([...direct, ...byCapability])];
   }

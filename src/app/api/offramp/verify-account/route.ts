@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { env } from '@/lib/env';
 import { ErrorHandler } from '@/lib/error-handler';
 import { ApiError, ErrorType } from '@/lib/error-types';
+import { verifyAccountSchema, formatZodErrors } from '@/lib/validators/schemas';
 
 export const maxDuration = 10;
 
@@ -31,27 +32,43 @@ class PaycrestAdapter {
     const data = await response.json();
 
     if (!response.ok) {
-      const error = new Error(data?.message ?? `Verification failed: ${response.status}`) as PaycrestHttpError;
+      const error = new Error(
+        data?.message ?? `Verification failed: ${response.status}`,
+      ) as PaycrestHttpError;
       error.status = response.status;
       throw error;
     }
 
-    return data.accountName ?? data.data?.accountName ?? data.data?.account_name ?? String(data.data ?? '');
+    return (
+      data.accountName ??
+      data.data?.accountName ??
+      data.data?.account_name ??
+      String(data.data ?? '')
+    );
   }
 }
 
 export async function POST(request: Request) {
+  let rawBody: unknown;
   try {
-    const body = await request.json();
-    const { institution, accountIdentifier } = body;
+    rawBody = await request.json();
+  } catch {
+    return ErrorHandler.validation('Invalid JSON body');
+  }
 
-    if (!institution || !accountIdentifier) {
-      return ErrorHandler.validation('institution and accountIdentifier are required');
-    }
+  const parsed = verifyAccountSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    const errors = formatZodErrors(parsed.error);
+    return ErrorHandler.handle(
+      new ApiError(ErrorType.VALIDATION, errors[0].message, 400, { errors }),
+    );
+  }
 
+  const { institution, accountIdentifier } = parsed.data;
+
+  try {
     const paycrest = new PaycrestAdapter(env.server.PAYCREST_API_KEY);
     const accountName = await paycrest.verifyAccount(institution, accountIdentifier);
-
     return NextResponse.json({ accountName });
   } catch (err: unknown) {
     logger.error('Error verifying account via Paycrest:', {}, err);

@@ -9,4 +9,4 @@
 export {
   SkeletonBase as Skeleton,
   type SkeletonBaseProps as SkeletonProps,
-} from "@/components/skeletons/SkeletonBase";
+} from '@/components/skeletons/SkeletonBase';

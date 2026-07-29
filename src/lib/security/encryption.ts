@@ -80,7 +80,7 @@ export function decryptData(encryptedData: string): string {
     const iv = combined.slice(0, DEFAULT_CONFIG.ivLength);
     const authTag = combined.slice(
       DEFAULT_CONFIG.ivLength,
-      DEFAULT_CONFIG.ivLength + DEFAULT_CONFIG.authTagLength
+      DEFAULT_CONFIG.ivLength + DEFAULT_CONFIG.authTagLength,
     );
     const encrypted = combined.slice(DEFAULT_CONFIG.ivLength + DEFAULT_CONFIG.authTagLength);
 
@@ -142,7 +142,7 @@ export function generateEncryptionKey(): string {
  */
 export function encryptSensitiveFields<T extends Record<string, unknown>>(
   obj: T,
-  sensitiveFields: string[]
+  sensitiveFields: string[],
 ): Record<string, unknown> {
   const encrypted: Record<string, unknown> = { ...obj };
 
@@ -163,7 +163,7 @@ export function encryptSensitiveFields<T extends Record<string, unknown>>(
  */
 export function decryptSensitiveFields<T extends Record<string, unknown>>(
   obj: Record<string, unknown>,
-  sensitiveFields: string[]
+  sensitiveFields: string[],
 ): T {
   const decrypted: Record<string, unknown> = { ...obj };
 

@@ -6,12 +6,12 @@ This document outlines the disaster recovery procedures for Stellar-Spend, ensur
 
 ## Recovery Objectives
 
-| Metric | Target | Current |
-|--------|--------|---------|
-| **RTO** (Recovery Time Objective) | 1 hour | < 1 hour |
+| Metric                             | Target     | Current   |
+| ---------------------------------- | ---------- | --------- |
+| **RTO** (Recovery Time Objective)  | 1 hour     | < 1 hour  |
 | **RPO** (Recovery Point Objective) | 15 minutes | 5 minutes |
-| **Backup Retention** | 90 days | 90 days |
-| **Availability** | 99.9% | 99.95% |
+| **Backup Retention**               | 90 days    | 90 days   |
+| **Availability**                   | 99.9%      | 99.95%    |
 
 ## Backup Strategy
 
@@ -45,12 +45,14 @@ This document outlines the disaster recovery procedures for Stellar-Spend, ensur
 **Recovery Steps**:
 
 1. **Automatic Failover** (Multi-AZ)
+
    ```bash
    # AWS handles automatically
    # Failover time: 1-2 minutes
    ```
 
 2. **Manual Recovery** (if needed)
+
    ```bash
    # Restore from backup
    aws rds restore-db-instance-from-db-snapshot \
@@ -59,6 +61,7 @@ This document outlines the disaster recovery procedures for Stellar-Spend, ensur
    ```
 
 3. **Verify Data Integrity**
+
    ```bash
    # Run consistency checks
    npm run verify-db-integrity
@@ -79,12 +82,14 @@ This document outlines the disaster recovery procedures for Stellar-Spend, ensur
 **Recovery Steps**:
 
 1. **Auto-Scaling Triggers**
+
    ```bash
    # New instances launch automatically
    # Load balancer routes traffic
    ```
 
 2. **Manual Intervention** (if needed)
+
    ```bash
    # Restart service
    kubectl rollout restart deployment/stellar-spend
@@ -104,12 +109,14 @@ This document outlines the disaster recovery procedures for Stellar-Spend, ensur
 **Recovery Steps**:
 
 1. **Identify Corruption Point**
+
    ```bash
    # Check transaction logs
    # Identify last good backup
    ```
 
 2. **Restore from Backup**
+
    ```bash
    # Restore to point-in-time
    aws rds restore-db-instance-to-point-in-time \
@@ -119,6 +126,7 @@ This document outlines the disaster recovery procedures for Stellar-Spend, ensur
    ```
 
 3. **Validate Data**
+
    ```bash
    npm run validate-data
    ```
@@ -137,18 +145,21 @@ This document outlines the disaster recovery procedures for Stellar-Spend, ensur
 **Recovery Steps**:
 
 1. **Activate Disaster Recovery Region**
+
    ```bash
    # Restore from cross-region S3 backup
    aws s3 cp s3://stellar-spend-backups-replica/ . --recursive
    ```
 
 2. **Restore Infrastructure**
+
    ```bash
    # Deploy to secondary region
    terraform apply -var-file=envs/dr-region.tfvars
    ```
 
 3. **Update DNS**
+
    ```bash
    # Route53 failover policy
    # TTL: 60 seconds
@@ -180,6 +191,7 @@ RTO_TARGET_MINUTES=45 RPO_TARGET_MINUTES=15 ./scripts/test-disaster-recovery.sh 
 ```
 
 The script checks:
+
 1. Backup vault existence
 2. Completed recent backups
 3. RDS backup retention and Multi-AZ configuration
@@ -202,9 +214,9 @@ A timestamped report is written to `dr-drill-report-<env>-<timestamp>.txt` and a
 
 ## Drill Results
 
-| Date | Environment | Result | RPO (actual) | RTO (est.) | Notes |
-|------|-------------|--------|-------------|------------|-------|
-| — | — | — | — | — | Awaiting first automated drill run |
+| Date | Environment | Result | RPO (actual) | RTO (est.) | Notes                              |
+| ---- | ----------- | ------ | ------------ | ---------- | ---------------------------------- |
+| —    | —           | —      | —            | —          | Awaiting first automated drill run |
 
 > Drill reports are automatically uploaded as GitHub Actions artifacts and appended here after each quarterly full test.
 
@@ -220,12 +232,12 @@ A timestamped report is written to `dr-drill-report-<env>-<timestamp>.txt` and a
 
 ### Alerts
 
-| Alert | Threshold | Action |
-|-------|-----------|--------|
-| Backup Failed | Any | Page on-call |
-| RPO Exceeded | > 30 min | Investigate |
-| Replication Lag | > 5 min | Check network |
-| Database Unhealthy | Any | Failover |
+| Alert              | Threshold | Action        |
+| ------------------ | --------- | ------------- |
+| Backup Failed      | Any       | Page on-call  |
+| RPO Exceeded       | > 30 min  | Investigate   |
+| Replication Lag    | > 5 min   | Check network |
+| Database Unhealthy | Any       | Failover      |
 
 ## Runbooks
 
@@ -259,11 +271,11 @@ A timestamped report is written to `dr-drill-report-<env>-<timestamp>.txt` and a
 
 ## Contacts
 
-| Role | Name | Phone | Email |
-|------|------|-------|-------|
-| On-Call | TBD | +1-XXX-XXX-XXXX | oncall@stellar-spend.com |
-| Database Admin | TBD | +1-XXX-XXX-XXXX | dba@stellar-spend.com |
-| Infrastructure | TBD | +1-XXX-XXX-XXXX | infra@stellar-spend.com |
+| Role           | Name | Phone           | Email                    |
+| -------------- | ---- | --------------- | ------------------------ |
+| On-Call        | TBD  | +1-XXX-XXX-XXXX | oncall@stellar-spend.com |
+| Database Admin | TBD  | +1-XXX-XXX-XXXX | dba@stellar-spend.com    |
+| Infrastructure | TBD  | +1-XXX-XXX-XXXX | infra@stellar-spend.com  |
 
 ## Documentation
 
@@ -281,6 +293,6 @@ A timestamped report is written to `dr-drill-report-<env>-<timestamp>.txt` and a
 
 ## Change Log
 
-| Date | Change | Author |
-|------|--------|--------|
+| Date       | Change          | Author      |
+| ---------- | --------------- | ----------- |
 | 2026-05-29 | Initial DR plan | DevOps Team |

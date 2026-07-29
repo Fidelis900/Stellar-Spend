@@ -13,7 +13,9 @@ export async function GET(req: NextRequest) {
     const policy = TwoFAService.getEnforcementPolicy();
     return NextResponse.json(policy);
   } catch (error) {
-    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to fetch enforcement policy'));
+    return ErrorHandler.handle(
+      new ApiError(ErrorType.SERVER_ERROR, 'Failed to fetch enforcement policy'),
+    );
   }
 }
 
@@ -28,7 +30,9 @@ export async function PUT(req: NextRequest) {
     const policy = TwoFAService.updateEnforcementPolicy(updates);
     return NextResponse.json(policy);
   } catch (error) {
-    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to update enforcement policy'));
+    return ErrorHandler.handle(
+      new ApiError(ErrorType.SERVER_ERROR, 'Failed to update enforcement policy'),
+    );
   }
 }
 
@@ -47,11 +51,15 @@ export async function POST(req: NextRequest) {
 
     const result = enforce ? TwoFAService.enforce(userId) : TwoFAService.unenforce(userId);
     if (!result) {
-      return ErrorHandler.handle(new ApiError(ErrorType.NOT_FOUND, '2FA not configured for this user'));
+      return ErrorHandler.handle(
+        new ApiError(ErrorType.NOT_FOUND, '2FA not configured for this user'),
+      );
     }
 
     return NextResponse.json({ userId, isEnforced: enforce });
   } catch (error) {
-    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to update enforcement'));
+    return ErrorHandler.handle(
+      new ApiError(ErrorType.SERVER_ERROR, 'Failed to update enforcement'),
+    );
   }
 }

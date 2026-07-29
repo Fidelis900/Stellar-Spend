@@ -25,8 +25,8 @@ Example:
 - [ ] The new method is reflected in the transaction receipt
 -->
 
-- [ ] 
-- [ ] 
+- [ ]
+- [ ]
 
 ## Mockups / diagrams
 

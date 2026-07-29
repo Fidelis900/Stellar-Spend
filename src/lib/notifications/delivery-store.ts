@@ -1,9 +1,15 @@
 import { randomUUID } from 'crypto';
 import { pool } from '@/lib/db/client';
-import type { NotificationDeliveryRecord, NotificationDeliveryStatus } from '@/lib/notifications/types';
+import type {
+  NotificationDeliveryRecord,
+  NotificationDeliveryStatus,
+} from '@/lib/notifications/types';
 
 export class NotificationDeliveryStoreError extends Error {
-  constructor(message: string, public readonly cause: unknown) {
+  constructor(
+    message: string,
+    public readonly cause: unknown,
+  ) {
     super(message);
     this.name = 'NotificationDeliveryStoreError';
   }
@@ -32,7 +38,7 @@ function rowToDelivery(row: Record<string, unknown>): NotificationDeliveryRecord
 }
 
 export async function createNotificationDelivery(
-  input: Omit<NotificationDeliveryRecord, 'id' | 'createdAt' | 'updatedAt'>
+  input: Omit<NotificationDeliveryRecord, 'id' | 'createdAt' | 'updatedAt'>,
 ): Promise<NotificationDeliveryRecord> {
   const now = Date.now();
   const id = randomUUID();
@@ -68,7 +74,7 @@ export async function createNotificationDelivery(
         JSON.stringify(input.metadata ?? {}),
         now,
         input.sentAt ?? null,
-      ]
+      ],
     );
 
     return rowToDelivery(result.rows[0]);
@@ -85,7 +91,7 @@ export async function updateNotificationDelivery(
     providerMessageId?: string;
     errorMessage?: string;
     sentAt?: number;
-  }
+  },
 ): Promise<void> {
   try {
     await pool.query(
@@ -107,7 +113,7 @@ export async function updateNotificationDelivery(
         patch.errorMessage ?? null,
         Date.now(),
         patch.sentAt ?? null,
-      ]
+      ],
     );
   } catch (error) {
     throw new NotificationDeliveryStoreError(`Failed to update notification delivery ${id}`, error);
@@ -117,7 +123,7 @@ export async function updateNotificationDelivery(
 export async function retryNotificationDelivery(
   id: string,
   result: { status: NotificationDeliveryStatus; providerMessageId?: string; errorMessage?: string },
-  newAttemptCount: number
+  newAttemptCount: number,
 ): Promise<void> {
   return updateNotificationDelivery(id, {
     status: result.status,
@@ -129,7 +135,7 @@ export async function retryNotificationDelivery(
 }
 
 export async function getNotificationDeliveriesForTransaction(
-  transactionId: string
+  transactionId: string,
 ): Promise<NotificationDeliveryRecord[]> {
   try {
     const result = await pool.query(
@@ -139,13 +145,13 @@ export async function getNotificationDeliveriesForTransaction(
         WHERE transaction_id = $1
         ORDER BY created_at DESC
       `,
-      [transactionId]
+      [transactionId],
     );
     return result.rows.map((row) => rowToDelivery(row));
   } catch (error) {
     throw new NotificationDeliveryStoreError(
       `Failed to get notification deliveries for transaction ${transactionId}`,
-      error
+      error,
     );
   }
 }

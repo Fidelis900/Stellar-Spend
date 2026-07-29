@@ -58,21 +58,13 @@ export const transactionQueries = {
     return getCurrencies();
   },
 
-  async institutions(
-    _: unknown,
-    { currency }: { currency: string },
-    ctx: GraphQLContext,
-  ) {
+  async institutions(_: unknown, { currency }: { currency: string }, ctx: GraphQLContext) {
     requireAuth(ctx);
     const { getInstitutions } = await import('../../currencies');
     return getInstitutions(currency);
   },
 
-  async rate(
-    _: unknown,
-    { currency = 'NGN' }: { currency?: string },
-    ctx: GraphQLContext,
-  ) {
+  async rate(_: unknown, { currency = 'NGN' }: { currency?: string }, ctx: GraphQLContext) {
     requireAuth(ctx);
     const { getRate } = await import('../../services/quote.service');
     const rate = await getRate(currency);
@@ -95,10 +87,7 @@ export const transactionSubscriptions = {
   },
 
   rateUpdated: {
-    subscribe: async function* (
-      _: unknown,
-      { currency = 'NGN' }: { currency?: string },
-    ) {
+    subscribe: async function* (_: unknown, { currency = 'NGN' }: { currency?: string }) {
       while (true) {
         await new Promise((r) => setTimeout(r, 30000));
         const { getRate } = await import('../../services/quote.service');

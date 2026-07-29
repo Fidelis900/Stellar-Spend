@@ -1,4 +1,4 @@
-import { Skeleton } from "./Skeleton";
+import { Skeleton } from './Skeleton';
 
 interface SelectOption {
   value: string;
@@ -22,21 +22,21 @@ export function SelectField({
   options,
   isLoading = false,
   disabled = false,
-  placeholder = "Select…",
+  placeholder = 'Select…',
 }: SelectFieldProps) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <label style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.08em" }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <label style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '0.08em' }}>
         {label}
       </label>
       <div
         style={{
           height: 46,
-          border: "1px solid var(--line)",
-          display: "flex",
-          alignItems: "center",
-          padding: "0 12px",
-          position: "relative",
+          border: '1px solid var(--line)',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 12px',
+          position: 'relative',
         }}
       >
         {isLoading ? (
@@ -49,20 +49,20 @@ export function SelectField({
               disabled={disabled || options.length === 0}
               style={{
                 flex: 1,
-                background: "none",
+                background: 'none',
                 border: 0,
-                outline: "none",
-                color: value ? "var(--text)" : "var(--muted)",
-                font: "inherit",
+                outline: 'none',
+                color: value ? 'var(--text)' : 'var(--muted)',
+                font: 'inherit',
                 fontSize: 14,
-                appearance: "none",
-                cursor: "pointer",
+                appearance: 'none',
+                cursor: 'pointer',
                 opacity: disabled ? 0.5 : 1,
               }}
             >
               {!value && <option value="">{placeholder}</option>}
               {options.map((o) => (
-                <option key={o.value} value={o.value} style={{ background: "var(--panel)" }}>
+                <option key={o.value} value={o.value} style={{ background: 'var(--panel)' }}>
                   {o.label}
                 </option>
               ))}
@@ -73,10 +73,15 @@ export function SelectField({
               height="12"
               viewBox="0 0 12 12"
               fill="none"
-              style={{ pointerEvents: "none", flexShrink: 0 }}
+              style={{ pointerEvents: 'none', flexShrink: 0 }}
               aria-hidden="true"
             >
-              <path d="M2 4l4 4 4-4" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round" />
+              <path
+                d="M2 4l4 4 4-4"
+                stroke="var(--muted)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
             </svg>
           </>
         )}

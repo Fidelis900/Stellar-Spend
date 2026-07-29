@@ -41,6 +41,7 @@ Adopt a **hybrid approach**: SSE as the primary real-time channel, with polling 
 Transaction status updates are strictly **server → client** (uni-directional). The client does not need to send messages over the real-time channel — it uses REST endpoints for all mutations. This makes WebSocket's bi-directional capability unnecessary overhead.
 
 SSE:
+
 - Works over standard HTTP/1.1; no special proxy/firewall treatment
 - Automatically reconnects on disconnect (browser-native)
 - Stateless server implementation — each SSE endpoint streams events for a specific `orderId`
@@ -69,6 +70,7 @@ The `useOfframpSocket` hook (`src/hooks/useOfframpSocket.ts`) connects to the SS
 ### Fallback strategy
 
 If the SSE connection fails (network error, browser limitation, proxy timeout):
+
 - `useOfframpSocket` sets `connected = false`
 - The component falls back to `useGenericPolling` at 5-second intervals
 - When SSE reconnects, polling stops
@@ -76,6 +78,7 @@ If the SSE connection fails (network error, browser limitation, proxy timeout):
 ### Scaling considerations
 
 The current SSE implementation holds connections in-process. For horizontal scaling (multiple server replicas):
+
 - Order status changes must be broadcast via a shared pub-sub channel (Redis Pub/Sub or similar)
 - Each replica subscribes to the channel and forwards matching events to its connected SSE streams
 - This is a deferred concern; single-instance deployment is the current production topology
@@ -85,12 +88,14 @@ The current SSE implementation holds connections in-process. For horizontal scal
 ## Consequences
 
 **Positive:**
+
 - Near-instant status updates for users (< 500 ms from webhook receipt to UI update)
 - Lower server load than 3-second polling for active transactions
 - SSE reconnects automatically — no client-side retry logic needed
 - Fallback to polling ensures no regression for proxy-limited environments
 
 **Negative / Trade-offs:**
+
 - SSE connections consume a file descriptor and memory per active transaction; with many concurrent users this requires connection limits or keepalive timeouts
 - Horizontal scaling requires a pub-sub layer (deferred)
 - SSE does not work over HTTP/2 multiplexing in all browsers without a polyfill
@@ -100,4 +105,4 @@ The current SSE implementation holds connections in-process. For horizontal scal
 
 ---
 
-*Related: [[ADR-004-api-versioning-strategy]], [[ADR-009-provider-abstraction-routing]]*
+_Related: [[ADR-004-api-versioning-strategy]], [[ADR-009-provider-abstraction-routing]]_
