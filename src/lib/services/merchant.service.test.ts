@@ -329,6 +329,19 @@ describe('#852 — MerchantService unit tests', () => {
       expect(result!.items).toHaveLength(1);
       expect(result!.items![0].beneficiaryInstitution).toBe('GTBank');
     });
+
+    it('maps completedAt when payout has a completed_at timestamp', async () => {
+      // Exercises the truthy branch of: completedAt: row.completed_at ? ... : undefined
+      const completedAt = new Date('2026-07-28T12:00:00.000Z');
+      poolQueryMock.mockResolvedValueOnce({
+        rows: [makePayoutRow({ status: 'completed', completed_at: completedAt })],
+      });
+      poolQueryMock.mockResolvedValueOnce({ rows: [] });
+
+      const result = await service.getBulkPayoutStatus('payout-uuid-001');
+      expect(result).not.toBeNull();
+      expect(result!.completedAt).toBe(completedAt.toISOString());
+    });
   });
 
   // ─── getMerchantPayouts ────────────────────────────────────────────────────
