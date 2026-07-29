@@ -1,11 +1,13 @@
 # Provider Fixture Refresh Guide
 
 ## Overview
+
 Test fixtures in this directory represent recorded responses from external providers (Paycrest, Allbridge). They are used by contract tests to verify adapter parsing without live network access.
 
 ## How to Refresh Fixtures
 
 ### Paycrest
+
 1. Obtain a valid API key from Paycrest dashboard
 2. Run the capture script:
    ```bash
@@ -17,6 +19,7 @@ Test fixtures in this directory represent recorded responses from external provi
 4. Review and sanitise any PII before committing
 
 ### Allbridge
+
 1. Ensure access to Allbridge SDK (mainnet or testnet)
 2. The SDK does not expose raw HTTP endpoints, so fixtures are based on documented response shapes
 3. To verify correctness, run:
@@ -26,6 +29,7 @@ Test fixtures in this directory represent recorded responses from external provi
 4. Update the JSON files manually if the SDK response shape changes
 
 ## Running Contract Tests
+
 ```bash
 npm test -- --testPathPattern="contract"
 ```

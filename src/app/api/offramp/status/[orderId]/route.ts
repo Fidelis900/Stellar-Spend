@@ -45,10 +45,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ orderId
         });
       }
 
-      return NextResponse.json(
-        { error: errorMessage },
-        { status: res.status }
-      );
+      return NextResponse.json({ error: errorMessage }, { status: res.status });
     }
 
     const data = await res.json();

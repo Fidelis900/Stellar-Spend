@@ -1,5 +1,6 @@
 export function validateAmount(amount: string): boolean {
-  if (!/^\d*\.?\d*$/.test(amount.trim()) || amount.trim() === '' || amount.trim() === '.') return false;
+  if (!/^\d*\.?\d*$/.test(amount.trim()) || amount.trim() === '' || amount.trim() === '.')
+    return false;
   const num = parseFloat(amount);
   return !isNaN(num) && num > 0 && isFinite(num);
 }
@@ -36,9 +37,9 @@ export function isValidQuote(data: unknown): data is {
   estimatedTime: number;
 } {
   if (!data || typeof data !== 'object') return false;
-  
+
   const q = data as Record<string, unknown>;
-  
+
   // Check all required fields exist
   if (
     typeof q.destinationAmount !== 'string' ||
@@ -50,29 +51,29 @@ export function isValidQuote(data: unknown): data is {
   ) {
     return false;
   }
-  
+
   // Validate numeric fields are finite and positive
   const rate = q.rate as number;
   const estimatedTime = q.estimatedTime as number;
-  
+
   if (!isFinite(rate) || rate <= 0) return false;
   if (!isFinite(estimatedTime) || estimatedTime < 0) return false;
-  
+
   // Validate string amounts are non-empty
   const destAmount = q.destinationAmount as string;
   const bridgeFee = q.bridgeFee as string;
   const payoutFee = q.payoutFee as string;
-  
+
   if (!destAmount.trim() || !bridgeFee.trim() || !payoutFee.trim()) return false;
-  
+
   // Validate amounts are valid numbers
   const destNum = parseFloat(destAmount);
   const bridgeNum = parseFloat(bridgeFee);
   const payoutNum = parseFloat(payoutFee);
-  
+
   if (!isFinite(destNum) || destNum <= 0) return false;
   if (!isFinite(bridgeNum) || bridgeNum < 0) return false;
   if (!isFinite(payoutNum) || payoutNum < 0) return false;
-  
+
   return true;
 }

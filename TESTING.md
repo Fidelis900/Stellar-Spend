@@ -36,11 +36,11 @@ Unit tests use **Vitest** + **React Testing Library** and live alongside the cod
 
 ### File conventions
 
-| Target | Location |
-|---|---|
-| Library / utility | `src/lib/**/*.test.ts` |
-| React component | `src/test/*.test.tsx` or `src/app/__tests__/*.test.tsx` |
-| API route handler | `src/test/*.test.ts` |
+| Target            | Location                                                |
+| ----------------- | ------------------------------------------------------- |
+| Library / utility | `src/lib/**/*.test.ts`                                  |
+| React component   | `src/test/*.test.tsx` or `src/app/__tests__/*.test.tsx` |
+| API route handler | `src/test/*.test.ts`                                    |
 
 ### Setup
 
@@ -98,7 +98,9 @@ import { NextRequest } from 'next/server';
 vi.mock('@/lib/env', () => ({
   env: {
     server: { PAYCREST_API_KEY: 'test-key' /* ... */ },
-    public: { /* ... */ },
+    public: {
+      /* ... */
+    },
   },
 }));
 
@@ -166,12 +168,12 @@ Freighter and Lobstr are browser extensions and cannot be installed in Playwrigh
 
 Coverage is not enforced by a hard threshold today, but the following targets are expected:
 
-| Layer | Target |
-|---|---|
-| `src/lib/` utilities | ≥ 80% line coverage |
-| API route handlers | All happy-path + primary error branches covered |
-| React components | Key render states and user interactions covered |
-| E2E | Critical user journey (load → connect → submit) covered |
+| Layer                | Target                                                  |
+| -------------------- | ------------------------------------------------------- |
+| `src/lib/` utilities | ≥ 80% line coverage                                     |
+| API route handlers   | All happy-path + primary error branches covered         |
+| React components     | Key render states and user interactions covered         |
+| E2E                  | Critical user journey (load → connect → submit) covered |
 
 To generate a coverage report locally:
 
@@ -254,136 +256,210 @@ beforeEach(() => localStorage.clear());
 
 ---
 
-## Snapshot Testing Policy
+## OpenAPI Contract Tests (Issue #834)
 
-Snapshot tests capture the rendered output of a component or the return value of a formatter and fail when the output changes unexpectedly. They are a low-cost regression net — but only when maintained deliberately. This section defines how to use them correctly in Stellar-Spend.
+Contract tests live in `src/test/contract/openapi-contract.test.ts` and run automatically as part of `npm test`.
 
----
+### What they verify
 
-### Inventory of current snapshot files
+- Every route handler's response conforms to the schema in `openapi.yaml`.
+- Required fields are present (`required: [...]` in the spec is enforced via AJV).
+- The `Error` schema's `error` enum only contains documented codes.
+- No undocumented top-level fields drift into responses (`additionalProperties: false` applied structurally).
+- All `$ref` targets in `components/schemas` resolve without errors (orphaned refs are caught).
 
-| Snapshot file | Suite | Status |
-|---|---|---|
-| `src/test/__snapshots__/DataTable.test.tsx.snap` | `DataTable > matches the snapshot for a basic render` | ✅ Active — covers desktop table + mobile card layout |
-| `src/lib/__snapshots__/formatters.test.ts.snap` | `DateFormatter` and `helper functions` suites | ⚠️ Potentially stale — date strings (`Jul 25, 2025`) are hardcoded relative to a fixed test date; verify `formatters.test.ts` still passes with the frozen date |
-
-Snapshot utility helpers live in `src/test/snapshots/snapshot-utils.tsx` (not a test file — imported by test suites that need custom rendering helpers).
-
----
-
-### When TO use snapshots
-
-Use snapshots to guard against unintended structural regressions in:
-
-- **Component markup** — rendered HTML structure of a UI component (element hierarchy, CSS class names, ARIA roles/attributes). The `DataTable` snapshot is a good example.
-- **Formatter / serialiser output** — pure functions that produce stable string representations of data (e.g. `DateFormatter.formatTimestamp`).
-- **API response shapes** — the JSON body of route handlers that have a fixed, documented contract.
-- **Complex composite renders** — components that compose many sub-components where a full structural audit in assertions would be unreasonably verbose.
-
-The key criterion: **the output must be deterministic given the same inputs.**
-
----
-
-### When NOT to use snapshots
-
-Avoid snapshots when the output is inherently volatile or when assertions would be meaningless noise:
-
-| Scenario | Reason to avoid |
-|---|---|
-| Timestamps from `Date.now()` / `new Date()` | Output changes every run; snapshot will fail on every CI run unless the clock is frozen |
-| UUIDs, random IDs, nonces | Non-deterministic by design |
-| Network-fetched data (prices, exchange rates) | Live values differ between runs |
-| Animation or transition state | Intermediate states are not testable reliably |
-| Deeply nested third-party component internals | Upstream library updates break your snapshot without any change to your code |
-| Large, frequently-changing components | Every innocuous UI tweak forces a snapshot update, making reviews noisy and meaningless |
-
-If the data is dynamic, freeze it: use `vi.useFakeTimers()` with a fixed date or mock the data source before creating the snapshot.
-
----
-
-### How to regenerate snapshots
-
-When a component intentionally changes and the snapshot is legitimately out of date, update it with:
+### Running just the contract tests
 
 ```bash
-npx vitest run --update-snapshots
+npx vitest --run src/test/contract/openapi-contract.test.ts
 ```
 
-To update snapshots for a single test file only:
+### Updating `openapi.yaml` when the backend contract changes
 
-```bash
-npx vitest run --update-snapshots src/test/DataTable.test.tsx
-```
+1. **Add / change an endpoint:** edit the relevant `paths` entry in `openapi.yaml`.
+2. **Add / change a response schema:** edit the corresponding entry in `components/schemas`.
+3. **Regenerate from routes (optional):** if your team uses `openapi-typescript` or a similar generator, run it and then diff `openapi.yaml` to confirm the changes are intentional:
 
-To update snapshots for a single test suite interactively:
-
-```bash
-npx vitest --ui
-# then press 'u' on the failing snapshot in the UI
-```
-
-> ⚠️ **Never commit snapshot updates blindly.** Always read the diff before staging the file — see the staleness check procedure below.
-
----
-
-### Staleness check procedure
-
-Run this procedure before opening or merging any PR that touches components or formatters:
-
-1. **Run tests in CI mode** (no watch, no update):
    ```bash
-   npm test
+   # Example with openapi-typescript (install separately if needed)
+   npx openapi-typescript openapi.yaml -o src/types/api.d.ts
    ```
-2. **If snapshot tests fail**, inspect the diff output in the terminal. Vitest prints the expected vs. received diff inline.
-3. **Decide deliberately**:
-   - If the diff represents an _intentional_ change (you changed the component) → update the snapshot (see above) and include the updated `.snap` file in your PR.
-   - If the diff represents an _unintentional_ change (the component regressed) → fix the code, not the snapshot.
-4. **After updating**, review the full `.snap` file content — not just the diff — to confirm the new snapshot is correct.
-5. **Stage snapshot files explicitly** (`git add src/test/__snapshots__/DataTable.test.tsx.snap`) rather than via `git add .` to avoid accidentally committing unrelated changes.
 
----
+4. **Run the contract suite** to confirm no regressions:
 
-### Review checklist for snapshot changes in PRs
+   ```bash
+   npx vitest --run src/test/contract/openapi-contract.test.ts
+   ```
 
-Before approving a PR that contains changes to any `.snap` file, the reviewer MUST verify each of the following:
+5. **Commit both** the updated `openapi.yaml` and any affected source files together so the spec stays in sync with the implementation.
 
-- [ ] **The diff is readable.** The changed lines in the `.snap` file correspond to documented, intentional changes described in the PR body.
-- [ ] **The snapshot is deterministic.** No timestamps, random IDs, or live network data appear in the new snapshot content.
-- [ ] **The new structure is correct.** The rendered HTML/string in the snapshot matches what you would expect from reading the component source.
-- [ ] **No accidental removals.** Existing snapshot keys have not been silently deleted without a corresponding removal of the test.
-- [ ] **ARIA attributes are preserved.** Accessibility-relevant attributes (`role`, `aria-label`, `aria-sort`, `scope`) must still be present if they were in the previous snapshot.
-- [ ] **Class names are intentional.** If Tailwind class strings changed, confirm the design change was deliberate.
-- [ ] **The test still runs.** The PR should include CI evidence (green check or attached log) that all snapshot tests pass with the new `.snap` file.
+### AJV dependency
 
----
-
-### Policy: manual review is mandatory
-
-> **Auto-approving snapshot changes without review is prohibited.**
-
-Snapshot `.snap` files are part of the test contract. They must be treated with the same scrutiny as production code changes. Specifically:
-
-- Do not approve a PR that modifies `.snap` files without reading the diff.
-- Do not merge a PR with snapshot changes solely because CI is green. CI only checks that the saved snapshot matches the current output — it does not verify that the current output is _correct_.
-- If a snapshot update is large (more than ~20 lines changed), request that the author break the PR into smaller units or provide a visual screenshot of the before/after component.
-- If you are the author, add a comment in the PR body explaining _why_ the snapshot changed and attaching a screenshot if the change is visual.
-
----
-
-### CI enforcement
-
-The CI pipeline (`npm test`) runs Vitest **without** `--update-snapshots`. Any snapshot mismatch causes a non-zero exit and fails the build. This means:
-
-- Stale snapshot files that do not reflect the current component output will block merging.
-- Snapshot files must be committed and kept up to date; `.snap` files are **not** git-ignored.
-- If a new component test introduces a snapshot, the initial `.snap` file must be committed in the same PR as the test.
-
-To verify snapshot health locally before pushing:
+The contract tests rely on `ajv` and `ajv-formats`, which are already present in `devDependencies`. If they are ever removed, add them back:
 
 ```bash
-npm test
-# All snapshot tests should pass with exit code 0.
-# A failing snapshot means either the component regressed or the snapshot is stale.
+npm install --save-dev ajv ajv-formats js-yaml
 ```
 
-> The `scripts/check-diagrams.sh` CI script does not cover snapshot validation. Snapshot CI enforcement is handled entirely by the Vitest run in the `test` job.
+---
+
+## Mutation Testing with Stryker (Issue #833)
+
+Mutation tests measure whether the unit-test suite can catch code changes (mutations) to library logic.
+
+### Running mutation tests
+
+```bash
+npm run test:mutation
+```
+
+This invokes `stryker run` using `stryker.conf.json`. The HTML report is written to `./mutation-report/index.html`.
+
+### Mutation score targets
+
+| Threshold        | Value  |
+| ---------------- | ------ |
+| High (green)     | ≥ 80 % |
+| Medium (yellow)  | ≥ 70 % |
+| Low (orange)     | ≥ 60 % |
+| Break (CI fails) | < 55 % |
+
+### Files mutated by Stryker
+
+Stryker mutates `src/lib/**/*.ts` and `src/app/api/**/*.ts` (see `stryker.conf.json`). The following test files provide coverage that kills mutants:
+
+| Test file                                  | Target lib modules                                                 |
+| ------------------------------------------ | ------------------------------------------------------------------ |
+| `src/test/mutation.test.ts`                | `fee-calculation`, `error-types`, `paycrest-adapter`, `kyc-limits` |
+| `src/test/mutation-critical-paths.test.ts` | `http-client`, `cache/keys`                                        |
+| `src/test/fee-calculation.test.ts`         | `fee-calculation` (full coverage)                                  |
+| `src/test/error-types.test.ts`             | `error-types`                                                      |
+| `src/test/mapPaycrestStatus.test.ts`       | `paycrest-adapter`                                                 |
+
+### Improving the mutation score
+
+When Stryker reports a surviving mutant:
+
+1. Open `./mutation-report/index.html` and find the surviving mutant.
+2. Identify which assertion was too weak to catch it (e.g. `toBeTruthy` instead of `toBe(true)`).
+3. Add a focused test that asserts the exact value a mutant would change.
+4. Re-run `npm run test:mutation` to confirm the score improved.
+
+---
+
+## E2E Testing with Playwright (Issues #831 & #832)
+
+### Overview of E2E specs
+
+| Spec file                                | Issue     | Coverage                                                        |
+| ---------------------------------------- | --------- | --------------------------------------------------------------- |
+| `e2e/payment-flow.spec.ts`               | #831 (P0) | Connect wallet → amount → quote → recipient → confirm → history |
+| `e2e/kyc-rejection-resubmission.spec.ts` | #832      | Unverified → submit → rejected → resubmit → approved lifecycle  |
+| `e2e/smoke.spec.ts`                      | —         | Production smoke: health, currencies, rate, UI load             |
+| `e2e/critical-journeys.spec.ts`          | —         | Full offramp with axe accessibility checks                      |
+| `e2e/transaction-history.spec.ts`        | —         | History display, filter, search, export                         |
+
+### Running E2E tests locally
+
+> **Prerequisite:** The app must be running on `http://localhost:3001`. All external dependencies are mocked inside each spec via `page.route()` — no real API keys are required.
+
+```bash
+# Build and start the server (first run)
+npm run build && npm start &
+
+# Or use the dev server (faster iteration)
+npm run dev &
+
+# Run all E2E tests
+npm run test:e2e
+
+# Run a single spec file
+npx playwright test e2e/payment-flow.spec.ts
+
+# Run KYC spec only
+npx playwright test e2e/kyc-rejection-resubmission.spec.ts
+
+# Run headless with visible browser for debugging
+npx playwright test --headed e2e/payment-flow.spec.ts
+
+# Open the HTML report after a run
+npx playwright show-report
+```
+
+### Running in CI
+
+CI sets `CI=true` which enables:
+
+- 2 retries on flaky tests
+- Single worker (serial execution)
+- `forbidOnly` (test.only fails the run)
+- HTML report saved as an artifact
+
+```yaml
+# Example GitHub Actions step
+- name: Run E2E tests
+  run: npm run test:e2e
+  env:
+    CI: true
+    BASE_URL: http://localhost:3001
+```
+
+### Mocking strategy in E2E tests
+
+**Wallet (Freighter):** stubbed via `page.addInitScript()` before navigation. The stub auto-approves all `signTransaction` calls and returns a deterministic public key.
+
+**API endpoints:** mocked via `page.route('**/api/...**', ...)` at the top of each `beforeEach`. This intercepts all matching fetch/XHR calls and returns JSON fixtures without touching the network.
+
+**Transaction history (localStorage):** seeded via `page.addInitScript()` using `localStorage.setItem` before the page loads.
+
+### Writing new E2E tests
+
+Use the patterns established in `e2e/payment-flow.spec.ts`:
+
+```ts
+import { test, expect } from '@playwright/test';
+
+const BASE_URL = process.env.BASE_URL ?? 'http://localhost:3001';
+
+test.beforeEach(async ({ page }) => {
+  // 1. Stub wallet
+  await page.addInitScript(() => {
+    (window as any).freighter = {
+      isConnected: async () => true,
+      getPublicKey: async () => 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5',
+      signTransaction: async (xdr: string) => xdr,
+    };
+  });
+
+  // 2. Mock APIs
+  await page.route('**/api/offramp/quote**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ destinationAmount: '158200.00', rate: 1582, currency: 'NGN' }),
+    }),
+  );
+});
+
+test('my new scenario', async ({ page }) => {
+  await page.goto(BASE_URL);
+  await page.waitForLoadState('networkidle');
+  // ... assertions ...
+});
+```
+
+### KYC fixtures
+
+Structured test data for KYC flows is in `e2e/fixtures/kyc-fixtures.ts`:
+
+```ts
+import { KYC_USERS, KYC_REJECTION_REASONS, KYC_API_RESPONSES } from './fixtures/kyc-fixtures';
+
+// Use pre-built rejection API responses in page.route():
+await page.route('**/api/kyc**', (route) =>
+  route.fulfill({
+    status: 200,
+    body: JSON.stringify(KYC_API_RESPONSES.getRejected('documentUnreadable')),
+  }),
+);
+```

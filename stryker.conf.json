@@ -21,17 +21,9 @@
       "src/lib/clients/paycrest.ts",
       "src/lib/clients/allbridge.ts"
     ],
-    "security": [
-      "src/lib/clients/http-client.ts"
-    ]
+    "security": ["src/lib/clients/http-client.ts"]
   },
-  "reporters": [
-    "progress",
-    "progress-append-only",
-    "html",
-    "json",
-    "clear-text"
-  ],
+  "reporters": ["progress", "progress-append-only", "html", "json", "clear-text"],
   "htmlReporter": {
     "baseDir": "./mutation-report"
   },
@@ -47,12 +39,8 @@
   "timeoutMS": 8000,
   "timeoutFactor": 1.5,
   "maxConcurrentTestRunners": 4,
-  "plugins": [
-    "@stryker-mutator/typescript-checker"
-  ],
-  "checkers": [
-    "typescript"
-  ],
+  "plugins": ["@stryker-mutator/typescript-checker"],
+  "checkers": ["typescript"],
   "tsconfigFile": "tsconfig.json",
   "testRunnerNodeArgs": ["--experimental-vm-modules"],
   "vitest": {

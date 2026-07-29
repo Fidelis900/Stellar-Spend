@@ -45,7 +45,7 @@ describe('NotificationCenter', () => {
           unreadBadgeText="0"
           loading={false}
           {...mockHandlers}
-        />
+        />,
       );
 
       const button = screen.getByRole('button', { name: /notifications/i });
@@ -60,7 +60,7 @@ describe('NotificationCenter', () => {
           unreadBadgeText="5"
           loading={false}
           {...mockHandlers}
-        />
+        />,
       );
 
       const badge = screen.getByText('5');
@@ -75,7 +75,7 @@ describe('NotificationCenter', () => {
           unreadBadgeText="99+"
           loading={false}
           {...mockHandlers}
-        />
+        />,
       );
 
       const badge = screen.getByText('99+');
@@ -91,7 +91,7 @@ describe('NotificationCenter', () => {
           unreadBadgeText="0"
           loading={false}
           {...mockHandlers}
-        />
+        />,
       );
 
       const button = screen.getByRole('button', { name: /notifications/i });
@@ -101,7 +101,7 @@ describe('NotificationCenter', () => {
 
       // Click to open
       await user.click(button);
-      
+
       rerender(
         <NotificationCenter
           events={[]}
@@ -109,7 +109,7 @@ describe('NotificationCenter', () => {
           unreadBadgeText="0"
           loading={false}
           {...mockHandlers}
-        />
+        />,
       );
 
       // Panel should be open
@@ -128,7 +128,7 @@ describe('NotificationCenter', () => {
           unreadBadgeText="0"
           loading={false}
           {...mockHandlers}
-        />
+        />,
       );
 
       const button = screen.getByRole('button', { name: /notifications/i });
@@ -145,7 +145,7 @@ describe('NotificationCenter', () => {
           unreadBadgeText="0"
           loading={true}
           {...mockHandlers}
-        />
+        />,
       );
 
       const button = screen.getByRole('button', { name: /notifications/i });
@@ -164,7 +164,7 @@ describe('NotificationCenter', () => {
           unreadBadgeText="1"
           loading={false}
           {...mockHandlers}
-        />
+        />,
       );
 
       const button = screen.getByRole('button', { name: /notifications/i });
@@ -187,7 +187,7 @@ describe('NotificationCenter', () => {
           unreadBadgeText="1"
           loading={false}
           {...mockHandlers}
-        />
+        />,
       );
 
       const button = screen.getByRole('button', { name: /notifications/i });
@@ -195,7 +195,7 @@ describe('NotificationCenter', () => {
 
       // Should have a dot indicator for unread
       const items = screen.getAllByRole('button');
-      const notificationItem = items.find(item => item.textContent?.includes('Price Alert'));
+      const notificationItem = items.find((item) => item.textContent?.includes('Price Alert'));
       expect(notificationItem).toBeInTheDocument();
     });
 
@@ -212,7 +212,7 @@ describe('NotificationCenter', () => {
           unreadBadgeText="0"
           loading={false}
           {...mockHandlers}
-        />
+        />,
       );
 
       const button = screen.getByRole('button', { name: /notifications/i });
@@ -229,7 +229,7 @@ describe('NotificationCenter', () => {
           unreadBadgeText="1"
           loading={false}
           {...mockHandlers}
-        />
+        />,
       );
 
       const button = screen.getByRole('button', { name: /notifications/i });
@@ -248,7 +248,7 @@ describe('NotificationCenter', () => {
           unreadBadgeText="1"
           loading={false}
           {...mockHandlers}
-        />
+        />,
       );
 
       const button = screen.getByRole('button', { name: /notifications/i });
@@ -269,7 +269,7 @@ describe('NotificationCenter', () => {
           unreadBadgeText="1"
           loading={false}
           {...mockHandlers}
-        />
+        />,
       );
 
       const button = screen.getByRole('button', { name: /notifications/i });
@@ -290,7 +290,7 @@ describe('NotificationCenter', () => {
           unreadBadgeText="1"
           loading={false}
           {...mockHandlers}
-        />
+        />,
       );
 
       const button = screen.getByRole('button', { name: /notifications/i });
@@ -311,7 +311,7 @@ describe('NotificationCenter', () => {
           unreadBadgeText="1"
           loading={false}
           {...mockHandlers}
-        />
+        />,
       );
 
       const button = screen.getByRole('button', { name: /notifications/i });
@@ -334,7 +334,7 @@ describe('NotificationCenter', () => {
           unreadBadgeText="0"
           loading={false}
           {...mockHandlers}
-        />
+        />,
       );
 
       const button = screen.getByRole('button', { name: /notifications/i });
@@ -358,14 +358,14 @@ describe('NotificationCenter', () => {
           unreadBadgeText="1"
           loading={false}
           {...mockHandlers}
-        />
+        />,
       );
 
       const button = screen.getByRole('button', { name: /notifications/i });
-      
+
       // Tab to bell button
       await user.tab();
-      
+
       expect(button).toHaveFocus();
 
       // Click to open
@@ -391,7 +391,7 @@ describe('NotificationCenter', () => {
           unreadBadgeText="1"
           loading={false}
           {...mockHandlers}
-        />
+        />,
       );
 
       const button = screen.getByRole('button', { name: /notifications/i });
@@ -414,7 +414,7 @@ describe('NotificationCenter', () => {
           unreadBadgeText="1"
           loading={false}
           {...mockHandlers}
-        />
+        />,
       );
 
       const button = screen.getByRole('button', { name: /notifications/i });
@@ -437,7 +437,7 @@ describe('NotificationCenter', () => {
           unreadBadgeText="1"
           loading={false}
           {...mockHandlers}
-        />
+        />,
       );
 
       const button = screen.getByRole('button', { name: /notifications/i });
@@ -460,7 +460,7 @@ describe('NotificationCenter', () => {
             loading={false}
             {...mockHandlers}
           />
-        </div>
+        </div>,
       );
 
       const button = screen.getByRole('button', { name: /notifications/i });
@@ -485,7 +485,7 @@ describe('NotificationCenter', () => {
           unreadBadgeText="0"
           loading={false}
           {...mockHandlers}
-        />
+        />,
       );
 
       const button = screen.getByRole('button', { name: /notifications/i });

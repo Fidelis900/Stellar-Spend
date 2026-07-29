@@ -14,8 +14,8 @@ export interface SLO {
   objective: number;
   window: string;
   burn_rate_thresholds: {
-    critical: number;  // Fast burn rate (e.g., 14.4 for 1h burn)
-    warning: number;   // Slow burn rate (e.g., 6 for 6h burn)
+    critical: number; // Fast burn rate (e.g., 14.4 for 1h burn)
+    warning: number; // Slow burn rate (e.g., 6 for 6h burn)
   };
   alerting: {
     critical_duration: string;
@@ -37,7 +37,7 @@ export const sloConfig: SLO[] = [
     window: '30d',
     burn_rate_thresholds: {
       critical: 14.4, // 1h burn rate
-      warning: 6,     // 6h burn rate
+      warning: 6, // 6h burn rate
     },
     alerting: {
       critical_duration: '1h',
@@ -108,5 +108,5 @@ export const sloConfig: SLO[] = [
 ];
 
 export const getSLOByName = (name: string): SLO | undefined => {
-  return sloConfig.find(slo => slo.name === name);
+  return sloConfig.find((slo) => slo.name === name);
 };

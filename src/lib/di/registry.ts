@@ -5,10 +5,18 @@
 
 import { DIContainer, ServiceLifetime } from './container';
 import type {
-  IQuoteService, IBridgeService, IPayoutService,
-  IWebhookService, ITransactionService, ISharingService,
-  IAnalyticsService, IQRCodeService, IOnrampService,
-  IReferralService, ISchedulingService, IInsuranceService,
+  IQuoteService,
+  IBridgeService,
+  IPayoutService,
+  IWebhookService,
+  ITransactionService,
+  ISharingService,
+  IAnalyticsService,
+  IQRCodeService,
+  IOnrampService,
+  IReferralService,
+  ISchedulingService,
+  IInsuranceService,
   IBatchService,
 } from '@/lib/services/interfaces';
 import {
@@ -47,10 +55,7 @@ export const SERVICE_KEYS = {
  * Configure the DI container with all application services
  */
 export function configureServices(container: DIContainer): void {
-  container.registerSingleton<IQuoteService>(
-    SERVICE_KEYS.QUOTE_SERVICE,
-    () => new QuoteService(),
-  );
+  container.registerSingleton<IQuoteService>(SERVICE_KEYS.QUOTE_SERVICE, () => new QuoteService());
   container.registerSingleton<IBridgeService>(
     SERVICE_KEYS.BRIDGE_SERVICE,
     () => new BridgeService(),
@@ -106,11 +111,7 @@ export function configureServices(container: DIContainer): void {
  * container.resolve(key) will return the mock instance instead.
  * Clears any cached singleton instance so the override takes effect.
  */
-export function overrideService<T>(
-  container: DIContainer,
-  key: string,
-  mock: T,
-): void {
+export function overrideService<T>(container: DIContainer, key: string, mock: T): void {
   container.registerOverride<T>(key, mock);
 }
 
@@ -128,11 +129,7 @@ export async function getService<T>(
 /**
  * Get a service synchronously (for non-async factories)
  */
-export function getServiceSync<T>(
-  container: DIContainer,
-  key: string,
-  scopeId?: string,
-): T {
+export function getServiceSync<T>(container: DIContainer, key: string, scopeId?: string): T {
   return container.resolveSync<T>(key, scopeId);
 }
 

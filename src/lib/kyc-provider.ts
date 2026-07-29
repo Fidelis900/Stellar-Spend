@@ -32,7 +32,10 @@ export interface KycProviderInterface {
   checkStatus(verificationId: string): Promise<VerificationResponse>;
 
   /** Initiate re-verification when limits change */
-  requestReverification(userId: string, reason: string): Promise<{ required: boolean; message: string }>;
+  requestReverification(
+    userId: string,
+    reason: string,
+  ): Promise<{ required: boolean; message: string }>;
 }
 
 export class SandboxKycProvider implements KycProviderInterface {
@@ -76,7 +79,10 @@ export class SandboxKycProvider implements KycProviderInterface {
     return result;
   }
 
-  async requestReverification(_userId: string, _reason: string): Promise<{ required: boolean; message: string }> {
+  async requestReverification(
+    _userId: string,
+    _reason: string,
+  ): Promise<{ required: boolean; message: string }> {
     return {
       required: true,
       message: 'Sandbox: re-verification would be required in production',
@@ -91,13 +97,19 @@ export function getKycProvider(name?: string): KycProviderInterface {
   throw new Error(`Unknown KYC provider: ${name}`);
 }
 
-export const VERIFICATION_LEVEL_MAP: Record<VerificationLevel, { tier: import('./kyc-limits').LimitTier; label: string }> = {
+export const VERIFICATION_LEVEL_MAP: Record<
+  VerificationLevel,
+  { tier: import('./kyc-limits').LimitTier; label: string }
+> = {
   basic: { tier: 'tier1', label: 'Basic - email & phone' },
   advanced: { tier: 'tier2', label: 'Advanced - government ID' },
   enhanced: { tier: 'tier3', label: 'Enhanced - in-person verification' },
 };
 
-export function getRequiredVerificationLevel(kyc: KYCData | null, requestedTier: import('./kyc-limits').LimitTier): VerificationLevel {
+export function getRequiredVerificationLevel(
+  kyc: KYCData | null,
+  requestedTier: import('./kyc-limits').LimitTier,
+): VerificationLevel {
   if (requestedTier === 'tier1') return 'basic';
   if (requestedTier === 'tier2') return 'advanced';
   return 'enhanced';

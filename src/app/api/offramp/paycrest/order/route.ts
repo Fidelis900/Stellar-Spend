@@ -5,6 +5,7 @@ import { generateRequestId, createRequestLogger } from '@/lib/offramp/utils/logg
 import { withIdempotency } from '@/lib/idempotency';
 import { ErrorHandler } from '@/lib/error-handler';
 import { ApiError, ErrorType } from '@/lib/error-types';
+import { paycrestOrderRouteSchema, formatZodErrors } from '@/lib/validators/schemas';
 
 export const maxDuration = 20;
 
@@ -19,9 +20,9 @@ function withRequestId<T>(response: NextResponse<T>, requestId: string): NextRes
 
 /**
  * POST /api/offramp/paycrest/order
- * 
+ *
  * Creates a Paycrest payout order.
- * 
+ *
  * Request body:
  * {
  *   amount: number (required, > 0)
@@ -37,7 +38,7 @@ function withRequestId<T>(response: NextResponse<T>, requestId: string): NextRes
  *     currency: string (required)
  *   }
  * }
- * 
+ *
  * Response:
  * {
  *   data: {
@@ -63,74 +64,23 @@ export async function POST(req: NextRequest) {
         return res;
       }
 
-      const body = await req.json();
-      const { amount, rate, token, network, reference, returnAddress, recipient } = body;
+      const rawBody = await req.json();
 
-      const errors: Record<string, string> = {};
-
-      if (amount === undefined || amount === null) {
-        errors.amount = 'amount is required';
-      } else if (typeof amount !== 'number' || amount <= 0) {
-        errors.amount = 'amount must be a positive number';
-      }
-
-      if (rate === undefined || rate === null) {
-        errors.rate = 'rate is required';
-      } else if (typeof rate !== 'number' || rate <= 0) {
-        errors.rate = 'rate must be a positive number';
-      }
-
-      if (!token || typeof token !== 'string') {
-        errors.token = 'token is required and must be a string';
-      }
-
-      if (!network || typeof network !== 'string') {
-        errors.network = 'network is required and must be a string';
-      }
-
-      if (!reference || typeof reference !== 'string') {
-        errors.reference = 'reference is required and must be a string';
-      }
-
-      if (!returnAddress || typeof returnAddress !== 'string') {
-        errors.returnAddress = 'returnAddress is required and must be a string';
-      }
-
-      if (!recipient || typeof recipient !== 'object') {
-        errors.recipient = 'recipient is required and must be an object';
-      } else {
-        const { institution, accountIdentifier, accountName, currency } = recipient;
-
-        if (!institution || typeof institution !== 'string') {
-          errors['recipient.institution'] = 'recipient.institution is required and must be a string';
-        }
-
-        if (!accountIdentifier || typeof accountIdentifier !== 'string') {
-          errors['recipient.accountIdentifier'] = 'recipient.accountIdentifier is required and must be a string';
-        }
-
-        if (!accountName || typeof accountName !== 'string') {
-          errors['recipient.accountName'] = 'recipient.accountName is required and must be a string';
-        }
-
-        if (!currency || typeof currency !== 'string') {
-          errors['recipient.currency'] = 'recipient.currency is required and must be a string';
-        }
-      }
-
-      if (Object.keys(errors).length > 0) {
+      const zodResult = paycrestOrderRouteSchema.safeParse(rawBody);
+      if (!zodResult.success) {
+        const errors = formatZodErrors(zodResult.error);
         logger.logError(400, 'Validation failed');
         return withRequestId(
-          ErrorHandler.handle(new ApiError(ErrorType.VALIDATION, 'Validation failed', 400, errors)),
-          requestId
+          ErrorHandler.handle(new ApiError(ErrorType.VALIDATION, errors[0].message, 400, { errors })),
+          requestId,
         );
       }
 
+      const { amount, rate, token, network, reference, returnAddress, recipient } = zodResult.data;
       const normalizedAmount = Math.floor(amount * 1e6) / 1e6;
       const normalizedRate = Number(rate.toFixed(6));
 
-      logger.info('[paycrest/order] amount normalization', {
-        raw: { amount, rate },
+      logger.debug('[paycrest/order] amount normalization', {
         normalized: { amount: normalizedAmount, rate: normalizedRate },
       });
 
@@ -156,9 +106,7 @@ export async function POST(req: NextRequest) {
         logger.logError(err.status, err.message);
         return withRequestId(ErrorHandler.handle(err, err.status), requestId);
       }
-
-      logger.logError(500, err instanceof Error ? err.message : 'Internal server error');
-      return withRequestId(ErrorHandler.serverError(err), requestId);
-    }
-  }, { required: true });
+    },
+    { required: true },
+  );
 }

@@ -20,7 +20,7 @@ on:
 
 permissions:
   contents: read
-  security-events: write   # needed to upload SARIF to GitHub Security
+  security-events: write # needed to upload SARIF to GitHub Security
 
 env:
   IMAGE_NAME: stellar-spend

@@ -32,10 +32,10 @@ DB_STATEMENT_TIMEOUT=30000   # Statement timeout in ms (default: 30s)
 ### Usage
 
 ```typescript
-import { pool, getPoolMetrics, closePool } from "@/lib/db/client";
+import { pool, getPoolMetrics, closePool } from '@/lib/db/client';
 
 // Query using the pool
-const result = await pool.query("SELECT * FROM users WHERE id = $1", [userId]);
+const result = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
 
 // Get pool metrics
 const metrics = getPoolMetrics();
@@ -79,8 +79,8 @@ API response caching reduces database load and improves response times using Red
 Use the cache middleware in API routes:
 
 ```typescript
-import { withCaching, setCacheHeaders } from "@/lib/cache";
-import { CacheKey, TTL } from "@/lib/cache";
+import { withCaching, setCacheHeaders } from '@/lib/cache';
+import { CacheKey, TTL } from '@/lib/cache';
 
 export async function GET(req: NextRequest) {
   return withCaching(
@@ -116,10 +116,10 @@ The cache service implements SWR for better UX:
 3. **Expired Cache (age > ttl + swr)**: Fetch fresh data
 
 ```typescript
-import { getCachedRate } from "@/lib/cache";
+import { getCachedRate } from '@/lib/cache';
 
-const rate = await getCachedRate("NGN", async () => {
-  return fetchRate("NGN");
+const rate = await getCachedRate('NGN', async () => {
+  return fetchRate('NGN');
 });
 // Returns fresh data if available, stale data while revalidating, or fetches new data
 ```
@@ -129,10 +129,10 @@ const rate = await getCachedRate("NGN", async () => {
 Invalidate cache when data changes:
 
 ```typescript
-import { invalidateRate, invalidateQuotes, invalidateCurrencies } from "@/lib/cache";
+import { invalidateRate, invalidateQuotes, invalidateCurrencies } from '@/lib/cache';
 
 // Invalidate specific cache
-await invalidateRate("NGN");
+await invalidateRate('NGN');
 
 // Invalidate all quotes
 await invalidateQuotes();
@@ -146,7 +146,7 @@ await invalidateCurrencies();
 Monitor cache performance:
 
 ```typescript
-import { getCacheMetrics } from "@/lib/cache";
+import { getCacheMetrics } from '@/lib/cache';
 
 const metrics = getCacheMetrics();
 console.log(metrics);
@@ -208,17 +208,17 @@ import {
   preloadImage,
   lazyLoadImage,
   getImageDimensions,
-} from "@/lib/image-optimization";
+} from '@/lib/image-optimization';
 
 // Get responsive sizes for different breakpoints
 const sizes = getResponsiveSizes(1200);
 // "(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1200px"
 
 // Preload critical images
-preloadImage("/images/hero.jpg");
+preloadImage('/images/hero.jpg');
 
 // Get image dimensions for aspect ratio
-const dims = getImageDimensions("video"); // { width: 16, height: 9 }
+const dims = getImageDimensions('video'); // { width: 16, height: 9 }
 ```
 
 ### CDN Integration
@@ -364,14 +364,14 @@ import {
   observeWebVitals,
   getBundleSize,
   reportMetrics,
-} from "@/lib/performance-monitoring";
+} from '@/lib/performance-monitoring';
 
 // Record a metric
-recordMetric("custom-operation", 123, "ms");
+recordMetric('custom-operation', 123, 'ms');
 
 // Measure async operation
-const result = await measureAsync("api-call", async () => {
-  return fetch("/api/data").then((r) => r.json());
+const result = await measureAsync('api-call', async () => {
+  return fetch('/api/data').then((r) => r.json());
 });
 
 // Observe Core Web Vitals
@@ -385,7 +385,7 @@ console.log(bundleSize);
 // { total: 1234567, main: 567890, chunks: { ... } }
 
 // Report metrics to analytics
-reportMetrics("/api/metrics", getMetrics());
+reportMetrics('/api/metrics', getMetrics());
 ```
 
 ---
@@ -435,12 +435,12 @@ DEBUG=stellar-spend:* npm run dev
 ### Check Performance Metrics
 
 ```typescript
-import { getMetrics, getCacheMetrics } from "@/lib/cache";
-import { getPoolMetrics } from "@/lib/db/client";
+import { getMetrics, getCacheMetrics } from '@/lib/cache';
+import { getPoolMetrics } from '@/lib/db/client';
 
-console.log("Cache metrics:", getCacheMetrics());
-console.log("Pool metrics:", getPoolMetrics());
-console.log("Performance metrics:", getMetrics());
+console.log('Cache metrics:', getCacheMetrics());
+console.log('Pool metrics:', getPoolMetrics());
+console.log('Performance metrics:', getMetrics());
 ```
 
 ### Use Chrome DevTools

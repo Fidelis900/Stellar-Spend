@@ -48,10 +48,7 @@ export function successResponse<T>(data: T, status = 200): NextResponse<SuccessE
 /**
  * Make an API request with error handling and timeout.
  */
-export async function apiRequest<T>(
-  endpoint: string,
-  options: ApiRequestOptions = {}
-): Promise<T> {
+export async function apiRequest<T>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> {
   const { timeout = 30000, ...fetchOptions } = options;
 
   const controller = new AbortController();
@@ -64,11 +61,11 @@ export async function apiRequest<T>(
     });
 
     if (!response.ok) {
-      const data = await response.json().catch(() => ({})) as Record<string, unknown>;
+      const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
       throw new Error((data['error'] as string | undefined) ?? `HTTP ${response.status}`);
     }
 
-    return await response.json() as T;
+    return (await response.json()) as T;
   } finally {
     clearTimeout(timeoutId);
   }
@@ -81,7 +78,7 @@ export async function apiGet<T>(endpoint: string, options?: ApiRequestOptions): 
 export async function apiPost<T>(
   endpoint: string,
   body?: unknown,
-  options?: ApiRequestOptions
+  options?: ApiRequestOptions,
 ): Promise<T> {
   return apiRequest<T>(endpoint, {
     ...options,
@@ -97,7 +94,7 @@ export async function apiPost<T>(
 export async function apiPut<T>(
   endpoint: string,
   body?: unknown,
-  options?: ApiRequestOptions
+  options?: ApiRequestOptions,
 ): Promise<T> {
   return apiRequest<T>(endpoint, {
     ...options,

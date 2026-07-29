@@ -16,9 +16,7 @@ export async function POST(req: NextRequest) {
     logger.info('cron.scan-stalls.start', {});
 
     const transactions = await dal.getByUser('*').catch(() => []);
-    const allTransactions = transactions.length > 0
-      ? transactions
-      : [];
+    const allTransactions = transactions.length > 0 ? transactions : [];
 
     const stallResults = await scanStalledTransactions(allTransactions);
 

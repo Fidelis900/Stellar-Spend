@@ -1,13 +1,13 @@
-<<<<<<< HEAD
 import { logger } from '@/lib/logger';
 import { NextResponse, type NextRequest } from 'next/server';
 import { env } from '@/lib/env';
-import { validateAmount } from '@/lib/offramp/utils/validation';
 import { fetchPaycrestQuote, buildQuote, calculateBridgeAmount } from '@/lib/offramp/utils/quote-fetcher';
 import { ErrorHandler } from '@/lib/error-handler';
 import { withAllbridgeTimeout } from '@/lib/offramp/utils/timeout';
 import { isSupportedCurrency } from '@/lib/currencies';
 import { screenAddress } from '@/lib/compliance-screening';
+import { quoteRouteSchema, formatZodErrors } from '@/lib/validators/schemas';
+import { ApiError, ErrorType } from '@/lib/error-types';
 
 export const maxDuration = 20;
 
@@ -22,9 +22,29 @@ const FEE_METHOD_MAP: Record<string, 'stablecoin' | 'native'> = {
 };
 
 export async function POST(request: NextRequest) {
+  let rawBody: unknown;
   try {
-    const body = await request.json();
-    const { amount, currency, feeMethod, sourceAddress } = body;
+    rawBody = await request.json();
+  } catch {
+    return ErrorHandler.validation('Invalid JSON body');
+  }
+
+  const parsed = quoteRouteSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    const errors = formatZodErrors(parsed.error);
+    return ErrorHandler.handle(
+      new ApiError(ErrorType.VALIDATION, errors[0].message, 400, { errors }),
+    );
+  }
+
+  const { amount, currency, feeMethod, sourceAddress } = parsed.data;
+
+  try {
+    if (!isSupportedCurrency(currency)) {
+      return ErrorHandler.handle(
+        new ApiError(ErrorType.VALIDATION, `Unsupported currency: ${currency}`, 400),
+      );
+    }
 
     if (sourceAddress) {
       const screeningResult = await screenAddress({
@@ -41,49 +61,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (!validateAmount(String(amount ?? ''))) {
-      return NextResponse.json(
-        { error: 'Invalid amount: must be a positive number' },
-=======
-import { NextRequest, NextResponse } from 'next/server';
-import { getQuote, type QuoteRequest } from '@/lib/quote-aggregator';
-
-/**
- * POST /api/offramp/quote
- * 
- * Get exchange rate quote with caching
- * Implements stale-while-revalidate for responsive UX
- */
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const { amount, currency, feeMethod = 'USDC' } = body;
-
-    if (!amount || !currency) {
-      return NextResponse.json(
-        { error: 'Missing required fields: amount, currency' },
->>>>>>> de69014 (security+perf: pentest checklist, performance budgets, RSC streaming, cache tuning (#697 #698 #699 #700))
-        { status: 400 }
-      );
-    }
-
-<<<<<<< HEAD
-    if (!currency || typeof currency !== 'string') {
-      return NextResponse.json({ error: 'currency is required' }, { status: 400 });
-    }
-
-    if (!isSupportedCurrency(currency)) {
-      return NextResponse.json({ error: `Unsupported currency: ${currency}` }, { status: 400 });
-    }
-
     const normalizedFee = FEE_METHOD_MAP[feeMethod];
-    if (!normalizedFee) {
-      return NextResponse.json(
-        { error: 'feeMethod must be "USDC", "XLM", "stablecoin", or "native"' },
-        { status: 400 }
-      );
-    }
-
     const bridgeAmount = normalizedFee === 'stablecoin'
       ? calculateBridgeAmount(String(amount), 'stablecoin', STABLECOIN_FEE)
       : String(amount);
@@ -108,8 +86,10 @@ export async function POST(req: NextRequest) {
 
       for (const [, chain] of Object.entries(chainDetails)) {
         const c = chain as any;
-        if (c.name?.toLowerCase().includes('stellar') || c.name?.toLowerCase().includes('soroban')) stellarChain = c;
-        if (c.name?.toLowerCase().includes('ethereum') || c.name?.toLowerCase().includes('base')) baseChain = c;
+        if (c.name?.toLowerCase().includes('stellar') || c.name?.toLowerCase().includes('soroban'))
+          stellarChain = c;
+        if (c.name?.toLowerCase().includes('ethereum') || c.name?.toLowerCase().includes('base'))
+          baseChain = c;
       }
 
       if (!stellarChain || !baseChain) throw new Error('Chain details unavailable');
@@ -119,7 +99,10 @@ export async function POST(req: NextRequest) {
 
       if (!stellarUsdc || !baseUsdc) throw new Error('USDC token not found');
 
-      receiveAmount = await sdk.getAmountToBeReceived(bridgeAmount, stellarUsdc, baseUsdc);
+      receiveAmount = await withAllbridgeTimeout(
+        sdk.getAmountToBeReceived(bridgeAmount, stellarUsdc, baseUsdc),
+        'getAmountToBeReceived',
+      );
     } catch {
       return NextResponse.json({ error: 'Bridge quote unavailable' }, { status: 502 });
     }
@@ -136,29 +119,11 @@ export async function POST(req: NextRequest) {
     const quote = buildQuote(destinationAmount, rate, currency, '0', '0', 300);
     return NextResponse.json(quote);
   } catch (error) {
-    logger.error('Quote fetch error:', {}, error);
+    logger.error('Quote fetch error', {}, error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     if (message.includes('Invalid') || message.includes('less than')) {
-      return NextResponse.json({ error: message }, { status: 400 });
+      return ErrorHandler.handle(new ApiError(ErrorType.VALIDATION, message, 400));
     }
-    return NextResponse.json({ error: 'Failed to generate quote' }, { status: 500 });
-=======
-    const quoteRequest: QuoteRequest = {
-      amount,
-      sourceCurrency: 'USDC',
-      destinationCurrency: currency,
-      feeMethod,
-    };
-
-    const quote = await getQuote(quoteRequest);
-
-    return NextResponse.json(quote);
-  } catch (error) {
-    console.error('[Quote API] Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch quote' },
-      { status: 500 }
-    );
->>>>>>> de69014 (security+perf: pentest checklist, performance budgets, RSC streaming, cache tuning (#697 #698 #699 #700))
+    return ErrorHandler.serverError(error);
   }
 }

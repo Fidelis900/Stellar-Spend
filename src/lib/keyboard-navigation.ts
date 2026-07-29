@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback } from 'react';
 
 interface FocusTrapOptions {
   initialFocus?: HTMLElement | null;
@@ -24,7 +24,7 @@ export function useFocusTrap(options: FocusTrapOptions = {}) {
 
     // Get all focusable elements
     const focusableElements = containerRef.current.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     );
 
     const firstElement = focusableElements[0] as HTMLElement;
@@ -37,7 +37,7 @@ export function useFocusTrap(options: FocusTrapOptions = {}) {
 
     // Handle Tab key to trap focus
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== "Tab") return;
+      if (e.key !== 'Tab') return;
 
       if (e.shiftKey) {
         // Shift + Tab
@@ -54,10 +54,10 @@ export function useFocusTrap(options: FocusTrapOptions = {}) {
       }
     };
 
-    containerRef.current.addEventListener("keydown", handleKeyDown);
+    containerRef.current.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      containerRef.current?.removeEventListener("keydown", handleKeyDown);
+      containerRef.current?.removeEventListener('keydown', handleKeyDown);
       if (returnFocus && previousActiveElement.current) {
         previousActiveElement.current.focus();
       }
@@ -86,12 +86,16 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcutConfig[], enable
 
       // Don't trigger shortcuts when typing in form fields
       const target = e.target as HTMLElement;
-      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT") {
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.tagName === 'SELECT'
+      ) {
         return;
       }
       if (target.isContentEditable) return;
 
-      const isMac = navigator.platform.toUpperCase().includes("MAC");
+      const isMac = navigator.platform.toUpperCase().includes('MAC');
       const ctrlOrCmd = isMac ? e.metaKey : e.ctrlKey;
 
       for (const shortcut of shortcuts) {
@@ -107,13 +111,13 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcutConfig[], enable
         }
       }
     },
-    [enabled, shortcuts]
+    [enabled, shortcuts],
   );
 
   useEffect(() => {
     if (!enabled) return;
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [enabled, handleKeyDown]);
 }
 
@@ -149,12 +153,15 @@ export function focusPreviousElement(container: HTMLElement, currentElement: HTM
 /**
  * Utility to announce messages to screen readers
  */
-export function announceToScreenReader(message: string, priority: "polite" | "assertive" = "polite"): void {
-  const announcement = document.createElement("div");
-  announcement.setAttribute("role", "status");
-  announcement.setAttribute("aria-live", priority);
-  announcement.setAttribute("aria-atomic", "true");
-  announcement.className = "sr-only";
+export function announceToScreenReader(
+  message: string,
+  priority: 'polite' | 'assertive' = 'polite',
+): void {
+  const announcement = document.createElement('div');
+  announcement.setAttribute('role', 'status');
+  announcement.setAttribute('aria-live', priority);
+  announcement.setAttribute('aria-atomic', 'true');
+  announcement.className = 'sr-only';
   announcement.textContent = message;
   document.body.appendChild(announcement);
 

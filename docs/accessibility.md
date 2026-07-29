@@ -21,19 +21,19 @@ For a higher-level audit of features already implemented, see [`ACCESSIBILITY.md
 
 WCAG groups requirements into four principles — **Perceivable, Operable, Understandable, Robust** (POUR). The Level AA criteria most often missed in PRs:
 
-| Criterion | What it means in practice |
-|---|---|
+| Criterion                    | What it means in practice                                                           |
+| ---------------------------- | ----------------------------------------------------------------------------------- |
 | 1.3.1 Info and Relationships | Use semantic HTML (`<button>`, `<nav>`, `<main>`) so structure survives without CSS |
-| 1.4.3 Contrast (Minimum) | Text ≥ 4.5:1, large text ≥ 3:1, UI components ≥ 3:1 |
-| 1.4.10 Reflow | Layout works at 320 px width with no horizontal scroll |
-| 1.4.11 Non-text Contrast | Borders, focus rings, icons all ≥ 3:1 against their background |
-| 2.1.1 Keyboard | Every interactive element reachable and operable with keyboard only |
-| 2.4.3 Focus Order | Tab order matches visual order |
-| 2.4.7 Focus Visible | Focused element has a clearly visible indicator |
-| 2.5.3 Label in Name | Visible label is contained in the accessible name |
-| 3.3.2 Labels or Instructions | Every form field has a label |
-| 4.1.2 Name, Role, Value | Custom components expose the same info native ones do |
-| 4.1.3 Status Messages | Status changes announce via `aria-live` |
+| 1.4.3 Contrast (Minimum)     | Text ≥ 4.5:1, large text ≥ 3:1, UI components ≥ 3:1                                 |
+| 1.4.10 Reflow                | Layout works at 320 px width with no horizontal scroll                              |
+| 1.4.11 Non-text Contrast     | Borders, focus rings, icons all ≥ 3:1 against their background                      |
+| 2.1.1 Keyboard               | Every interactive element reachable and operable with keyboard only                 |
+| 2.4.3 Focus Order            | Tab order matches visual order                                                      |
+| 2.4.7 Focus Visible          | Focused element has a clearly visible indicator                                     |
+| 2.5.3 Label in Name          | Visible label is contained in the accessible name                                   |
+| 3.3.2 Labels or Instructions | Every form field has a label                                                        |
+| 4.1.2 Name, Role, Value      | Custom components expose the same info native ones do                               |
+| 4.1.3 Status Messages        | Status changes announce via `aria-live`                                             |
 
 ## Keyboard Navigation
 
@@ -45,13 +45,13 @@ WCAG groups requirements into four principles — **Perceivable, Operable, Under
 
 ### Keyboard shortcuts in use
 
-| Key | Action | Context |
-|---|---|---|
-| `Tab` / `Shift+Tab` | Move focus | Global |
-| `Enter` | Submit form / activate link | Form / link |
-| `Space` | Activate button / toggle checkbox | Button / checkbox |
-| `Escape` | Close modal | Modal in terminal state |
-| `Arrow` keys | Move within composite widgets | Menus, tablists, listboxes |
+| Key                 | Action                            | Context                    |
+| ------------------- | --------------------------------- | -------------------------- |
+| `Tab` / `Shift+Tab` | Move focus                        | Global                     |
+| `Enter`             | Submit form / activate link       | Form / link                |
+| `Space`             | Activate button / toggle checkbox | Button / checkbox          |
+| `Escape`            | Close modal                       | Modal in terminal state    |
+| `Arrow` keys        | Move within composite widgets     | Menus, tablists, listboxes |
 
 When you add a new shortcut, document it here and ensure it does not collide with browser defaults (`Ctrl+F`, `Ctrl+L`, etc.).
 
@@ -103,20 +103,20 @@ Theme tokens live in `src/app/globals.css:3` and meet AA at the defined defaults
 
 ### Dark theme (default)
 
-| Token | Value | Contrast vs `--bg` |
-|---|---|---|
-| `--text` | `#ffffff` | 21:1 |
-| `--muted` | `#777777` | 4.6:1 |
-| `--accent` | `#c9a962` | 7.8:1 |
-| `--line` | `#333333` | 3.0:1 (UI only) |
+| Token      | Value     | Contrast vs `--bg` |
+| ---------- | --------- | ------------------ |
+| `--text`   | `#ffffff` | 21:1               |
+| `--muted`  | `#777777` | 4.6:1              |
+| `--accent` | `#c9a962` | 7.8:1              |
+| `--line`   | `#333333` | 3.0:1 (UI only)    |
 
 ### Light theme
 
-| Token | Value | Contrast vs `--bg` |
-|---|---|---|
-| `--text` | `#0a0a0a` | 21:1 |
-| `--muted` | `#666666` | 5.7:1 |
-| `--accent` | `#b8922e` | 8.1:1 |
+| Token      | Value     | Contrast vs `--bg` |
+| ---------- | --------- | ------------------ |
+| `--text`   | `#0a0a0a` | 21:1               |
+| `--muted`  | `#666666` | 5.7:1              |
+| `--accent` | `#b8922e` | 8.1:1              |
 
 ### High-contrast theme
 
@@ -189,11 +189,11 @@ Respect `prefers-reduced-motion`. The global CSS already neutralises animations 
 
 ### Automated
 
-| Tool | Where it runs | What it catches |
-|---|---|---|
-| `axe-core` / `@axe-core/playwright` | E2E suite | Most static rule violations |
-| Lighthouse a11y | Manual + CI | Heuristic score, common WCAG issues |
-| `eslint-plugin-jsx-a11y` | Lint | Static patterns: missing alt, bad role usage |
+| Tool                                | Where it runs | What it catches                              |
+| ----------------------------------- | ------------- | -------------------------------------------- |
+| `axe-core` / `@axe-core/playwright` | E2E suite     | Most static rule violations                  |
+| Lighthouse a11y                     | Manual + CI   | Heuristic score, common WCAG issues          |
+| `eslint-plugin-jsx-a11y`            | Lint          | Static patterns: missing alt, bad role usage |
 
 Automated tests catch about 30–40% of real issues. **Manual testing is mandatory** for any UI change.
 
@@ -220,10 +220,10 @@ Test in the latest two versions of:
 Add `axe` assertions to new Playwright specs. Example:
 
 ```ts
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from '@axe-core/playwright';
 
-test("dashboard has no a11y violations", async ({ page }) => {
-  await page.goto("/dashboard");
+test('dashboard has no a11y violations', async ({ page }) => {
+  await page.goto('/dashboard');
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
 });

@@ -149,7 +149,9 @@ function TermsModal({ onClose }: TermsModalProps) {
 
         <div className="flex flex-col gap-4 text-xs text-[#aaaaaa] leading-relaxed">
           <section>
-            <h3 className="text-[10px] tracking-widest uppercase text-[#c9a962] mb-2">{t('insurance.coverage')}</h3>
+            <h3 className="text-[10px] tracking-widest uppercase text-[#c9a962] mb-2">
+              {t('insurance.coverage')}
+            </h3>
             <p>
               Transaction insurance covers up to 110% of the insured transaction amount in the event
               of a verified loss. Coverage applies to failed, reversed, or fraudulent transactions
@@ -158,7 +160,9 @@ function TermsModal({ onClose }: TermsModalProps) {
           </section>
 
           <section>
-            <h3 className="text-[10px] tracking-widest uppercase text-[#c9a962] mb-2">{t('insurance.premium')}</h3>
+            <h3 className="text-[10px] tracking-widest uppercase text-[#c9a962] mb-2">
+              {t('insurance.premium')}
+            </h3>
             <p>
               The premium is calculated based on transaction amount, currency risk profile, and
               provider tier. Premiums are non-refundable once a transaction is submitted. High-value
@@ -178,7 +182,9 @@ function TermsModal({ onClose }: TermsModalProps) {
           </section>
 
           <section>
-            <h3 className="text-[10px] tracking-widest uppercase text-[#c9a962] mb-2">Exclusions</h3>
+            <h3 className="text-[10px] tracking-widest uppercase text-[#c9a962] mb-2">
+              Exclusions
+            </h3>
             <ul className="list-disc list-inside space-y-1">
               <li>Transactions cancelled by the user</li>
               <li>Losses due to user error (wrong account, wrong amount)</li>
@@ -307,7 +313,9 @@ export function InsuranceOption({
       <div
         className={cn(
           'border transition-colors duration-150',
-          enabled ? 'border-[#c9a962] bg-[#c9a962]/5 shadow-[inset_0_0_20px_rgba(201,169,98,0.05)]' : 'border-[#333333] bg-[#0a0a0a]',
+          enabled
+            ? 'border-[#c9a962] bg-[#c9a962]/5 shadow-[inset_0_0_20px_rgba(201,169,98,0.05)]'
+            : 'border-[#333333] bg-[#0a0a0a]',
           isDisabled && 'opacity-50 cursor-not-allowed',
         )}
         role="group"
@@ -351,9 +359,7 @@ export function InsuranceOption({
               >
                 {t('insurance.title')}
               </p>
-              <p className="text-xs text-[#777777] mt-0.5">
-                {t('insurance.description')}
-              </p>
+              <p className="text-xs text-[#777777] mt-0.5">{t('insurance.description')}</p>
             </div>
           </div>
 
@@ -376,7 +382,9 @@ export function InsuranceOption({
           <div className="border-t border-[#222222] px-4 py-3 flex flex-col gap-2 bg-[#0d0d0d]">
             {/* Provider tier badge */}
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] tracking-widest uppercase text-[#777777]">{t('insurance.provider')}</span>
+              <span className="text-[10px] tracking-widest uppercase text-[#777777]">
+                {t('insurance.provider')}
+              </span>
               <span
                 className={cn(
                   'text-[10px] tracking-widest uppercase px-2 py-0.5 border font-bold',
@@ -405,7 +413,9 @@ export function InsuranceOption({
 
             {/* Premium */}
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] tracking-widest uppercase text-[#777777]">{t('insurance.premium')}</span>
+              <span className="text-[10px] tracking-widest uppercase text-[#777777]">
+                {t('insurance.premium')}
+              </span>
               <div className="text-right">
                 <div className="text-xs text-white tabular-nums font-bold">
                   {formatAmount(quote.premium)} USDC
@@ -418,7 +428,9 @@ export function InsuranceOption({
 
             {/* Coverage */}
             <div className="flex items-center justify-between gap-2 pt-1">
-              <span className="text-[10px] tracking-widest uppercase text-[#777777]">{t('insurance.coverage')}</span>
+              <span className="text-[10px] tracking-widest uppercase text-[#777777]">
+                {t('insurance.coverage')}
+              </span>
               <span className="text-xs text-[#4ade80] tabular-nums font-black">
                 Up to {formatAmount(quote.coverage)} USDC
               </span>
@@ -459,4 +471,3 @@ export function InsuranceOption({
     </>
   );
 }
-

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { cn } from "@/lib/cn";
-import type { UseSyncSettingsReturn } from "@/hooks/useSyncSettings";
-import { SectionHeader } from "./SectionHeader";
+import { cn } from '@/lib/cn';
+import type { UseSyncSettingsReturn } from '@/hooks/useSyncSettings';
+import { SectionHeader } from './SectionHeader';
 
 interface PrivacySyncSettingsProps {
   sync: UseSyncSettingsReturn;
@@ -28,7 +28,7 @@ export function PrivacySyncSettings({ sync }: PrivacySyncSettingsProps) {
                 from a different device.
               </p>
               <p className="text-xs text-[#555]">
-                Status: {sync.syncStatus.isPending ? "Syncing..." : "Ready"}
+                Status: {sync.syncStatus.isPending ? 'Syncing...' : 'Ready'}
                 {sync.syncStatus.lastSyncAt > 0 && (
                   <span> • Last synced: {sync.syncStatus.formattedLastSync}</span>
                 )}
@@ -38,13 +38,13 @@ export function PrivacySyncSettings({ sync }: PrivacySyncSettingsProps) {
               onClick={() => sync.toggleSync(!sync.settings.syncEnabled)}
               disabled={sync.loading}
               className={cn(
-                "px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all rounded",
+                'px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all rounded',
                 sync.settings.syncEnabled
-                  ? "bg-red-900/30 border border-red-700 text-red-400 hover:bg-red-900/50"
-                  : "bg-[#c9a962]/20 border border-[#c9a962] text-[#c9a962] hover:bg-[#c9a962]/30",
+                  ? 'bg-red-900/30 border border-red-700 text-red-400 hover:bg-red-900/50'
+                  : 'bg-[#c9a962]/20 border border-[#c9a962] text-[#c9a962] hover:bg-[#c9a962]/30',
               )}
             >
-              {sync.loading ? "Updating..." : sync.settings.syncEnabled ? "Disable" : "Enable"}
+              {sync.loading ? 'Updating...' : sync.settings.syncEnabled ? 'Disable' : 'Enable'}
             </button>
           </div>
 
@@ -71,7 +71,7 @@ export function PrivacySyncSettings({ sync }: PrivacySyncSettingsProps) {
             </div>
             <div className="p-4 bg-[#111] border border-[#222] rounded">
               <p className="text-[#777] uppercase tracking-widest mb-2">Pending</p>
-              <p className="text-white font-bold">{sync.syncStatus.isPending ? "Yes" : "No"}</p>
+              <p className="text-white font-bold">{sync.syncStatus.isPending ? 'Yes' : 'No'}</p>
             </div>
           </div>
         </div>

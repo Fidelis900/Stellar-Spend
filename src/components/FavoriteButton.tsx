@@ -55,7 +55,7 @@ export function FavoriteButton({
           'p-1 transition-colors',
           favorite
             ? 'text-yellow-500 hover:text-yellow-600'
-            : 'text-[#666666] hover:text-[#999999]'
+            : 'text-[#666666] hover:text-[#999999]',
         )}
         title={favorite ? 'Remove from favorites' : 'Add to favorites'}
         aria-pressed={favorite}

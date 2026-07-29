@@ -104,9 +104,7 @@ export class TransactionPriorityQueue {
   }
 
   getAll(): ReadonlyArray<QueuedTransaction> {
-    return [...this.heap].sort((a, b) =>
-      this.compare(a, b) ? -1 : this.compare(b, a) ? 1 : 0,
-    );
+    return [...this.heap].sort((a, b) => (this.compare(a, b) ? -1 : this.compare(b, a) ? 1 : 0));
   }
 
   enqueue(tx: Omit<QueuedTransaction, 'enqueuedAt' | 'attempts'>): void {
@@ -131,8 +129,7 @@ export class TransactionPriorityQueue {
     const waitMs = Date.now() - top.enqueuedAt;
     this.waitTimes.push(waitMs);
     if (this.waitTimes.length > 100) this.waitTimes.shift();
-    this.metrics.avgWaitMs =
-      this.waitTimes.reduce((a, b) => a + b, 0) / this.waitTimes.length;
+    this.metrics.avgWaitMs = this.waitTimes.reduce((a, b) => a + b, 0) / this.waitTimes.length;
     return top;
   }
 
@@ -224,7 +221,10 @@ export class DeliveryRetryQueue {
   push(record: DeliveryRecord): void {
     if (!hasRemainingAttempts(record)) {
       this.metrics.totalExhausted++;
-      logger.warn('delivery_retry.exhausted', { deliveryId: record.id, destinationUrl: record.destinationUrl });
+      logger.warn('delivery_retry.exhausted', {
+        deliveryId: record.id,
+        destinationUrl: record.destinationUrl,
+      });
       return;
     }
 
@@ -237,14 +237,18 @@ export class DeliveryRetryQueue {
       attemptCount: record.attemptCount,
       maxAttempts: record.maxAttempts,
       nextAttemptAt,
-      lastError: record.attempts.length > 0 ? record.attempts[record.attempts.length - 1].errorType : undefined,
+      lastError:
+        record.attempts.length > 0
+          ? record.attempts[record.attempts.length - 1].errorType
+          : undefined,
       enqueuedAt: Date.now(),
     };
 
     this.retries.set(record.id, state);
     this.metrics.activeRetries = this.retries.size;
     this.metrics.totalRetried++;
-    this.metrics.byDestination[record.destinationUrl] = (this.metrics.byDestination[record.destinationUrl] ?? 0) + 1;
+    this.metrics.byDestination[record.destinationUrl] =
+      (this.metrics.byDestination[record.destinationUrl] ?? 0) + 1;
   }
 
   poll(): DeliveryRetryState[] {

@@ -13,6 +13,8 @@ export async function GET(req: NextRequest) {
     const analytics = await disputeRepository.getAnalytics();
     return NextResponse.json(analytics);
   } catch {
-    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to fetch dispute analytics'));
+    return ErrorHandler.handle(
+      new ApiError(ErrorType.SERVER_ERROR, 'Failed to fetch dispute analytics'),
+    );
   }
 }

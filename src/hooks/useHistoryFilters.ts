@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   DEFAULT_FILTERS,
   FILTERS_STORAGE_KEY,
@@ -13,13 +13,9 @@ import {
   toServiceFilters,
   type Filters,
   type SortField,
-} from "@/app/history/filters";
-import {
-  FILTER_PRESETS,
-  SavedViewsStorage,
-  type SavedView,
-} from "@/lib/saved-views";
-import type { SearchFilters } from "@/lib/transaction-search";
+} from '@/app/history/filters';
+import { FILTER_PRESETS, SavedViewsStorage, type SavedView } from '@/lib/saved-views';
+import type { SearchFilters } from '@/lib/transaction-search';
 
 export interface UseHistoryFiltersResult {
   filters: Filters;
@@ -84,8 +80,7 @@ export function useHistoryFilters(): UseHistoryFiltersResult {
       setFilters((prev) => ({
         ...prev,
         sortField: field,
-        sortDir:
-          prev.sortField === field && prev.sortDir === "desc" ? "asc" : "desc",
+        sortDir: prev.sortField === field && prev.sortDir === 'desc' ? 'asc' : 'desc',
       })),
     [],
   );

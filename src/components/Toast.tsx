@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useToast } from "@/contexts/ToastContext";
+import { useToast } from '@/contexts/ToastContext';
 
 export function ToastContainer() {
   const { toasts, removeToast } = useToast();
@@ -21,13 +21,13 @@ export function ToastContainer() {
             pointer-events-auto px-4 py-3 rounded border min-w-[300px] max-w-[400px]
             animate-scale-in shadow-lg backdrop-blur-sm
             ${
-              toast.type === "success"
-                ? "bg-green-900/80 border-green-600 text-green-100"
-                : toast.type === "error"
-                ? "bg-red-900/80 border-red-600 text-red-100"
-                : toast.type === "warning"
-                ? "bg-yellow-900/80 border-yellow-600 text-yellow-100"
-                : "bg-panel/80 border-line text-text"
+              toast.type === 'success'
+                ? 'bg-green-900/80 border-green-600 text-green-100'
+                : toast.type === 'error'
+                  ? 'bg-red-900/80 border-red-600 text-red-100'
+                  : toast.type === 'warning'
+                    ? 'bg-yellow-900/80 border-yellow-600 text-yellow-100'
+                    : 'bg-panel/80 border-line text-text'
             }
           `}
           role="alert"

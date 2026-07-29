@@ -27,11 +27,11 @@ export interface ConflictRecord {
 export function mergeTransactionHistories(
   local: Transaction[],
   server: Transaction[],
-  conflictResolutionStrategy: 'last-write-wins' = 'last-write-wins'
+  conflictResolutionStrategy: 'last-write-wins' = 'last-write-wins',
 ): MergeResult {
   const conflicts: ConflictRecord[] = [];
-  const localMap = new Map(local.map(tx => [tx.id, tx]));
-  const serverMap = new Map(server.map(tx => [tx.id, tx]));
+  const localMap = new Map(local.map((tx) => [tx.id, tx]));
+  const serverMap = new Map(server.map((tx) => [tx.id, tx]));
   const merged = new Map<string, Transaction>();
 
   // Process all transactions from both sources
@@ -50,7 +50,7 @@ export function mergeTransactionHistories(
     } else {
       // Both exist - resolve conflict using last-write-wins
       const resolvedTx = resolveConflict(localTx, serverTx, conflictResolutionStrategy);
-      
+
       // Record the conflict for audit trail
       if (resolvedTx.winner === 'server') {
         conflicts.push({
@@ -95,7 +95,7 @@ interface ResolveResult {
 function resolveConflict(
   local: Transaction,
   server: Transaction,
-  strategy: 'last-write-wins'
+  strategy: 'last-write-wins',
 ): ResolveResult {
   if (strategy !== 'last-write-wins') {
     throw new Error(`Unknown conflict resolution strategy: ${strategy}`);
@@ -136,14 +136,14 @@ function resolveConflict(
  */
 function mergeArraysUnique<T extends { id: string }>(
   arr1: T[] | undefined,
-  arr2: T[] | undefined
+  arr2: T[] | undefined,
 ): T[] | undefined {
   if (!arr1 && !arr2) return undefined;
   if (!arr1) return arr2;
   if (!arr2) return arr1;
 
-  const map = new Map(arr2.map(item => [item.id, item]));
-  arr1.forEach(item => map.set(item.id, item));
+  const map = new Map(arr2.map((item) => [item.id, item]));
+  arr1.forEach((item) => map.set(item.id, item));
   return Array.from(map.values());
 }
 
@@ -153,14 +153,14 @@ function mergeArraysUnique<T extends { id: string }>(
  */
 export function findDifferences(
   local: Transaction[],
-  server: Transaction[]
+  server: Transaction[],
 ): {
   onlyLocal: Transaction[];
   onlyServer: Transaction[];
   modified: Array<{ local: Transaction; server: Transaction }>;
 } {
-  const localMap = new Map(local.map(tx => [tx.id, tx]));
-  const serverMap = new Map(server.map(tx => [tx.id, tx]));
+  const localMap = new Map(local.map((tx) => [tx.id, tx]));
+  const serverMap = new Map(server.map((tx) => [tx.id, tx]));
 
   const onlyLocal: Transaction[] = [];
   const onlyServer: Transaction[] = [];

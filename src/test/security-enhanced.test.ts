@@ -17,7 +17,7 @@ describe('Enhanced Security Tests', () => {
     it('should validate numeric inputs before SQL queries', () => {
       const validAmount = '100.50';
       const invalidAmount = "100'; DROP TABLE--";
-      
+
       expect(isValidSQLNumeric(validAmount)).toBe(true);
       expect(isValidSQLNumeric(invalidAmount)).toBe(false);
     });

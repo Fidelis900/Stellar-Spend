@@ -1,7 +1,10 @@
 import { createValidationError, createValidationResult, type ValidationResult } from './types';
 import { ValidationService } from './service';
 
-export function validateAddressLegacy(address: string, chain: 'stellar' | 'base'): ValidationResult {
+export function validateAddressLegacy(
+  address: string,
+  chain: 'stellar' | 'base',
+): ValidationResult {
   if (chain === 'stellar') {
     const result = ValidationService.validateStellarAddress(address);
     return {

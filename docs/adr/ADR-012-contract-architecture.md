@@ -18,7 +18,7 @@ Three specific ambiguities motivated this ADR:
 
 This ADR records the intended boundaries, the actual (as-built) call flow, and the upgrade strategy — so that future work either follows the boundary or changes it deliberately.
 
-Related prior decisions: [ADR-008](./ADR-008-soroban-escrow-trust-model.md) records *why* escrow uses a time-locked dual-authority trust model. This ADR records *where each responsibility lives*; it does not restate the trust model.
+Related prior decisions: [ADR-008](./ADR-008-soroban-escrow-trust-model.md) records _why_ escrow uses a time-locked dual-authority trust model. This ADR records _where each responsibility lives_; it does not restate the trust model.
 
 ---
 
@@ -28,16 +28,16 @@ Related prior decisions: [ADR-008](./ADR-008-soroban-escrow-trust-model.md) reco
 
 Each contract owns exactly one concern, and that concern is defined by **what state it is the source of truth for** — not by which flow calls it.
 
-| Contract | Sole responsibility | Authoritative state | Must NOT own |
-|---|---|---|---|
-| `escrow` | Custody lifecycle of a single user deposit | `deposits: Map<String, EscrowDeposit>`, per-deposit `timeout_ledger` | Fee rates, signer sets, treasury addresses |
-| `treasury` | Fee **policy** — the tiered schedule and the payout destination | `fee_schedule: Map<i128, u32>`, `treasury` address, `admin` | Custody of funds, signature collection |
-| `multisig-authority` | Authorisation **quorum** — who may approve a high-value action | `signers`, `threshold`, `hv_limit`, `proposals` | Fee math, deposit state |
-| `fee-manager` | Stateless fee **arithmetic** + the operational pause switch | `paused`, `admin`, `VERSION` | Fee policy (rates come from the caller) |
+| Contract             | Sole responsibility                                             | Authoritative state                                                  | Must NOT own                               |
+| -------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------ |
+| `escrow`             | Custody lifecycle of a single user deposit                      | `deposits: Map<String, EscrowDeposit>`, per-deposit `timeout_ledger` | Fee rates, signer sets, treasury addresses |
+| `treasury`           | Fee **policy** — the tiered schedule and the payout destination | `fee_schedule: Map<i128, u32>`, `treasury` address, `admin`          | Custody of funds, signature collection     |
+| `multisig-authority` | Authorisation **quorum** — who may approve a high-value action  | `signers`, `threshold`, `hv_limit`, `proposals`                      | Fee math, deposit state                    |
+| `fee-manager`        | Stateless fee **arithmetic** + the operational pause switch     | `paused`, `admin`, `VERSION`                                         | Fee policy (rates come from the caller)    |
 
 The `treasury` / `fee-manager` split is the one most at risk of being collapsed, so state it plainly:
 
-> **`treasury` decides *what* the rate is. `fee-manager` computes *the number* given a rate.**
+> **`treasury` decides _what_ the rate is. `fee-manager` computes _the number_ given a rate.**
 
 `treasury::get_fee_for_amount` is a policy lookup against the tiered schedule. `fee-manager::calculate_fee(amount, fee_rate)` takes the rate as an argument and is deliberately ignorant of tiers. Keeping them apart means the pause switch and the arithmetic can be upgraded without touching the fee schedule (and therefore without an admin re-signing the schedule), and the schedule can be re-tiered without redeploying the arithmetic.
 
@@ -47,25 +47,25 @@ The `treasury` / `fee-manager` split is the one most at risk of being collapsed,
 
 Every state-mutating entry point declares its own auth. There is no shared auth contract and no ambient admin.
 
-| Contract | Function | `require_auth()` on | Additional gate |
-|---|---|---|---|
-| `escrow` | `init` | `settlement_authority` | — |
-| `escrow` | `deposit` | `depositor` | `amount > 0` |
-| `escrow` | `release` | stored `settlement_authority` | not already released/refunded |
-| `escrow` | `refund` | **none** — permissionless | `current_ledger >= timeout_ledger`, not released/refunded |
-| `escrow` | `set_timeout` | stored `settlement_authority` | `0 < timeout <= 10_000_000` |
-| `treasury` | `init` | `admin` | — |
-| `treasury` | `set_fee_schedule` | stored `admin` | `basis_points <= MAX_SINGLE_FEE_BP` (500) |
-| `treasury` | `update_treasury` | stored `admin` | — |
-| `treasury` | `collect_fee` / `route_to_treasury` | **none** — view/event only | `amount > 0` |
-| `multisig-authority` | `propose` / `sign` / `execute` | caller, **and** caller ∈ `signers` | quorum via `required_threshold(value)` |
-| `multisig-authority` | `add_signer` / `remove_signer` / `set_threshold` | `admin`, **and** caller == stored `admin` | removal must not make quorum impossible |
-| `fee-manager` | `pause` / `unpause` / `migrate` | stored `admin` | — |
-| `fee-manager` | `calculate_fee` | **none** | fails when paused |
+| Contract             | Function                                         | `require_auth()` on                       | Additional gate                                           |
+| -------------------- | ------------------------------------------------ | ----------------------------------------- | --------------------------------------------------------- |
+| `escrow`             | `init`                                           | `settlement_authority`                    | —                                                         |
+| `escrow`             | `deposit`                                        | `depositor`                               | `amount > 0`                                              |
+| `escrow`             | `release`                                        | stored `settlement_authority`             | not already released/refunded                             |
+| `escrow`             | `refund`                                         | **none** — permissionless                 | `current_ledger >= timeout_ledger`, not released/refunded |
+| `escrow`             | `set_timeout`                                    | stored `settlement_authority`             | `0 < timeout <= 10_000_000`                               |
+| `treasury`           | `init`                                           | `admin`                                   | —                                                         |
+| `treasury`           | `set_fee_schedule`                               | stored `admin`                            | `basis_points <= MAX_SINGLE_FEE_BP` (500)                 |
+| `treasury`           | `update_treasury`                                | stored `admin`                            | —                                                         |
+| `treasury`           | `collect_fee` / `route_to_treasury`              | **none** — view/event only                | `amount > 0`                                              |
+| `multisig-authority` | `propose` / `sign` / `execute`                   | caller, **and** caller ∈ `signers`        | quorum via `required_threshold(value)`                    |
+| `multisig-authority` | `add_signer` / `remove_signer` / `set_threshold` | `admin`, **and** caller == stored `admin` | removal must not make quorum impossible                   |
+| `fee-manager`        | `pause` / `unpause` / `migrate`                  | stored `admin`                            | —                                                         |
+| `fee-manager`        | `calculate_fee`                                  | **none**                                  | fails when paused                                         |
 
 Two entries deserve emphasis because they are easy to "tighten" by accident:
 
-- **`escrow::refund` is intentionally permissionless.** It is the user's guaranteed exit path when the server is unavailable ([ADR-008](./ADR-008-soroban-escrow-trust-model.md)). Its only gate is the timeout. Adding `require_auth()` here would remove that guarantee. Note that the *funds destination* is the recorded `depositor`, so the missing auth does not let a caller redirect funds — it only lets anyone trigger the refund on the depositor's behalf.
+- **`escrow::refund` is intentionally permissionless.** It is the user's guaranteed exit path when the server is unavailable ([ADR-008](./ADR-008-soroban-escrow-trust-model.md)). Its only gate is the timeout. Adding `require_auth()` here would remove that guarantee. Note that the _funds destination_ is the recorded `depositor`, so the missing auth does not let a caller redirect funds — it only lets anyone trigger the refund on the depositor's behalf.
 - **`multisig-authority::required_threshold` returns 1 for values at or below `hv_limit`.** This is a deliberate low-value fast path, not a bug. Setting `hv_limit = 0` disables it and requires the full threshold for every value.
 
 ### 3. Cross-contract call flow
@@ -148,7 +148,7 @@ graph TD
 
 Two consequences follow, and both are load-bearing:
 
-- **Adding an on-chain call between two of these contracts is an architectural change, not a refactor.** It couples their upgrade cycles and their auth contexts (`require_auth` in a cross-contract call authorises the *invoking contract*, not the original user). Such a change needs a new ADR superseding this one.
+- **Adding an on-chain call between two of these contracts is an architectural change, not a refactor.** It couples their upgrade cycles and their auth contexts (`require_auth` in a cross-contract call authorises the _invoking contract_, not the original user). Such a change needs a new ADR superseding this one.
 - **Atomicity is off-chain.** Because fee calculation, quorum, and release are separate transactions, a failure between them leaves partial state. The escrow timeout is the backstop: an un-released deposit becomes refundable. Any new multi-step flow must have a comparable backstop.
 
 ### 4. On-chain vs off-chain multisig
@@ -172,14 +172,14 @@ This is recorded here as a known and deliberate limitation of the current implem
 
 Bump rules, per contract:
 
-| Change | Bump | Redeploy required |
-|---|---|---|
-| New entry point added | Minor | Yes |
-| Entry point signature or return type changed | Major | Yes — coordinated with server release |
-| Event topic or payload changed | Major | Yes — indexer must ship first |
-| Storage key or layout changed | Major | Yes — plus state migration |
-| Bounds/validation tightened (e.g. `MAX_SINGLE_FEE_BP`) | Minor | Yes |
-| Comments, tests, docs | Patch | No |
+| Change                                                 | Bump  | Redeploy required                     |
+| ------------------------------------------------------ | ----- | ------------------------------------- |
+| New entry point added                                  | Minor | Yes                                   |
+| Entry point signature or return type changed           | Major | Yes — coordinated with server release |
+| Event topic or payload changed                         | Major | Yes — indexer must ship first         |
+| Storage key or layout changed                          | Major | Yes — plus state migration            |
+| Bounds/validation tightened (e.g. `MAX_SINGLE_FEE_BP`) | Minor | Yes                                   |
+| Comments, tests, docs                                  | Patch | No                                    |
 
 **Upgrade mechanism.** Soroban supports in-place WASM replacement, which preserves a contract's address and its instance storage. The strategy differs per contract because their state differs:
 
@@ -236,4 +236,4 @@ This is a packaging gap, not an intentional boundary. `treasury` is a first-clas
 
 ---
 
-*Related: [ADR-008](./ADR-008-soroban-escrow-trust-model.md), [ADR-009](./ADR-009-provider-abstraction-routing.md)*
+_Related: [ADR-008](./ADR-008-soroban-escrow-trust-model.md), [ADR-009](./ADR-009-provider-abstraction-routing.md)_

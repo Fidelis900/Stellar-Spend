@@ -95,12 +95,14 @@ describe('POST /api/offramp/bridge/build-tx (integration)', () => {
 
   it('returns xdr and token info for a valid stablecoin-fee request', async () => {
     setupSdkSuccess();
-    const res = await POST(makeReq({
-      amount: '10',
-      fromAddress: VALID_STELLAR,
-      toAddress: VALID_BASE,
-      feePaymentMethod: 'stablecoin',
-    }));
+    const res = await POST(
+      makeReq({
+        amount: '10',
+        fromAddress: VALID_STELLAR,
+        toAddress: VALID_BASE,
+        feePaymentMethod: 'stablecoin',
+      }),
+    );
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json).toMatchObject({
@@ -112,12 +114,14 @@ describe('POST /api/offramp/bridge/build-tx (integration)', () => {
 
   it('returns xdr for native fee method', async () => {
     setupSdkSuccess();
-    const res = await POST(makeReq({
-      amount: '10',
-      fromAddress: VALID_STELLAR,
-      toAddress: VALID_BASE,
-      feePaymentMethod: 'native',
-    }));
+    const res = await POST(
+      makeReq({
+        amount: '10',
+        fromAddress: VALID_STELLAR,
+        toAddress: VALID_BASE,
+        feePaymentMethod: 'native',
+      }),
+    );
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.xdr).toBe('FAKE_XDR_STRING');
@@ -125,13 +129,17 @@ describe('POST /api/offramp/bridge/build-tx (integration)', () => {
 
   it('defaults to stablecoin fee when feePaymentMethod is omitted', async () => {
     setupSdkSuccess();
-    const res = await POST(makeReq({ amount: '10', fromAddress: VALID_STELLAR, toAddress: VALID_BASE }));
+    const res = await POST(
+      makeReq({ amount: '10', fromAddress: VALID_STELLAR, toAddress: VALID_BASE }),
+    );
     expect(res.status).toBe(200);
   });
 
   it('returns 400 for invalid amount', async () => {
     vi.mocked(validation.validateAmount).mockReturnValue(false);
-    const res = await POST(makeReq({ amount: '-5', fromAddress: VALID_STELLAR, toAddress: VALID_BASE }));
+    const res = await POST(
+      makeReq({ amount: '-5', fromAddress: VALID_STELLAR, toAddress: VALID_BASE }),
+    );
     expect(res.status).toBe(400);
     const json = await res.json();
     expect(json.error).toMatch(/amount/i);
@@ -140,7 +148,9 @@ describe('POST /api/offramp/bridge/build-tx (integration)', () => {
   it('returns 400 for invalid Stellar address', async () => {
     vi.mocked(validation.validateAmount).mockReturnValue(true);
     vi.mocked(validation.validateAddress).mockImplementation((_addr, chain) => chain !== 'stellar');
-    const res = await POST(makeReq({ amount: '10', fromAddress: 'bad-addr', toAddress: VALID_BASE }));
+    const res = await POST(
+      makeReq({ amount: '10', fromAddress: 'bad-addr', toAddress: VALID_BASE }),
+    );
     expect(res.status).toBe(400);
     const json = await res.json();
     expect(json.error).toMatch(/stellar/i);
@@ -149,7 +159,9 @@ describe('POST /api/offramp/bridge/build-tx (integration)', () => {
   it('returns 400 for invalid Base address', async () => {
     vi.mocked(validation.validateAmount).mockReturnValue(true);
     vi.mocked(validation.validateAddress).mockImplementation((_addr, chain) => chain !== 'base');
-    const res = await POST(makeReq({ amount: '10', fromAddress: VALID_STELLAR, toAddress: 'bad-addr' }));
+    const res = await POST(
+      makeReq({ amount: '10', fromAddress: VALID_STELLAR, toAddress: 'bad-addr' }),
+    );
     expect(res.status).toBe(400);
     const json = await res.json();
     expect(json.error).toMatch(/base/i);
@@ -158,20 +170,27 @@ describe('POST /api/offramp/bridge/build-tx (integration)', () => {
   it('returns 400 for invalid feePaymentMethod', async () => {
     vi.mocked(validation.validateAmount).mockReturnValue(true);
     vi.mocked(validation.validateAddress).mockReturnValue(true);
-    const res = await POST(makeReq({
-      amount: '10',
-      fromAddress: VALID_STELLAR,
-      toAddress: VALID_BASE,
-      feePaymentMethod: 'bitcoin',
-    }));
+    const res = await POST(
+      makeReq({
+        amount: '10',
+        fromAddress: VALID_STELLAR,
+        toAddress: VALID_BASE,
+        feePaymentMethod: 'bitcoin',
+      }),
+    );
     expect(res.status).toBe(400);
     const json = await res.json();
     expect(json.error).toMatch(/feePaymentMethod/i);
   });
 
   it('returns 429 when rate limit is exceeded', async () => {
-    vi.mocked(rateLimiter.buildTxLimiter.check).mockReturnValueOnce({ allowed: false, retryAfter: 60 } as any);
-    const res = await POST(makeReq({ amount: '10', fromAddress: VALID_STELLAR, toAddress: VALID_BASE }));
+    vi.mocked(rateLimiter.buildTxLimiter.check).mockReturnValueOnce({
+      allowed: false,
+      retryAfter: 60,
+    } as any);
+    const res = await POST(
+      makeReq({ amount: '10', fromAddress: VALID_STELLAR, toAddress: VALID_BASE }),
+    );
     expect(res.status).toBe(429);
   });
 
@@ -179,7 +198,9 @@ describe('POST /api/offramp/bridge/build-tx (integration)', () => {
     vi.mocked(validation.validateAmount).mockReturnValue(true);
     vi.mocked(validation.validateAddress).mockReturnValue(true);
     mockChainDetailsMap.mockResolvedValue({});
-    const res = await POST(makeReq({ amount: '10', fromAddress: VALID_STELLAR, toAddress: VALID_BASE }));
+    const res = await POST(
+      makeReq({ amount: '10', fromAddress: VALID_STELLAR, toAddress: VALID_BASE }),
+    );
     expect(res.status).toBe(500);
     const json = await res.json();
     expect(json.error).toMatch(/chain details/i);
@@ -188,7 +209,9 @@ describe('POST /api/offramp/bridge/build-tx (integration)', () => {
   it('returns 500 with user-friendly message for insufficient balance error', async () => {
     setupSdkSuccess();
     mockSend.mockRejectedValue(new Error('resulting balance is not within the allowed range'));
-    const res = await POST(makeReq({ amount: '10', fromAddress: VALID_STELLAR, toAddress: VALID_BASE }));
+    const res = await POST(
+      makeReq({ amount: '10', fromAddress: VALID_STELLAR, toAddress: VALID_BASE }),
+    );
     expect(res.status).toBe(500);
     const json = await res.json();
     expect(json.error).toMatch(/xlm/i);

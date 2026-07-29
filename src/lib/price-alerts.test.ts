@@ -36,7 +36,7 @@ describe('PriceAlertStorage', () => {
     const triggered = PriceAlertStorage.checkAlerts({ NGN: 1550 });
     expect(triggered.length).toBe(1);
     expect(triggered[0].id).toBe(alert.id);
-    
+
     const updated = PriceAlertStorage.getAlert(alert.id);
     expect(updated?.status).toBe('triggered');
     expect(updated?.triggeredCount).toBe(1);
@@ -83,7 +83,7 @@ describe('PriceAlertStorage', () => {
     });
 
     PriceAlertStorage.checkAlerts({ NGN: 1550 });
-    
+
     const updated = PriceAlertStorage.getAlert(alert.id);
     expect(updated?.status).toBe('active');
     expect(updated?.triggeredCount).toBe(1);

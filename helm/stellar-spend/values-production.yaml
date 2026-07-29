@@ -7,11 +7,11 @@ image:
 
 resources:
   requests:
-    memory: "256Mi"
-    cpu: "100m"
+    memory: '256Mi'
+    cpu: '100m'
   limits:
-    memory: "1Gi"
-    cpu: "1000m"
+    memory: '1Gi'
+    cpu: '1000m'
 
 autoscaling:
   enabled: true
@@ -24,7 +24,7 @@ podDisruptionBudget:
 
 env:
   NODE_ENV: production
-  PORT: "3000"
+  PORT: '3000'
   NEXT_PUBLIC_ENV: production
 
 existingSecret: stellar-spend-secrets

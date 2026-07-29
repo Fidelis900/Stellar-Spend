@@ -10,7 +10,7 @@ export class AnalyticsService {
   async getAnalytics(
     userAddress: string,
     startDate: number,
-    endDate: number
+    endDate: number,
   ): Promise<AnalyticsPeriod> {
     // TODO: Fetch transactions from database
     const transactions: any[] = [];
@@ -42,10 +42,7 @@ export class AnalyticsService {
     return {
       totalTransactions: transactions.length,
       totalVolume: totalVolume.toFixed(2),
-      averageAmount:
-        transactions.length > 0
-          ? (totalVolume / transactions.length).toFixed(2)
-          : '0',
+      averageAmount: transactions.length > 0 ? (totalVolume / transactions.length).toFixed(2) : '0',
       successRate: transactions.length > 0 ? (completed.length / transactions.length) * 100 : 0,
       failureRate: transactions.length > 0 ? (failed.length / transactions.length) * 100 : 0,
       pendingCount: pending.length,
@@ -64,10 +61,7 @@ export class AnalyticsService {
       breakdown[currency].volume += parseFloat(t.destinationAmount || '0');
     });
 
-    const totalVolume = Object.values(breakdown).reduce(
-      (sum: number, b: any) => sum + b.volume,
-      0
-    );
+    const totalVolume = Object.values(breakdown).reduce((sum: number, b: any) => sum + b.volume, 0);
 
     return Object.entries(breakdown).map(([currency, data]: [string, any]) => ({
       currency,
@@ -122,4 +116,3 @@ export class AnalyticsService {
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }
 }
-

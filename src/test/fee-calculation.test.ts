@@ -129,7 +129,7 @@ describe('calculateTotalFees', () => {
 
   it('handles contractResourceFee as undefined', () => {
     const total = calculateTotalFees('0.5', '0', '1.00', 'NGN');
-    expect(parseFloat(total)).toBeCloseTo(1.50, 5);
+    expect(parseFloat(total)).toBeCloseTo(1.5, 5);
   });
 
   it('handles all four components together', () => {
@@ -251,7 +251,7 @@ describe('calculateAllFees', () => {
     });
 
     expect(parseFloat(result.bridgeFee)).toBeCloseTo(49999.999999, 4);
-    expect(parseFloat(result.paycrestFee)).toBeCloseTo(100000.00, 0);
+    expect(parseFloat(result.paycrestFee)).toBeCloseTo(100000.0, 0);
   });
 
   it('preserves contractResourceFee when undefined', async () => {

@@ -76,7 +76,8 @@ export function computeNextRunAt(from: number, frequency: RecurringFrequency): n
 
 export function isDue(schedule: RecurringSchedule): boolean {
   if (schedule.paused) return false;
-  if (schedule.maxExecutions !== undefined && schedule.executionCount >= schedule.maxExecutions) return false;
+  if (schedule.maxExecutions !== undefined && schedule.executionCount >= schedule.maxExecutions)
+    return false;
   if (schedule.retryConfig?.nextRetryAt) {
     return Date.now() >= schedule.retryConfig.nextRetryAt;
   }
@@ -105,9 +106,7 @@ export class RecurringStorage {
   }
 
   static getByUser(userAddress: string): RecurringSchedule[] {
-    return this.getAll().filter(
-      (s) => s.userAddress.toLowerCase() === userAddress.toLowerCase(),
-    );
+    return this.getAll().filter((s) => s.userAddress.toLowerCase() === userAddress.toLowerCase());
   }
 
   static save(schedule: RecurringSchedule): void {
@@ -131,10 +130,7 @@ export class RecurringStorage {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
   }
 
-  static recordResult(
-    id: string,
-    result: { status: 'success' | 'failed'; error?: string },
-  ): void {
+  static recordResult(id: string, result: { status: 'success' | 'failed'; error?: string }): void {
     if (typeof window === 'undefined') return;
     const all = this.getAll();
     const idx = all.findIndex((s) => s.id === id);

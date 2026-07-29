@@ -76,16 +76,14 @@ export async function verifyHmacSignature(
 async function pruneExpiredNonces(): Promise<void> {
   try {
     await pool.query('DELETE FROM webhook_nonces WHERE expires_at <= NOW()');
-  } catch {
-  }
+  } catch {}
 }
 
 async function isReplay(nonceKey: string): Promise<boolean> {
   try {
-    const result = await pool.query(
-      'SELECT 1 FROM webhook_nonces WHERE nonce_key = $1',
-      [nonceKey],
-    );
+    const result = await pool.query('SELECT 1 FROM webhook_nonces WHERE nonce_key = $1', [
+      nonceKey,
+    ]);
     return result.rows.length > 0;
   } catch {
     return false;
@@ -98,8 +96,7 @@ async function markNonceUsed(nonceKey: string): Promise<void> {
       'INSERT INTO webhook_nonces (nonce_key, expires_at) VALUES ($1, NOW() + make_interval(secs => $2)) ON CONFLICT DO NOTHING',
       [nonceKey, NONCE_TTL_MS / 1000],
     );
-  } catch {
-  }
+  } catch {}
 }
 
 export async function createNonceTable(): Promise<void> {
@@ -175,10 +172,7 @@ export async function verifyProviderSignature(
   return verifyWebhookSignature(rawBody, signature, secret, options.timestamp, options.nonce);
 }
 
-export async function generateOutgoingSignature(
-  payload: string,
-  secret: string,
-): Promise<string> {
+export async function generateOutgoingSignature(payload: string, secret: string): Promise<string> {
   return computeHmacSignatureHex(payload, secret);
 }
 

@@ -3,9 +3,15 @@ import { describe, it, expect, vi } from 'vitest';
 
 // Mock child components to avoid complex dependency chains
 vi.mock('@/components/FormCard', () => ({ default: () => <div data-testid="FormCard-mock" /> }));
-vi.mock('@/components/RightPanel', () => ({ default: () => <div data-testid="RightPanel-mock" /> }));
-vi.mock('@/components/RecentOfframpsTable', () => ({ default: () => <div data-testid="RecentOfframpsTable-mock" /> }));
-vi.mock('@/components/ProgressSteps', () => ({ default: () => <div data-testid="ProgressSteps-mock" /> }));
+vi.mock('@/components/RightPanel', () => ({
+  default: () => <div data-testid="RightPanel-mock" />,
+}));
+vi.mock('@/components/RecentOfframpsTable', () => ({
+  default: () => <div data-testid="RecentOfframpsTable-mock" />,
+}));
+vi.mock('@/components/ProgressSteps', () => ({
+  default: () => <div data-testid="ProgressSteps-mock" />,
+}));
 vi.mock('@/components/Header', () => ({ Header: () => <div data-testid="Header-mock" /> }));
 
 import Home from '../page';

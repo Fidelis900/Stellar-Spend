@@ -1,16 +1,11 @@
-export type SettingsSection =
-  | "profile"
-  | "security"
-  | "appearance"
-  | "preferences"
-  | "privacy";
+export type SettingsSection = 'profile' | 'security' | 'appearance' | 'preferences' | 'privacy';
 
 export const SETTINGS_SECTIONS: SettingsSection[] = [
-  "profile",
-  "security",
-  "appearance",
-  "preferences",
-  "privacy",
+  'profile',
+  'security',
+  'appearance',
+  'preferences',
+  'privacy',
 ];
 
 export interface NotificationPrefs {

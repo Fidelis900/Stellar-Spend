@@ -56,10 +56,13 @@ src/
 ## Cross-module Import Rule
 
 Forbidden:
+
 ```ts
 import { payoutService } from '@/lib/services/payout.service'; // deep import ❌
 ```
+
 Allowed:
+
 ```ts
 import { payoutService } from '@/lib/services'; // via barrel ✅
 ```

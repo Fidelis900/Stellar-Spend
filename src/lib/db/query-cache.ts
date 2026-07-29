@@ -17,7 +17,7 @@ class QueryCache {
    * Generate a cache key from query and parameters
    */
   private generateKey(query: string, params?: unknown[]): string {
-    const paramStr = params ? JSON.stringify(params) : "";
+    const paramStr = params ? JSON.stringify(params) : '';
     return `${query}:${paramStr}`;
   }
 

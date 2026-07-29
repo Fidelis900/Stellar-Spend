@@ -22,19 +22,19 @@ Browser → CloudFront (edge) → ALB → ECS Fargate (Next.js)
 
 All CDN infrastructure is defined in [`terraform/cloudfront.tf`](../terraform/cloudfront.tf).
 
-| Resource | Purpose |
-|---|---|
-| `aws_cloudfront_distribution.main` | Main distribution, ALB as origin |
-| `aws_cloudfront_cache_policy.static_assets` | 1-year immutable cache for `_next/static` |
-| `aws_cloudfront_cache_policy.pages` | Short TTL (60 s default, 1 h max) for pages |
-| `aws_cloudfront_cache_policy.no_cache` | Zero TTL for API routes |
-| `aws_cloudfront_origin_request_policy.alb_forward` | Forwards required headers to ALB |
-| `aws_cloudfront_function.security_headers` | Injects HSTS and other security headers |
-| `aws_s3_bucket.cf_logs` | Stores CloudFront access logs |
-| `null_resource.cf_invalidation` | Triggers a `/*` invalidation on deploy |
-| `aws_cloudwatch_metric_alarm.cf_5xx_rate` | Alarm when 5xx rate > 5% |
-| `aws_cloudwatch_metric_alarm.cf_4xx_rate` | Alarm when 4xx rate > 10% |
-| `aws_cloudwatch_metric_alarm.cf_origin_latency` | Alarm when p99 origin latency > 3 s |
+| Resource                                           | Purpose                                     |
+| -------------------------------------------------- | ------------------------------------------- |
+| `aws_cloudfront_distribution.main`                 | Main distribution, ALB as origin            |
+| `aws_cloudfront_cache_policy.static_assets`        | 1-year immutable cache for `_next/static`   |
+| `aws_cloudfront_cache_policy.pages`                | Short TTL (60 s default, 1 h max) for pages |
+| `aws_cloudfront_cache_policy.no_cache`             | Zero TTL for API routes                     |
+| `aws_cloudfront_origin_request_policy.alb_forward` | Forwards required headers to ALB            |
+| `aws_cloudfront_function.security_headers`         | Injects HSTS and other security headers     |
+| `aws_s3_bucket.cf_logs`                            | Stores CloudFront access logs               |
+| `null_resource.cf_invalidation`                    | Triggers a `/*` invalidation on deploy      |
+| `aws_cloudwatch_metric_alarm.cf_5xx_rate`          | Alarm when 5xx rate > 5%                    |
+| `aws_cloudwatch_metric_alarm.cf_4xx_rate`          | Alarm when 4xx rate > 10%                   |
+| `aws_cloudwatch_metric_alarm.cf_origin_latency`    | Alarm when p99 origin latency > 3 s         |
 
 ---
 
@@ -42,16 +42,16 @@ All CDN infrastructure is defined in [`terraform/cloudfront.tf`](../terraform/cl
 
 Add these to your `terraform/envs/<env>.tfvars` or supply via `TF_VAR_*` environment variables.
 
-| Variable | Default | Description |
-|---|---|---|
-| `cf_price_class` | `PriceClass_100` | Edge locations: `PriceClass_100` (US/EU), `PriceClass_200` (+ Asia), `PriceClass_All` |
-| `cf_domain_aliases` | `[]` | Custom domains (e.g. `["cdn.example.com"]`). Requires `cf_acm_certificate_arn`. |
-| `cf_acm_certificate_arn` | `""` | ACM certificate ARN in **us-east-1** for custom domains |
-| `cf_origin_secret` | — | Shared secret sent as `X-CloudFront-Secret` header to the ALB |
-| `cf_geo_restriction_type` | `blacklist` | `whitelist` or `blacklist` |
-| `cf_geo_restriction_locations` | `[]` | ISO 3166-1 alpha-2 country codes. Empty = no restriction |
-| `cf_invalidation_trigger` | `initial` | Bump to force a cache invalidation on next `terraform apply` |
-| `alarm_sns_arn` | `""` | SNS topic ARN for CloudWatch alarm notifications |
+| Variable                       | Default          | Description                                                                           |
+| ------------------------------ | ---------------- | ------------------------------------------------------------------------------------- |
+| `cf_price_class`               | `PriceClass_100` | Edge locations: `PriceClass_100` (US/EU), `PriceClass_200` (+ Asia), `PriceClass_All` |
+| `cf_domain_aliases`            | `[]`             | Custom domains (e.g. `["cdn.example.com"]`). Requires `cf_acm_certificate_arn`.       |
+| `cf_acm_certificate_arn`       | `""`             | ACM certificate ARN in **us-east-1** for custom domains                               |
+| `cf_origin_secret`             | —                | Shared secret sent as `X-CloudFront-Secret` header to the ALB                         |
+| `cf_geo_restriction_type`      | `blacklist`      | `whitelist` or `blacklist`                                                            |
+| `cf_geo_restriction_locations` | `[]`             | ISO 3166-1 alpha-2 country codes. Empty = no restriction                              |
+| `cf_invalidation_trigger`      | `initial`        | Bump to force a cache invalidation on next `terraform apply`                          |
+| `alarm_sns_arn`                | `""`             | SNS topic ARN for CloudWatch alarm notifications                                      |
 
 ---
 
@@ -59,12 +59,12 @@ Add these to your `terraform/envs/<env>.tfvars` or supply via `TF_VAR_*` environ
 
 After `terraform apply`, the following outputs are available:
 
-| Output | Description |
-|---|---|
-| `cloudfront_distribution_id` | Distribution ID — use for manual invalidations |
-| `cloudfront_domain_name` | Default CF domain (e.g. `https://d1234.cloudfront.net`) |
-| `cloudfront_hosted_zone_id` | Hosted zone ID for Route 53 alias records |
-| `cf_logs_bucket` | S3 bucket name for access logs |
+| Output                       | Description                                             |
+| ---------------------------- | ------------------------------------------------------- |
+| `cloudfront_distribution_id` | Distribution ID — use for manual invalidations          |
+| `cloudfront_domain_name`     | Default CF domain (e.g. `https://d1234.cloudfront.net`) |
+| `cloudfront_hosted_zone_id`  | Hosted zone ID for Route 53 alias records               |
+| `cf_logs_bucket`             | S3 bucket name for access logs                          |
 
 ---
 
@@ -128,9 +128,9 @@ terraform apply -var="cf_invalidation_trigger=$(date +%s)" -var-file=envs/stagin
 
 Rarely-changing reference data (currencies, institution lists) is served with long-lived edge caching to reduce origin load and improve cold-load latency.
 
-| Endpoint | Cache-Control | Rationale |
-|---|---|---|
-| `GET /api/offramp/currencies` | `public, max-age=3600, stale-while-revalidate=86400` | Currency list changes only on corridor updates |
+| Endpoint                                   | Cache-Control                                        | Rationale                                           |
+| ------------------------------------------ | ---------------------------------------------------- | --------------------------------------------------- |
+| `GET /api/offramp/currencies`              | `public, max-age=3600, stale-while-revalidate=86400` | Currency list changes only on corridor updates      |
 | `GET /api/offramp/institutions/[currency]` | `public, max-age=3600, stale-while-revalidate=86400` | Institution list is stable between corridor deploys |
 
 **Invalidation:** When a corridor or config change is deployed, trigger a CloudFront invalidation for the affected paths:
@@ -189,10 +189,10 @@ cf_geo_restriction_locations = ["NG", "KE", "GH", "US", "GB"]
 
 Three CloudWatch alarms are created automatically:
 
-| Alarm | Threshold | Action |
-|---|---|---|
-| `cf-5xx-rate` | > 5% for 10 min | SNS notification |
-| `cf-4xx-rate` | > 10% for 15 min | SNS notification |
+| Alarm               | Threshold            | Action           |
+| ------------------- | -------------------- | ---------------- |
+| `cf-5xx-rate`       | > 5% for 10 min      | SNS notification |
+| `cf-4xx-rate`       | > 10% for 15 min     | SNS notification |
 | `cf-origin-latency` | p99 > 3 s for 10 min | SNS notification |
 
 Set `alarm_sns_arn` to receive notifications. CloudFront metrics are published to the `us-east-1` region under the `AWS/CloudFront` namespace.

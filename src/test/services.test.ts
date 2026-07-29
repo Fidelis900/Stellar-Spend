@@ -16,19 +16,19 @@ describe('QuoteService', () => {
 
   it('should validate quote request', async () => {
     await expect(
-      service.getQuote({ amount: '', currency: 'NGN', feeMethod: 'USDC' })
+      service.getQuote({ amount: '', currency: 'NGN', feeMethod: 'USDC' }),
     ).rejects.toThrow('Invalid amount');
   });
 
   it('should reject unsupported currency', async () => {
     await expect(
-      service.getQuote({ amount: '100', currency: 'INVALID', feeMethod: 'USDC' })
+      service.getQuote({ amount: '100', currency: 'INVALID', feeMethod: 'USDC' }),
     ).rejects.toThrow('Unsupported currency');
   });
 
   it('should reject invalid fee method', async () => {
     await expect(
-      service.getQuote({ amount: '100', currency: 'NGN', feeMethod: 'INVALID' as any })
+      service.getQuote({ amount: '100', currency: 'NGN', feeMethod: 'INVALID' as any }),
     ).rejects.toThrow('feeMethod must be');
   });
 });
@@ -47,7 +47,7 @@ describe('BridgeService', () => {
         fromAddress: 'GABC',
         toAddress: '0x123',
         feePaymentMethod: 'stablecoin',
-      })
+      }),
     ).rejects.toThrow('Invalid amount');
   });
 
@@ -58,7 +58,7 @@ describe('BridgeService', () => {
         fromAddress: 'INVALID',
         toAddress: '0x1234567890123456789012345678901234567890',
         feePaymentMethod: 'stablecoin',
-      })
+      }),
     ).rejects.toThrow('Invalid Stellar address');
   });
 
@@ -69,14 +69,14 @@ describe('BridgeService', () => {
         fromAddress: 'GABC1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890ABCDE',
         toAddress: 'INVALID',
         feePaymentMethod: 'stablecoin',
-      })
+      }),
     ).rejects.toThrow('Invalid Base address');
   });
 
   it('should require XDR and signature for submission', async () => {
-    await expect(
-      service.submitTransaction({ xdr: '', signature: '' })
-    ).rejects.toThrow('XDR and signature are required');
+    await expect(service.submitTransaction({ xdr: '', signature: '' })).rejects.toThrow(
+      'XDR and signature are required',
+    );
   });
 
   it('should require transaction hash for status check', async () => {
@@ -99,7 +99,7 @@ describe('PayoutService', () => {
         currency: 'NGN',
         beneficiary: { institution: 'Bank', accountIdentifier: '123', accountName: 'User' },
         baseAddress: '0x1234567890123456789012345678901234567890',
-      })
+      }),
     ).rejects.toThrow('Order ID is required');
   });
 
@@ -111,7 +111,7 @@ describe('PayoutService', () => {
         currency: 'NGN',
         beneficiary: { institution: 'Bank', accountIdentifier: '123', accountName: 'User' },
         baseAddress: '0x1234567890123456789012345678901234567890',
-      })
+      }),
     ).rejects.toThrow('Amount must be a positive number');
   });
 
@@ -120,7 +120,9 @@ describe('PayoutService', () => {
   });
 
   it('should require order ID and amount for payout execution', async () => {
-    await expect(service.executePayout('', '')).rejects.toThrow('Order ID and USDC amount are required');
+    await expect(service.executePayout('', '')).rejects.toThrow(
+      'Order ID and USDC amount are required',
+    );
   });
 });
 
@@ -132,20 +134,20 @@ describe('WebhookService', () => {
   });
 
   it('should validate webhook payload', async () => {
-    await expect(
-      service.processPaycrestWebhook(null as any)
-    ).rejects.toThrow('Invalid webhook payload');
+    await expect(service.processPaycrestWebhook(null as any)).rejects.toThrow(
+      'Invalid webhook payload',
+    );
   });
 
   it('should require event type', async () => {
-    await expect(
-      service.processPaycrestWebhook({ event: '', data: {} })
-    ).rejects.toThrow('Event type is required');
+    await expect(service.processPaycrestWebhook({ event: '', data: {} })).rejects.toThrow(
+      'Event type is required',
+    );
   });
 
   it('should require webhook data', async () => {
     await expect(
-      service.processPaycrestWebhook({ event: 'test', data: null as any })
+      service.processPaycrestWebhook({ event: 'test', data: null as any }),
     ).rejects.toThrow('Webhook data is required');
   });
 });
@@ -166,15 +168,13 @@ describe('TransactionService', () => {
   });
 
   it('should require transaction ID for update', async () => {
-    await expect(
-      service.updateTransaction('', { status: 'completed' })
-    ).rejects.toThrow('Transaction ID is required');
+    await expect(service.updateTransaction('', { status: 'completed' })).rejects.toThrow(
+      'Transaction ID is required',
+    );
   });
 
   it('should require updates for update operation', async () => {
-    await expect(
-      service.updateTransaction('tx_123', {})
-    ).rejects.toThrow('No updates provided');
+    await expect(service.updateTransaction('tx_123', {})).rejects.toThrow('No updates provided');
   });
 
   it('should require transaction ID for deletion', async () => {

@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useTheme } from "@/contexts/ThemeContext";
+import { useTheme } from '@/contexts/ThemeContext';
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
 
   const getNextTheme = () => {
-    if (theme === "dark") return "light";
-    if (theme === "light") return "high-contrast";
-    return "dark";
+    if (theme === 'dark') return 'light';
+    if (theme === 'light') return 'high-contrast';
+    return 'dark';
   };
 
   return (
@@ -20,7 +20,7 @@ export function ThemeToggle() {
       data-theme-icon={theme}
     >
       <span className="theme-toggle-icon" aria-hidden="true">
-        {theme === "dark" && (
+        {theme === 'dark' && (
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" />
             <path
@@ -31,7 +31,7 @@ export function ThemeToggle() {
             />
           </svg>
         )}
-        {theme === "light" && (
+        {theme === 'light' && (
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path
               d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
@@ -42,7 +42,7 @@ export function ThemeToggle() {
             />
           </svg>
         )}
-        {theme === "high-contrast" && (
+        {theme === 'high-contrast' && (
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path
               d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"

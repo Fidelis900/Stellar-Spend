@@ -18,14 +18,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-node@v4
         with:
           node-version: '18'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Lint migrations
         run: npx ts-node scripts/migrate.ts lint
 
@@ -46,17 +46,17 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-node@v4
         with:
           node-version: '18'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run migration tests
         run: npm test -- migration.test.ts
         env:
@@ -79,17 +79,17 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-node@v4
         with:
           node-version: '18'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Dry run migrations
         run: npx ts-node scripts/migrate.ts dry-run
         env:

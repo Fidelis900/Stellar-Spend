@@ -28,7 +28,9 @@ function saveRecentSearch(query: string): void {
   try {
     const existing = loadRecentSearches().filter((q) => q !== query);
     localStorage.setItem(RECENT_KEY, JSON.stringify([query, ...existing].slice(0, MAX_RECENT)));
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 const MODE_PREFIXES: Record<SearchMode, string> = {
@@ -45,11 +47,7 @@ const MODE_PLACEHOLDERS: Record<SearchMode, string> = {
   recipient: 'Enter recipient name or account...',
 };
 
-export function TransactionSearch({
-  wallet,
-  onSearch,
-  onFiltersChange,
-}: TransactionSearchProps) {
+export function TransactionSearch({ wallet, onSearch, onFiltersChange }: TransactionSearchProps) {
   const [query, setQuery] = useState('');
   const [mode, setMode] = useState<SearchMode>('general');
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -84,7 +82,7 @@ export function TransactionSearch({
     const timer = setTimeout(async () => {
       try {
         const res = await fetch(
-          `/api/transactions/search/suggestions?wallet=${encodeURIComponent(wallet)}&q=${encodeURIComponent(effectiveQuery)}`
+          `/api/transactions/search/suggestions?wallet=${encodeURIComponent(wallet)}&q=${encodeURIComponent(effectiveQuery)}`,
         );
         if (res.ok) {
           const data = await res.json();
@@ -105,39 +103,63 @@ export function TransactionSearch({
       .map((r) => ({ label: r, type: 'recent' as const })),
   ];
 
-  const performSearch = useCallback(async (overrideQuery?: string) => {
-    if (!wallet) return;
-    const q = overrideQuery ?? effectiveQuery;
-    setIsLoading(true);
-    setShowDropdown(false);
-    if (q.trim()) saveRecentSearch(q);
-    setRecentSearches(loadRecentSearches());
+  const performSearch = useCallback(
+    async (overrideQuery?: string) => {
+      if (!wallet) return;
+      const q = overrideQuery ?? effectiveQuery;
+      setIsLoading(true);
+      setShowDropdown(false);
+      if (q.trim()) saveRecentSearch(q);
+      setRecentSearches(loadRecentSearches());
 
-    try {
-      const params = new URLSearchParams({
-        wallet,
-        ...(q && { q }),
-        ...(status !== 'all' && { status }),
-        ...(dateFrom && { dateFrom: new Date(dateFrom).getTime().toString() }),
-        ...(dateTo && { dateTo: new Date(dateTo).getTime().toString() }),
-        ...(amountMin && { amountMin }),
-        ...(amountMax && { amountMax }),
-        ...(currency && { currency }),
-        ...(isFavorite && { isFavorite }),
-      });
+      try {
+        const params = new URLSearchParams({
+          wallet,
+          ...(q && { q }),
+          ...(status !== 'all' && { status }),
+          ...(dateFrom && { dateFrom: new Date(dateFrom).getTime().toString() }),
+          ...(dateTo && { dateTo: new Date(dateTo).getTime().toString() }),
+          ...(amountMin && { amountMin }),
+          ...(amountMax && { amountMax }),
+          ...(currency && { currency }),
+          ...(isFavorite && { isFavorite }),
+        });
 
-      const res = await fetch(`/api/transactions/search?${params}`);
-      if (res.ok) {
-        const data = await res.json();
-        onSearch(data.results);
-        onFiltersChange?.({ query: q, status, dateFrom, dateTo, amountMin, amountMax, currency, isFavorite });
+        const res = await fetch(`/api/transactions/search?${params}`);
+        if (res.ok) {
+          const data = await res.json();
+          onSearch(data.results);
+          onFiltersChange?.({
+            query: q,
+            status,
+            dateFrom,
+            dateTo,
+            amountMin,
+            amountMax,
+            currency,
+            isFavorite,
+          });
+        }
+      } catch {
+        // ignore
+      } finally {
+        setIsLoading(false);
       }
-    } catch {
-      // ignore
-    } finally {
-      setIsLoading(false);
-    }
-  }, [wallet, effectiveQuery, status, dateFrom, dateTo, amountMin, amountMax, currency, isFavorite, onSearch, onFiltersChange]);
+    },
+    [
+      wallet,
+      effectiveQuery,
+      status,
+      dateFrom,
+      dateTo,
+      amountMin,
+      amountMax,
+      currency,
+      isFavorite,
+      onSearch,
+      onFiltersChange,
+    ],
+  );
 
   const selectItem = (label: string) => {
     setQuery(label.replace(/^(hash:|amount:|recipient:)/, ''));
@@ -147,7 +169,11 @@ export function TransactionSearch({
   };
 
   const clearRecent = () => {
-    try { localStorage.removeItem(RECENT_KEY); } catch { /* ignore */ }
+    try {
+      localStorage.removeItem(RECENT_KEY);
+    } catch {
+      /* ignore */
+    }
     setRecentSearches([]);
   };
 
@@ -180,8 +206,10 @@ export function TransactionSearch({
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (
-        dropdownRef.current && !dropdownRef.current.contains(e.target as Node) &&
-        inputRef.current && !inputRef.current.contains(e.target as Node)
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(e.target as Node)
       ) {
         setShowDropdown(false);
         setActiveIdx(-1);
@@ -191,7 +219,8 @@ export function TransactionSearch({
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const showDropdownContent = showDropdown && (dropdownItems.length > 0 || recentSearches.length > 0);
+  const showDropdownContent =
+    showDropdown && (dropdownItems.length > 0 || recentSearches.length > 0);
 
   return (
     <div className="space-y-4">
@@ -200,12 +229,15 @@ export function TransactionSearch({
         {(Object.keys(MODE_PREFIXES) as SearchMode[]).map((m) => (
           <button
             key={m}
-            onClick={() => { setMode(m); inputRef.current?.focus(); }}
+            onClick={() => {
+              setMode(m);
+              inputRef.current?.focus();
+            }}
             className={cn(
               'px-2 py-1 text-[10px] uppercase tracking-widest border transition-colors',
               mode === m
                 ? 'border-[#c9a962] text-[#c9a962] bg-[#c9a962]/5'
-                : 'border-[#333333] text-[#555555] hover:border-[#555555] hover:text-[#777777]'
+                : 'border-[#333333] text-[#555555] hover:border-[#555555] hover:text-[#777777]',
             )}
           >
             {m === 'general' ? 'All' : m}
@@ -240,7 +272,7 @@ export function TransactionSearch({
               aria-activedescendant={activeIdx >= 0 ? `search-item-${activeIdx}` : undefined}
               className={cn(
                 'w-full bg-[#0a0a0a] border border-[#333333] py-2 text-white text-sm',
-                mode !== 'general' ? 'pl-20 pr-3' : 'px-3'
+                mode !== 'general' ? 'pl-20 pr-3' : 'px-3',
               )}
             />
 
@@ -255,7 +287,9 @@ export function TransactionSearch({
                 {/* Recent searches header */}
                 {recentSearches.length > 0 && suggestions.length === 0 && (
                   <div className="flex items-center justify-between px-3 py-1.5 border-b border-[#2a2a2a]">
-                    <span className="text-[9px] text-[#555555] uppercase tracking-widest">Recent</span>
+                    <span className="text-[9px] text-[#555555] uppercase tracking-widest">
+                      Recent
+                    </span>
                     <button
                       onClick={clearRecent}
                       className="text-[9px] text-[#555555] hover:text-[#c9a962] transition-colors"
@@ -274,16 +308,30 @@ export function TransactionSearch({
                     onClick={() => selectItem(item.label)}
                     className={cn(
                       'w-full text-left px-3 py-2 text-xs border-b border-[#2a2a2a] last:border-b-0 flex items-center gap-2 transition-colors',
-                      activeIdx === idx ? 'bg-[#c9a962]/10 text-white' : 'text-[#999999] hover:bg-[#222222]'
+                      activeIdx === idx
+                        ? 'bg-[#c9a962]/10 text-white'
+                        : 'text-[#999999] hover:bg-[#222222]',
                     )}
                   >
                     {item.type === 'recent' ? (
-                      <svg className="w-3 h-3 text-[#555555] flex-shrink-0" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth="1.5">
+                      <svg
+                        className="w-3 h-3 text-[#555555] flex-shrink-0"
+                        fill="none"
+                        viewBox="0 0 12 12"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                      >
                         <circle cx="6" cy="6" r="4.5" />
                         <path strokeLinecap="round" d="M6 3.5V6l1.5 1.5" />
                       </svg>
                     ) : (
-                      <svg className="w-3 h-3 text-[#555555] flex-shrink-0" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth="1.5">
+                      <svg
+                        className="w-3 h-3 text-[#555555] flex-shrink-0"
+                        fill="none"
+                        viewBox="0 0 12 12"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                      >
                         <circle cx="5" cy="5" r="3.5" />
                         <path strokeLinecap="round" d="M8 8l2 2" />
                       </svg>
@@ -302,7 +350,7 @@ export function TransactionSearch({
               'px-4 py-2 text-xs font-semibold transition-colors',
               isLoading
                 ? 'bg-[#666666] text-[#999999] cursor-not-allowed'
-                : 'bg-[#c9a962] text-[#0a0a0a] hover:bg-[#d4b574]'
+                : 'bg-[#c9a962] text-[#0a0a0a] hover:bg-[#d4b574]',
             )}
           >
             {isLoading ? 'Searching...' : 'Search'}

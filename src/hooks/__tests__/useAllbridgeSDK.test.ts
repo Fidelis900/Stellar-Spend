@@ -1,30 +1,11 @@
-/**
- * Tests for useAllbridgeSDK hook (#835)
- *
- * Covers:
- * - Returns a promise that resolves to an SDK instance
- * - Caches the SDK singleton (same promise on subsequent calls)
- * - Resolved instances are identical (singleton pattern)
- * - Constructs SDK with the Allbridge SDK class
- * - Applies NEXT_PUBLIC_STELLAR_SOROBAN_RPC_URL override when set
- */
+import { renderHook, waitFor } from '@testing-library/react';
+import { useAllbridgeSDK } from '../useAllbridgeSDK';
 
-import { renderHook } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-
-// ---------------------------------------------------------------------------
-// Module mocks — must appear before any import of the module under test
-// ---------------------------------------------------------------------------
-
-const mockSdkConstructor = vi.fn(function (
-  this: Record<string, unknown>,
-  config: unknown,
-) {
-  this.config = config;
-});
-
-vi.mock('@allbridge/bridge-core-sdk', () => ({
-  AllbridgeCoreSdk: mockSdkConstructor,
+jest.mock('@allbridge/bridge-core-sdk', () => ({
+  AllbridgeCoreSdk: jest.fn(function (config: any) {
+    this.config = config;
+    return this;
+  }),
   nodeRpcUrlsDefault: {
     sorobanRpc: 'https://default-soroban.example.com',
   },

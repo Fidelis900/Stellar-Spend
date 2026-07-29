@@ -19,7 +19,7 @@ export function floatToInt(amount: string, decimals: number): string {
     fracPart = fracPart.padEnd(decimals, '0');
   }
 
-  const result = BigInt(intPart) * (BigInt(10) ** BigInt(decimals)) + BigInt(fracPart);
+  const result = BigInt(intPart) * BigInt(10) ** BigInt(decimals) + BigInt(fracPart);
   return result.toString();
 }
 
@@ -41,7 +41,7 @@ function encodeTokenAddress(address: string): Buffer {
   const cleanAddress = address.startsWith('0x') ? address.slice(2) : address;
   const buffer = Buffer.from(cleanAddress, 'hex');
   if (buffer.length === 32) return buffer;
-  
+
   const paddedBuffer = Buffer.alloc(32);
   buffer.copy(paddedBuffer, 32 - buffer.length); // Right-align
   return paddedBuffer;
@@ -70,9 +70,7 @@ interface BuildSwapAndBridgeTxParams {
 /**
  * Build Soroban swap_and_bridge transaction
  */
-export async function buildSwapAndBridgeTx(
-  params: BuildSwapAndBridgeTxParams
-): Promise<string> {
+export async function buildSwapAndBridgeTx(params: BuildSwapAndBridgeTxParams): Promise<string> {
   const {
     rpcUrl,
     sourceAccountPublicKey,
@@ -118,7 +116,7 @@ export async function buildSwapAndBridgeTx(
       recipient: recipientBuffer,
       receive_token: receiveTokenBuffer,
       nonce,
-    })
+    }),
   );
 
   // Build transaction
@@ -127,10 +125,7 @@ export async function buildSwapAndBridgeTx(
     networkPassphrase: StellarSdk.Networks.PUBLIC,
   });
 
-  const tx = txBuilder
-    .addOperation(operation)
-    .setTimeout(300)
-    .build();
+  const tx = txBuilder.addOperation(operation).setTimeout(300).build();
 
   // Simulate transaction
   const simulationResponse = await rpcServer.simulateTransaction(tx);
@@ -146,7 +141,7 @@ export async function buildSwapAndBridgeTx(
       if (entry.credentials?.address) {
         const oldExp = entry.credentials.address.signatureExpirationLedger;
         const newExp = latestLedger + 500;
-        
+
         logger.info(`Extending auth expiration: old=${oldExp}, new=${newExp}`);
         entry.credentials.address.signatureExpirationLedger = newExp;
       }
@@ -161,7 +156,9 @@ export async function buildSwapAndBridgeTx(
   const simMinFee = parseInt(simulationResponse.minResourceFee || '0');
   const targetFee = Math.ceil((originalFee + simMinFee) * 1.5);
 
-  logger.info(`[Fee Bump] originalFee: ${originalFee}, simMinFee: ${simMinFee}, targetFee: ${targetFee}`);
+  logger.info(
+    `[Fee Bump] originalFee: ${originalFee}, simMinFee: ${simMinFee}, targetFee: ${targetFee}`,
+  );
 
   // Mutate the assembled tx fee
   (assembledTx as any)._fee = targetFee.toString();
@@ -169,4 +166,3 @@ export async function buildSwapAndBridgeTx(
   // Return base64 XDR
   return assembledTx.toXDR();
 }
-

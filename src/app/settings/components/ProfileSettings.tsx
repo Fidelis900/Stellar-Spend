@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useI18n } from "@/lib/i18n";
-import { validateDisplayName, DISPLAY_NAME_MAX } from "@/lib/validation";
-import { SectionHeader } from "./SectionHeader";
+import { useState } from 'react';
+import { useI18n } from '@/lib/i18n';
+import { validateDisplayName, DISPLAY_NAME_MAX } from '@/lib/validation';
+import { SectionHeader } from './SectionHeader';
 
 interface ProfileSettingsProps {
   /** Public wallet address to display (read-only). */
@@ -11,9 +11,9 @@ interface ProfileSettingsProps {
 }
 
 /** Profile section — public presence and account details. */
-export function ProfileSettings({ address = "GDUY...7J2L" }: ProfileSettingsProps) {
+export function ProfileSettings({ address = 'GDUY...7J2L' }: ProfileSettingsProps) {
   const { t } = useI18n();
-  const [displayName, setDisplayName] = useState("");
+  const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState<string | undefined>(undefined);
 
   const handleNameChange = (value: string) => {
@@ -24,7 +24,7 @@ export function ProfileSettings({ address = "GDUY...7J2L" }: ProfileSettingsProp
   return (
     <div className="space-y-8">
       <SectionHeader
-        title={t("settings.profile")}
+        title={t('settings.profile')}
         description="Manage your public presence and account details"
       />
 
@@ -53,7 +53,7 @@ export function ProfileSettings({ address = "GDUY...7J2L" }: ProfileSettingsProp
             placeholder="Enter name..."
             maxLength={DISPLAY_NAME_MAX + 1}
             aria-invalid={error ? true : undefined}
-            aria-describedby={error ? "settings-display-name-error" : undefined}
+            aria-describedby={error ? 'settings-display-name-error' : undefined}
             className="w-full bg-[#111] border border-[#333] px-4 py-3 text-xs text-white focus:outline-none focus:border-[#c9a962]"
           />
           {error && (

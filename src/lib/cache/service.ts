@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
-import { getCacheClient } from "./client";
-import { TTL, CacheKey } from "./keys";
+import { getCacheClient } from './client';
+import { TTL, CacheKey } from './keys';
 
 // ─── Metrics ──────────────────────────────────────────────────────────────────
 
@@ -46,7 +46,9 @@ async function getOrSet<T>(
             const newEntry: CacheEntry<T> = { value, timestamp: Date.now() };
             return client.set(key, JSON.stringify(newEntry), ttl);
           })
-          .catch((err) => logger.error(`[cache] Background revalidation failed for ${key}:`, {}, err));
+          .catch((err) =>
+            logger.error(`[cache] Background revalidation failed for ${key}:`, {}, err),
+          );
         return entry.value;
       }
     } catch {
@@ -86,7 +88,7 @@ export async function getCachedQuote<T>(
 }
 
 export async function invalidateQuotes(): Promise<void> {
-  await getCacheClient().flushPattern("quote:*");
+  await getCacheClient().flushPattern('quote:*');
 }
 
 // ─── Currencies cache ─────────────────────────────────────────────────────────
@@ -112,16 +114,13 @@ export async function invalidateInstitutions(currency?: string): Promise<void> {
   if (currency) {
     await getCacheClient().del(CacheKey.institutions(currency));
   } else {
-    await getCacheClient().flushPattern("institutions:*");
+    await getCacheClient().flushPattern('institutions:*');
   }
 }
 
 // ─── Transaction cache ────────────────────────────────────────────────────────
 
-export async function getCachedTransaction<T>(
-  id: string,
-  fetcher: () => Promise<T>,
-): Promise<T> {
+export async function getCachedTransaction<T>(id: string, fetcher: () => Promise<T>): Promise<T> {
   return getOrSet(CacheKey.transaction(id), TTL.TRANSACTION, fetcher, 300);
 }
 
@@ -139,29 +138,29 @@ export async function warmCache(): Promise<void> {
   const client = getCacheClient();
   const isAlive = await client.ping();
   if (!isAlive) {
-    logger.warn("[cache] Cache unavailable — skipping warm-up");
+    logger.warn('[cache] Cache unavailable — skipping warm-up');
     return;
   }
 
-  logger.info("[cache] Starting cache warm-up...");
+  logger.info('[cache] Starting cache warm-up...');
 
   try {
     // Warm currencies
-    const { getCurrencies } = await import("../currencies");
+    const { getCurrencies } = await import('../currencies');
     await getCachedCurrencies(getCurrencies);
-    logger.info("[cache] Warmed: currencies");
+    logger.info('[cache] Warmed: currencies');
   } catch (err) {
-    logger.warn("[cache] Failed to warm currencies:", err);
+    logger.warn('[cache] Failed to warm currencies:', err);
   }
 
   try {
-    // Warm NGN rate (most common)
-    const { getRate } = await import("../services/quote.service");
-    await getCachedRate("NGN", () => getRate("NGN"));
-    logger.info("[cache] Warmed: NGN rate");
+    // Warm NGN rate (most common) via the shared fxRateService
+    const { fxRateService } = await import('../services/fx-rate.service');
+    await fxRateService.getRate('NGN');
+    logger.info('[cache] Warmed: NGN rate');
   } catch (err) {
-    logger.warn("[cache] Failed to warm NGN rate:", err);
+    logger.warn('[cache] Failed to warm NGN rate:', err);
   }
 
-  logger.info("[cache] Cache warm-up complete");
+  logger.info('[cache] Cache warm-up complete');
 }

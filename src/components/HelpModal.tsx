@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/cn";
-import { useFocusTrap, useFocusRestore } from "@/hooks/useFocusTrap";
+import { useEffect, useRef, useState } from 'react';
+import { cn } from '@/lib/cn';
+import { useFocusTrap, useFocusRestore } from '@/hooks/useFocusTrap';
 
 export interface HelpTopic {
   id: string;
@@ -41,12 +41,12 @@ export interface HelpModalProps {
 }
 
 const DEFAULT_LABELS: Required<HelpModalLabels> = {
-  title: "Help & Documentation",
-  searchPlaceholder: "Search help…",
-  noResults: "No topics found",
-  selectPrompt: "Select a topic to view details",
-  allCategories: "All",
-  closeAriaLabel: "Close help modal",
+  title: 'Help & Documentation',
+  searchPlaceholder: 'Search help…',
+  noResults: 'No topics found',
+  selectPrompt: 'Select a topic to view details',
+  allCategories: 'All',
+  closeAriaLabel: 'Close help modal',
 };
 
 export function HelpModal({
@@ -59,11 +59,9 @@ export function HelpModal({
 }: HelpModalProps) {
   const l = { ...DEFAULT_LABELS, ...labels };
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTopic, setSelectedTopic] = useState<string | null>(
-    initialTopicId ?? null
-  );
-  const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(initialTopicId ?? null);
+  const [activeCategory, setActiveCategory] = useState<string>('all');
 
   const dialogRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -73,8 +71,8 @@ export function HelpModal({
   // Reset state when modal opens/closes
   useEffect(() => {
     if (isOpen) {
-      setSearchQuery("");
-      setActiveCategory("all");
+      setSearchQuery('');
+      setActiveCategory('all');
       setSelectedTopic(initialTopicId ?? null);
       setTimeout(() => searchRef.current?.focus(), 50);
     }
@@ -84,15 +82,14 @@ export function HelpModal({
   useEffect(() => {
     if (!isOpen) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === 'Escape') onClose();
     };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, [isOpen, onClose]);
 
   const filteredTopics = topics.filter((topic) => {
-    const matchesCategory =
-      activeCategory === "all" || topic.category === activeCategory;
+    const matchesCategory = activeCategory === 'all' || topic.category === activeCategory;
 
     if (!matchesCategory) return false;
 
@@ -106,9 +103,7 @@ export function HelpModal({
     );
   });
 
-  const activeTopic = selectedTopic
-    ? topics.find((t) => t.id === selectedTopic)
-    : null;
+  const activeTopic = selectedTopic ? topics.find((t) => t.id === selectedTopic) : null;
 
   if (!isOpen) return null;
 
@@ -134,12 +129,19 @@ export function HelpModal({
           <button
             onClick={onClose}
             className={cn(
-              "text-[#777777] hover:text-white transition-colors",
-              "focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]"
+              'text-[#777777] hover:text-white transition-colors',
+              'focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]',
             )}
             aria-label={l.closeAriaLabel}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
@@ -150,13 +152,13 @@ export function HelpModal({
         {categories && categories.length > 0 && (
           <div className="px-4 py-2 border-b border-[#333333] flex gap-2 overflow-x-auto scrollbar-hide">
             <button
-              onClick={() => setActiveCategory("all")}
+              onClick={() => setActiveCategory('all')}
               className={cn(
-                "flex-shrink-0 px-3 py-1 text-xs rounded-full border transition-colors",
-                "focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]",
-                activeCategory === "all"
-                  ? "border-[#c9a962] text-[#c9a962] bg-[#c9a962]/10"
-                  : "border-[#444444] text-[#888888] hover:border-[#666666] hover:text-[#aaaaaa]"
+                'flex-shrink-0 px-3 py-1 text-xs rounded-full border transition-colors',
+                'focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]',
+                activeCategory === 'all'
+                  ? 'border-[#c9a962] text-[#c9a962] bg-[#c9a962]/10'
+                  : 'border-[#444444] text-[#888888] hover:border-[#666666] hover:text-[#aaaaaa]',
               )}
             >
               {l.allCategories}
@@ -166,11 +168,11 @@ export function HelpModal({
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
                 className={cn(
-                  "flex-shrink-0 px-3 py-1 text-xs rounded-full border transition-colors",
-                  "focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]",
+                  'flex-shrink-0 px-3 py-1 text-xs rounded-full border transition-colors',
+                  'focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]',
                   activeCategory === cat.id
-                    ? "border-[#c9a962] text-[#c9a962] bg-[#c9a962]/10"
-                    : "border-[#444444] text-[#888888] hover:border-[#666666] hover:text-[#aaaaaa]"
+                    ? 'border-[#c9a962] text-[#c9a962] bg-[#c9a962]/10'
+                    : 'border-[#444444] text-[#888888] hover:border-[#666666] hover:text-[#aaaaaa]',
                 )}
               >
                 {cat.label}
@@ -192,29 +194,25 @@ export function HelpModal({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className={cn(
-                  "w-full bg-[#0a0a0a] border border-[#333333] px-3 py-2 text-sm text-white",
-                  "placeholder-[#555555] rounded",
-                  "focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]"
+                  'w-full bg-[#0a0a0a] border border-[#333333] px-3 py-2 text-sm text-white',
+                  'placeholder-[#555555] rounded',
+                  'focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]',
                 )}
               />
             </div>
 
             <div className="flex-1 overflow-y-auto">
               {filteredTopics.length === 0 ? (
-                <div className="p-4 text-center text-sm text-[#777777]">
-                  {l.noResults}
-                </div>
+                <div className="p-4 text-center text-sm text-[#777777]">{l.noResults}</div>
               ) : (
                 filteredTopics.map((topic) => (
                   <button
                     key={topic.id}
                     onClick={() => setSelectedTopic(topic.id)}
                     className={cn(
-                      "w-full text-left px-4 py-3 border-b border-[#222222] transition-colors",
-                      "hover:bg-[#1a1a1a] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]",
-                      selectedTopic === topic.id
-                        ? "bg-[#1a1a1a] text-[#c9a962]"
-                        : "text-[#aaaaaa]"
+                      'w-full text-left px-4 py-3 border-b border-[#222222] transition-colors',
+                      'hover:bg-[#1a1a1a] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]',
+                      selectedTopic === topic.id ? 'bg-[#1a1a1a] text-[#c9a962]' : 'text-[#aaaaaa]',
                     )}
                   >
                     <div className="text-sm font-medium">{topic.title}</div>
@@ -229,9 +227,7 @@ export function HelpModal({
             {activeTopic ? (
               <>
                 <div className="px-6 py-4 border-b border-[#333333]">
-                  <h3 className="text-base font-semibold text-white">
-                    {activeTopic.title}
-                  </h3>
+                  <h3 className="text-base font-semibold text-white">{activeTopic.title}</h3>
                 </div>
                 <div className="flex-1 overflow-y-auto px-6 py-4">
                   <p className="text-sm text-[#aaaaaa] whitespace-pre-wrap leading-relaxed">

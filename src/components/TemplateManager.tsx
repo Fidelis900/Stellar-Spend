@@ -22,8 +22,12 @@ const EMPTY_FORM = {
 function TemplatePreview({ template }: { template: TransactionTemplate }) {
   return (
     <div className="text-xs text-gray-500 space-y-0.5 mt-1">
-      <span className="inline-block bg-gray-200 dark:bg-gray-700 rounded px-1.5 py-0.5 mr-1">{template.category}</span>
-      <span>{template.amount} {template.currency}</span>
+      <span className="inline-block bg-gray-200 dark:bg-gray-700 rounded px-1.5 py-0.5 mr-1">
+        {template.category}
+      </span>
+      <span>
+        {template.amount} {template.currency}
+      </span>
       {template.note && <span className="ml-2 italic">"{template.note}"</span>}
       <span className="ml-2">· used {template.usageCount ?? 0}×</span>
     </div>
@@ -49,7 +53,9 @@ export function TemplateManager({ onSelectTemplate }: TemplateManagerProps) {
 
   const refresh = () => setTemplates(TemplateStorage.getAllTemplates());
 
-  useEffect(() => { refresh(); }, []);
+  useEffect(() => {
+    refresh();
+  }, []);
 
   const handleSave = () => {
     if (!formData.name || !formData.amount) return;
@@ -89,7 +95,7 @@ export function TemplateManager({ onSelectTemplate }: TemplateManagerProps) {
   };
 
   const displayed = templates
-    .filter(t => filterCategory === 'All' || t.category === filterCategory)
+    .filter((t) => filterCategory === 'All' || t.category === filterCategory)
     .sort((a, b) => (b.usageCount ?? 0) - (a.usageCount ?? 0));
 
   return (
@@ -101,7 +107,7 @@ export function TemplateManager({ onSelectTemplate }: TemplateManagerProps) {
 
       {/* Category filter */}
       <div className="flex gap-1 flex-wrap mb-3">
-        {['All', ...CATEGORIES].map(cat => (
+        {['All', ...CATEGORIES].map((cat) => (
           <button
             key={cat}
             onClick={() => setFilterCategory(cat)}
@@ -115,9 +121,11 @@ export function TemplateManager({ onSelectTemplate }: TemplateManagerProps) {
       {/* Template list */}
       <div className="space-y-2 mb-4">
         {displayed.length === 0 && (
-          <p className="text-sm text-gray-500">No templates{filterCategory !== 'All' ? ` in "${filterCategory}"` : ''}.</p>
+          <p className="text-sm text-gray-500">
+            No templates{filterCategory !== 'All' ? ` in "${filterCategory}"` : ''}.
+          </p>
         )}
-        {displayed.map(t => (
+        {displayed.map((t) => (
           <div key={t.id} className="p-2 bg-gray-100 dark:bg-gray-800 rounded">
             <div className="flex justify-between items-start">
               <div className="flex-1 min-w-0">
@@ -125,10 +133,25 @@ export function TemplateManager({ onSelectTemplate }: TemplateManagerProps) {
                 <TemplatePreview template={t} />
               </div>
               <div className="flex gap-1 shrink-0 ml-2">
-                <Button onClick={() => handleUse(t)} size="sm">Use</Button>
-                <Button onClick={() => handleEdit(t)} variant="secondary" size="sm">Edit</Button>
-                <button onClick={() => shareTemplate(t)} className="text-blue-500 hover:text-blue-700 px-1 text-sm" title="Share">⬆</button>
-                <button onClick={() => handleDelete(t.id)} className="text-red-500 hover:text-red-700 px-1 text-sm">✕</button>
+                <Button onClick={() => handleUse(t)} size="sm">
+                  Use
+                </Button>
+                <Button onClick={() => handleEdit(t)} variant="secondary" size="sm">
+                  Edit
+                </Button>
+                <button
+                  onClick={() => shareTemplate(t)}
+                  className="text-blue-500 hover:text-blue-700 px-1 text-sm"
+                  title="Share"
+                >
+                  ⬆
+                </button>
+                <button
+                  onClick={() => handleDelete(t.id)}
+                  className="text-red-500 hover:text-red-700 px-1 text-sm"
+                >
+                  ✕
+                </button>
               </div>
             </div>
           </div>
@@ -141,7 +164,7 @@ export function TemplateManager({ onSelectTemplate }: TemplateManagerProps) {
             type="text"
             placeholder="Template Name"
             value={formData.name}
-            onChange={e => setFormData({ ...formData, name: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="w-full p-2 border rounded text-sm"
           />
           <div className="grid grid-cols-2 gap-2">
@@ -149,12 +172,12 @@ export function TemplateManager({ onSelectTemplate }: TemplateManagerProps) {
               type="number"
               placeholder="Amount"
               value={formData.amount}
-              onChange={e => setFormData({ ...formData, amount: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
               className="p-2 border rounded text-sm"
             />
             <select
               value={formData.currency}
-              onChange={e => setFormData({ ...formData, currency: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
               className="p-2 border rounded text-sm"
             >
               <option value="NGN">NGN</option>
@@ -165,7 +188,9 @@ export function TemplateManager({ onSelectTemplate }: TemplateManagerProps) {
           <div className="grid grid-cols-2 gap-2">
             <select
               value={formData.feeMethod}
-              onChange={e => setFormData({ ...formData, feeMethod: e.target.value as 'XLM' | 'USDC' })}
+              onChange={(e) =>
+                setFormData({ ...formData, feeMethod: e.target.value as 'XLM' | 'USDC' })
+              }
               className="p-2 border rounded text-sm"
             >
               <option value="USDC">USDC Fee</option>
@@ -173,22 +198,35 @@ export function TemplateManager({ onSelectTemplate }: TemplateManagerProps) {
             </select>
             <select
               value={formData.category}
-              onChange={e => setFormData({ ...formData, category: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               className="p-2 border rounded text-sm"
             >
-              {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
             </select>
           </div>
           <input
             type="text"
             placeholder="Note (optional)"
             value={formData.note}
-            onChange={e => setFormData({ ...formData, note: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, note: e.target.value })}
             className="w-full p-2 border rounded text-sm"
           />
           <div className="flex gap-2">
             <Button onClick={handleSave}>{editingId ? 'Update' : 'Create'}</Button>
-            <Button onClick={() => { setShowForm(false); setEditingId(null); setFormData(EMPTY_FORM); }} variant="secondary">Cancel</Button>
+            <Button
+              onClick={() => {
+                setShowForm(false);
+                setEditingId(null);
+                setFormData(EMPTY_FORM);
+              }}
+              variant="secondary"
+            >
+              Cancel
+            </Button>
           </div>
         </div>
       ) : (

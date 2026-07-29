@@ -192,7 +192,9 @@ export class DIContainer {
       try {
         await this.resolve(key);
       } catch (error) {
-        errors.push(`Failed to resolve ${String(key)}: ${error instanceof Error ? error.message : String(error)}`);
+        errors.push(
+          `Failed to resolve ${String(key)}: ${error instanceof Error ? error.message : String(error)}`,
+        );
       }
     }
     return { valid: errors.length === 0, errors };

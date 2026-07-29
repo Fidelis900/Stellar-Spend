@@ -1,5 +1,5 @@
-import type { Transaction } from "@/lib/transaction-storage";
-import type { SearchFilters } from "@/lib/transaction-search";
+import type { Transaction } from '@/lib/transaction-storage';
+import type { SearchFilters } from '@/lib/transaction-search';
 
 // ---------------------------------------------------------------------------
 // Filter model + pure transformations for the history view.
@@ -9,12 +9,12 @@ import type { SearchFilters } from "@/lib/transaction-search";
 // the TransactionSearchService's SearchFilters shape.
 // ---------------------------------------------------------------------------
 
-export type SortField = "timestamp" | "amount" | "status";
-export type SortDir = "asc" | "desc";
+export type SortField = 'timestamp' | 'amount' | 'status';
+export type SortDir = 'asc' | 'desc';
 
 export interface Filters {
   search: string;
-  status: Transaction["status"] | "all";
+  status: Transaction['status'] | 'all';
   currency: string; // "" = all
   dateFrom: string;
   dateTo: string;
@@ -26,24 +26,32 @@ export interface Filters {
 }
 
 export const DEFAULT_FILTERS: Filters = {
-  search: "",
-  status: "all",
-  currency: "",
-  dateFrom: "",
-  dateTo: "",
-  amountMin: "",
-  amountMax: "",
-  tags: "",
-  sortField: "timestamp",
-  sortDir: "desc",
+  search: '',
+  status: 'all',
+  currency: '',
+  dateFrom: '',
+  dateTo: '',
+  amountMin: '',
+  amountMax: '',
+  tags: '',
+  sortField: 'timestamp',
+  sortDir: 'desc',
 };
 
-export const FILTERS_STORAGE_KEY = "stellar_spend_history_filters";
+export const FILTERS_STORAGE_KEY = 'stellar_spend_history_filters';
 
 // Fields reflected in the URL so a filtered/sorted view can be shared via link.
 export const URL_FILTER_KEYS = [
-  "search", "status", "currency", "dateFrom", "dateTo",
-  "amountMin", "amountMax", "tags", "sortField", "sortDir",
+  'search',
+  'status',
+  'currency',
+  'dateFrom',
+  'dateTo',
+  'amountMin',
+  'amountMax',
+  'tags',
+  'sortField',
+  'sortDir',
 ] as const satisfies ReadonlyArray<keyof Filters>;
 
 export function filtersToSearchParams(filters: Filters): URLSearchParams {
@@ -71,7 +79,7 @@ export function filtersFromSearchParams(params: URLSearchParams): Partial<Filter
 /** Maps the page's string-based filter state onto transaction-search.ts's SearchFilters. */
 export function toServiceFilters(filters: Filters): SearchFilters {
   const tags = filters.tags
-    .split(",")
+    .split(',')
     .map((t) => t.trim())
     .filter(Boolean);
 
@@ -81,10 +89,14 @@ export function toServiceFilters(filters: Filters): SearchFilters {
     currency: filters.currency || undefined,
     dateFrom: filters.dateFrom ? new Date(filters.dateFrom).getTime() : undefined,
     dateTo: filters.dateTo ? new Date(filters.dateTo).getTime() + 86_400_000 - 1 : undefined,
-    amountMin: filters.amountMin !== "" && !isNaN(parseFloat(filters.amountMin))
-      ? parseFloat(filters.amountMin) : undefined,
-    amountMax: filters.amountMax !== "" && !isNaN(parseFloat(filters.amountMax))
-      ? parseFloat(filters.amountMax) : undefined,
+    amountMin:
+      filters.amountMin !== '' && !isNaN(parseFloat(filters.amountMin))
+        ? parseFloat(filters.amountMin)
+        : undefined,
+    amountMax:
+      filters.amountMax !== '' && !isNaN(parseFloat(filters.amountMax))
+        ? parseFloat(filters.amountMax)
+        : undefined,
     tags: tags.length > 0 ? tags : undefined,
   };
 }
@@ -95,18 +107,18 @@ export function fromServiceFilters(next: SearchFilters, prev: Filters): Filters 
     ...DEFAULT_FILTERS,
     sortField: prev.sortField,
     sortDir: prev.sortDir,
-    status: next.status ?? "all",
-    currency: next.currency ?? "",
-    dateFrom: next.dateFrom ? new Date(next.dateFrom).toISOString().slice(0, 10) : "",
-    dateTo: next.dateTo ? new Date(next.dateTo).toISOString().slice(0, 10) : "",
-    amountMin: next.amountMin !== undefined ? String(next.amountMin) : "",
-    amountMax: next.amountMax !== undefined ? String(next.amountMax) : "",
-    tags: next.tags?.join(", ") ?? "",
+    status: next.status ?? 'all',
+    currency: next.currency ?? '',
+    dateFrom: next.dateFrom ? new Date(next.dateFrom).toISOString().slice(0, 10) : '',
+    dateTo: next.dateTo ? new Date(next.dateTo).toISOString().slice(0, 10) : '',
+    amountMin: next.amountMin !== undefined ? String(next.amountMin) : '',
+    amountMax: next.amountMax !== undefined ? String(next.amountMax) : '',
+    tags: next.tags?.join(', ') ?? '',
   };
 }
 
 export function loadStoredFilters(): Filters {
-  if (typeof window === "undefined") return DEFAULT_FILTERS;
+  if (typeof window === 'undefined') return DEFAULT_FILTERS;
   try {
     const raw = localStorage.getItem(FILTERS_STORAGE_KEY);
     if (!raw) return DEFAULT_FILTERS;
@@ -121,7 +133,7 @@ export function loadStoredFilters(): Filters {
 export function activeFilterCount(filters: Filters): number {
   let count = 0;
   if (filters.search.trim()) count++;
-  if (filters.status !== "all") count++;
+  if (filters.status !== 'all') count++;
   if (filters.currency) count++;
   if (filters.dateFrom) count++;
   if (filters.dateTo) count++;
@@ -141,12 +153,10 @@ export function applyFilters(
 
   result.sort((a, b) => {
     let diff = 0;
-    if (filters.sortField === "timestamp") diff = a.timestamp - b.timestamp;
-    else if (filters.sortField === "amount")
-      diff = parseFloat(a.amount) - parseFloat(b.amount);
-    else if (filters.sortField === "status")
-      diff = a.status.localeCompare(b.status);
-    return filters.sortDir === "asc" ? diff : -diff;
+    if (filters.sortField === 'timestamp') diff = a.timestamp - b.timestamp;
+    else if (filters.sortField === 'amount') diff = parseFloat(a.amount) - parseFloat(b.amount);
+    else if (filters.sortField === 'status') diff = a.status.localeCompare(b.status);
+    return filters.sortDir === 'asc' ? diff : -diff;
   });
 
   return result;

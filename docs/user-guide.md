@@ -46,6 +46,7 @@ Navigate to the app URL. Click **CONNECT WALLET** in the top-right header.
 ### Step 2 — Choose your wallet
 
 The app auto-detects installed wallets:
+
 - **Freighter** takes priority if both are installed
 - **Lobstr** is available as an alternative
 
@@ -56,6 +57,7 @@ Your wallet extension opens and asks you to approve the connection.
 ### Step 3 — Approve the connection
 
 Click **Connect** (or **Approve**) in your wallet extension. Once connected, the header shows:
+
 - Your wallet address (truncated, e.g. `GABC…XYZ`)
 - Your USDC and XLM balances
 - Which wallet is connected
@@ -68,11 +70,11 @@ To switch, click your address in the header → **Disconnect**, then reconnect w
 
 ### Troubleshooting wallet connection
 
-| Symptom | Fix |
-|---------|-----|
+| Symptom             | Fix                                        |
+| ------------------- | ------------------------------------------ |
 | Button does nothing | Install the extension and refresh the page |
-| "Wrong network" | Switch to Mainnet in wallet settings |
-| Connection lost | Click your address → Reconnect |
+| "Wrong network"     | Switch to Mainnet in wallet settings       |
+| Connection lost     | Click your address → Reconnect             |
 
 ---
 
@@ -85,6 +87,7 @@ To switch, click your address in the header → **Disconnect**, then reconnect w
 Type the USDC amount you want to convert **or** switch to fiat-amount mode (click the toggle icon) to enter the target fiat amount instead.
 
 The right panel shows a live quote including:
+
 - Exchange rate (USDC → fiat)
 - Fee breakdown
 - Estimated fiat payout
@@ -107,16 +110,17 @@ The right panel shows a live quote including:
 
 ### Step 3 — Choose the gas fee method
 
-| Option | Description |
-|--------|-------------|
+| Option                 | Description                                                                  |
+| ---------------------- | ---------------------------------------------------------------------------- |
 | **USDC** (recommended) | Bridge fee deducted from your USDC. No extra XLM beyond the minimum reserve. |
-| **XLM** | Fee paid in XLM. Requires ~3 XLM reserve + ~2.5 XLM for gas. |
+| **XLM**                | Fee paid in XLM. Requires ~3 XLM reserve + ~2.5 XLM for gas.                 |
 
 `[SCREENSHOT: Fee method toggle]`
 
 ### Step 4 — Review and confirm
 
 The right panel summarises:
+
 - Amount sent (USDC)
 - Bridge fee + platform fee + network fee
 - Final fiat payout amount
@@ -136,12 +140,12 @@ Click **Sign** in your wallet. Do not close the browser while the transaction is
 
 ### Step 6 — Wait for completion
 
-| Stage | Description | Typical Duration |
-|-------|-------------|-----------------|
-| Submitting | Signed transaction sent to Stellar | < 30 seconds |
-| Processing On-Chain | Allbridge bridges USDC to Base | 1–5 minutes |
-| Settling Fiat Payout | Paycrest initiates bank transfer | 1–10 minutes |
-| Complete ✓ | Funds credited to bank account | — |
+| Stage                | Description                        | Typical Duration |
+| -------------------- | ---------------------------------- | ---------------- |
+| Submitting           | Signed transaction sent to Stellar | < 30 seconds     |
+| Processing On-Chain  | Allbridge bridges USDC to Base     | 1–5 minutes      |
+| Settling Fiat Payout | Paycrest initiates bank transfer   | 1–10 minutes     |
+| Complete ✓           | Funds credited to bank account     | —                |
 
 `[SCREENSHOT: Progress modal showing Transaction Complete success state]`
 
@@ -151,14 +155,15 @@ Click **Sign** in your wallet. Do not close the browser while the transaction is
 
 All fees are displayed before you confirm. There are no hidden charges.
 
-| Fee | Amount | Description |
-|-----|--------|-------------|
-| Bridge fee | ~0.3–0.5% | Allbridge cross-chain conversion (Stellar → Base) |
-| Platform fee | 0.35% | Operational costs and compliance |
-| Network fee | ~2.50 USDC | Stellar + Base gas (paid in XLM or USDC) |
-| Payout fee | 0% | Paycrest bank settlement — no additional charge |
+| Fee          | Amount     | Description                                       |
+| ------------ | ---------- | ------------------------------------------------- |
+| Bridge fee   | ~0.3–0.5%  | Allbridge cross-chain conversion (Stellar → Base) |
+| Platform fee | 0.35%      | Operational costs and compliance                  |
+| Network fee  | ~2.50 USDC | Stellar + Base gas (paid in XLM or USDC)          |
+| Payout fee   | 0%         | Paycrest bank settlement — no additional charge   |
 
 **Example** — 100 USDC to NGN:
+
 - Bridge fee: ~0.40 USDC
 - Platform fee: 0.35 USDC
 - Network fee: ~2.50 USDC
@@ -170,12 +175,12 @@ All fees are displayed before you confirm. There are no hidden charges.
 
 Current fiat corridors:
 
-| Currency | Country |
-|----------|---------|
-| NGN | Nigeria |
-| KES | Kenya |
-| GHS | Ghana |
-| ZAR | South Africa |
+| Currency | Country      |
+| -------- | ------------ |
+| NGN      | Nigeria      |
+| KES      | Kenya        |
+| GHS      | Ghana        |
+| ZAR      | South Africa |
 
 Additional corridors are added regularly. The currency list in the app is fetched live and always up to date.
 
@@ -208,6 +213,7 @@ Visit **/history** for your full transaction record.
 `[SCREENSHOT: /history page showing filtered transaction list]`
 
 Features:
+
 - Filter by date, currency, status, amount
 - Export to CSV, PDF, or JSON
 - View itemised receipts with exchange rate
@@ -221,12 +227,15 @@ Transaction data is stored in your browser's `localStorage` and optionally synce
 ## Refunds & Failed Transactions
 
 ### Bridge fails (before Base confirmation)
+
 Your Stellar USDC is automatically refunded within 30 minutes.
 
 ### Payout fails (after bridge)
+
 Base USDC is returned to the refund address. Contact support with the transaction hash.
 
 ### Manual refund request
+
 1. Go to /history
 2. Click the transaction
 3. Click **Request Refund** (visible within 24 hours of initiation)
@@ -271,6 +280,7 @@ Transfers up to $150 USDC require no KYC. Tier 1 KYC allows up to $500; Tier 2 r
 Bridge ~0.4%, platform 0.35%, network ~2.50 USDC fixed. All shown before confirmation.
 
 **What if the transaction fails mid-way?**
+
 - Before Stellar submission: wallet is not debited.
 - Bridge failure: Allbridge refunds to your Stellar address (up to 24 hours).
 - Payout failure: Paycrest refunds via the return address. Contact support with your order ID.
@@ -286,40 +296,51 @@ Paycrest requires a verified name to process the bank transfer. The app looks it
 ## Troubleshooting
 
 ### "Connect Wallet" button does nothing
+
 Install [Freighter](https://www.freighter.app/) or [Lobstr](https://lobstr.co/), refresh, and try again.
 
 ### "Freighter is set to Testnet"
+
 Open Freighter → Settings → Network → select **Mainnet (Public)**.
 
 ### "Insufficient USDC balance"
+
 Your USDC balance is less than the entered amount. Reduce the amount or top up.
 
 ### "Insufficient XLM for gas"
+
 Switch the fee method to **USDC**, or add more XLM to your wallet.
 
 ### "Bridge quote unavailable" (502)
+
 Allbridge is temporarily unreachable. Retry in 30 seconds or check [allbridge.io](https://allbridge.io).
 
 ### "FX rate unavailable" (502)
+
 Paycrest rate API is down. Retry shortly.
 
 ### "Simulation failed: resulting balance not within allowed range"
+
 USDC balance is too low to cover the transfer + fees. Reduce the amount.
 
 ### Transaction stuck on "Processing On-Chain" > 15 minutes
+
 1. Copy your Stellar transaction hash from history.
 2. Check [Allbridge Explorer](https://core.allbridge.io/explorer).
 3. If marked failed, Allbridge will auto-refund to your Stellar address.
 
 ### Transaction stuck on "Settling Fiat Payout" > 30 minutes
+
 Bank processing can be delayed. Contact Paycrest support with your order ID from /history.
 
 ### Transaction history is empty after reconnecting
+
 History is in `localStorage`. It is browser- and device-specific. Enable account sync in Settings to persist across devices.
 
 ### "Bundle size CI failure"
+
 Run `npm run build:analyze` to find large chunks. Use dynamic imports for non-critical code.
 
 ---
 
-*For further help, contact: support@stellar-spend.io or open an issue on the repository.*
+_For further help, contact: support@stellar-spend.io or open an issue on the repository._

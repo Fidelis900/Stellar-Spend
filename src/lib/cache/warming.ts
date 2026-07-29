@@ -1,6 +1,6 @@
 /**
  * Cache Warming
- * 
+ *
  * Pre-populate cache with popular corridors to improve hit rate.
  * Run on server startup or via scheduled cron.
  */
@@ -33,7 +33,7 @@ export async function warmQuoteCache(): Promise<void> {
       } catch (error) {
         console.error(`[Cache Warming] Failed to warm ${currency} ${amount}:`, error);
       }
-    })
+    }),
   );
 
   const succeeded = results.filter((r) => r.status === 'fulfilled').length;

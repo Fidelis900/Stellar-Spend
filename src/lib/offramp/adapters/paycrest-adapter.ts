@@ -1,17 +1,13 @@
-import type { 
-  PayoutOrderRequest, 
-  PayoutOrderResponse, 
-  PayoutStatus 
-} from '../types';
+import type { PayoutOrderRequest, PayoutOrderResponse, PayoutStatus } from '../types';
 import type { PayoutProviderAdapter, PayoutHealth } from './payout-provider';
 import { HttpClient } from '../../clients/http-client';
 
 const PAYCREST_STATUS_MAP: Record<string, PayoutStatus> = {
-  'payment_order.pending':   'pending',
+  'payment_order.pending': 'pending',
   'payment_order.validated': 'validated',
-  'payment_order.settled':   'settled',
-  'payment_order.refunded':  'refunded',
-  'payment_order.expired':   'expired',
+  'payment_order.settled': 'settled',
+  'payment_order.refunded': 'refunded',
+  'payment_order.expired': 'expired',
 };
 
 export function mapPaycrestStatus(webhookStatus: string): PayoutStatus {
@@ -61,7 +57,10 @@ export class PaycrestAdapter implements PayoutProviderAdapter {
 
   async verifyAccount(institution: string, accountIdentifier: string): Promise<string> {
     try {
-      const response: any = await this.http.post('/sender/verify-account', { institution, accountIdentifier });
+      const response: any = await this.http.post('/sender/verify-account', {
+        institution,
+        accountIdentifier,
+      });
       return response?.accountName || response?.data || '';
     } catch {
       return '';
@@ -74,7 +73,11 @@ export class PaycrestAdapter implements PayoutProviderAdapter {
       await this.http.get('/sender/currencies');
       return { ok: true, latencyMs: Date.now() - start };
     } catch (err) {
-      return { ok: false, latencyMs: Date.now() - start, error: err instanceof Error ? err.message : 'Unknown error' };
+      return {
+        ok: false,
+        latencyMs: Date.now() - start,
+        error: err instanceof Error ? err.message : 'Unknown error',
+      };
     }
   }
 
@@ -82,7 +85,7 @@ export class PaycrestAdapter implements PayoutProviderAdapter {
     token: string,
     amount: string,
     currency: string,
-    options?: { network?: string; providerId?: string }
+    options?: { network?: string; providerId?: string },
   ): Promise<number> {
     const queryParams = new URLSearchParams();
     if (options?.network) queryParams.set('network', options.network);
@@ -90,7 +93,7 @@ export class PaycrestAdapter implements PayoutProviderAdapter {
 
     const qs = queryParams.toString();
     const response: any = await this.http.get(
-      `/rates/${encodeURIComponent(token)}/${encodeURIComponent(amount)}/${encodeURIComponent(currency)}${qs ? `?${qs}` : ''}`
+      `/rates/${encodeURIComponent(token)}/${encodeURIComponent(amount)}/${encodeURIComponent(currency)}${qs ? `?${qs}` : ''}`,
     );
 
     const rate = parseFloat(String(response?.data ?? response));

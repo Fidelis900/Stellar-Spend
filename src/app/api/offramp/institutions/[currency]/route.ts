@@ -23,21 +23,18 @@ class PaycrestAdapter {
   }
 
   async getInstitutions(currency: string) {
-    const response = await fetch(
-      `${this.apiUrl}/institutions/${encodeURIComponent(currency)}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'API-Key': this.apiKey,
-        },
-      }
-    );
+    const response = await fetch(`${this.apiUrl}/institutions/${encodeURIComponent(currency)}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'API-Key': this.apiKey,
+      },
+    });
 
     const data = await response.json();
 
     if (!response.ok) {
       const error = new Error(
-        data?.message ?? `Failed to fetch institutions: ${response.status}`
+        data?.message ?? `Failed to fetch institutions: ${response.status}`,
       ) as PaycrestHttpError;
       error.status = response.status;
       throw error;

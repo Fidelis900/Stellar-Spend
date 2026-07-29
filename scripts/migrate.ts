@@ -66,11 +66,11 @@ class MigrationRunner {
       console.log(`[DRY RUN] Would execute: ${sql.substring(0, 200)}...`);
       return { rows: [] };
     }
-    
+
     if (this.verbose) {
       console.log(`[VERBOSE] Executing: ${sql.substring(0, 100)}...`);
     }
-    
+
     const result = await this.pool.query(sql, params);
     return result;
   }
@@ -81,7 +81,7 @@ class MigrationRunner {
       FROM schema_migrations 
       ORDER BY id
     `);
-    
+
     return result.rows.map((row: any) => ({
       id: row.id,
       name: row.name,
@@ -92,25 +92,26 @@ class MigrationRunner {
 
   async getPendingMigrations(): Promise<Migration[]> {
     const applied = await this.getAppliedMigrations();
-    const appliedIds = new Set(applied.map(m => m.id));
-    
+    const appliedIds = new Set(applied.map((m) => m.id));
+
     // Read migration files
-    const migrationFiles = fs.readdirSync('./migrations')
-      .filter(f => f.endsWith('.sql'))
+    const migrationFiles = fs
+      .readdirSync('./migrations')
+      .filter((f) => f.endsWith('.sql'))
       .sort();
-    
+
     const migrations: Migration[] = [];
-    
+
     for (const file of migrationFiles) {
       const name = file.replace(/\.sql$/, '');
       // Stable across renumbering: derived from the descriptive part of the
       // filename, not the numeric prefix. See reconcileLegacyIds().
       const id = name.replace(/^\d+_/, '');
-      
+
       if (!appliedIds.has(id)) {
         const content = fs.readFileSync(`./migrations/${file}`, 'utf-8');
         const [up, down] = this.extractUpDown(content);
-        
+
         migrations.push({
           id,
           name,
@@ -120,57 +121,63 @@ class MigrationRunner {
         });
       }
     }
-    
+
     return migrations;
   }
 
   extractUpDown(content: string): [string, string] {
     const upMatch = content.match(/-- up\s*([\s\S]*?)-- down/);
     const downMatch = content.match(/-- down\s*([\s\S]*?)$/);
-    
+
     const up = upMatch ? upMatch[1].trim() : '';
     const down = downMatch ? downMatch[1].trim() : '';
-    
+
     return [up, down];
   }
 
   async applyMigration(migration: Migration): Promise<void> {
     // Phase 1: Expand (add new columns/tables)
     console.log(`[EXPAND] Applying ${migration.name}...`);
-    
+
     // Check if migration is safe (no blocking locks)
     const isSafe = this.lintMigration(migration.up);
     if (!isSafe) {
       console.error(`❌ Migration ${migration.name} failed linting!`);
       throw new Error('Migration safety check failed');
     }
-    
+
     // Execute up migration
     await this.query(migration.up);
-    
+
     // Record migration
-    await this.query(`
+    await this.query(
+      `
       INSERT INTO schema_migrations (id, name, checksum)
       VALUES ($1, $2, $3)
-    `, [migration.id, migration.name, this.calculateChecksum(migration.up)]);
-    
+    `,
+      [migration.id, migration.name, this.calculateChecksum(migration.up)],
+    );
+
     // Phase 2: Contract (remove old columns/tables after validation)
     // This is handled in a separate migration step (deprecated phase)
-    
+
     console.log(`✅ Migration ${migration.name} applied successfully`);
   }
 
   async rollbackMigration(migration: Migration): Promise<void> {
     console.log(`[CONTRACT] Rolling back ${migration.name}...`);
-    
+
     // Execute down migration
     await this.query(migration.down);
-    
+
     // Remove migration record
-    await this.query(`
+    await this.query(
+      `
       DELETE FROM schema_migrations WHERE id = $1
-    `, [migration.id]);
-    
+    `,
+      [migration.id],
+    );
+
     console.log(`✅ Migration ${migration.name} rolled back successfully`);
   }
 
@@ -182,14 +189,14 @@ class MigrationRunner {
       /CREATE\s+INDEX.*CONCURRENTLY/, // Should be done concurrently
       /ALTER TABLE.*RENAME\s+COLUMN/, // Renaming columns (requires expansion)
     ];
-    
+
     for (const pattern of dangerousPatterns) {
       if (pattern.test(sql)) {
         console.warn(`⚠️ Dangerous pattern detected: ${pattern}`);
         return false;
       }
     }
-    
+
     // Check for large table operations
     // This would require analyzing table sizes in production
     return true;
@@ -202,44 +209,44 @@ class MigrationRunner {
 
   async run(): Promise<void> {
     console.log('🔍 Checking pending migrations...');
-    
+
     const pending = await this.getPendingMigrations();
-    
+
     if (pending.length === 0) {
       console.log('✅ No pending migrations');
       return;
     }
-    
+
     console.log(`📋 Found ${pending.length} pending migrations:`);
     for (const migration of pending) {
       console.log(`  - ${migration.name} (${migration.id})`);
     }
-    
+
     // Run migrations
     for (const migration of pending) {
       await this.applyMigration(migration);
     }
-    
+
     console.log('✅ All migrations applied successfully');
   }
 
   async rollback(steps: number = 1): Promise<void> {
     console.log(`🔍 Rolling back ${steps} migration(s)...`);
-    
+
     const applied = await this.getAppliedMigrations();
-    
+
     if (applied.length === 0) {
       console.log('✅ No migrations to rollback');
       return;
     }
-    
+
     const toRollback = applied.slice(-steps);
-    
+
     for (const migration of toRollback) {
       const migrationFile = migration.name + '.sql';
       const content = fs.readFileSync(`./migrations/${migrationFile}`, 'utf-8');
       const [up, down] = this.extractUpDown(content);
-      
+
       await this.rollbackMigration({
         ...migration,
         up,
@@ -247,19 +254,19 @@ class MigrationRunner {
         applied: true,
       });
     }
-    
+
     console.log(`✅ Rolled back ${toRollback.length} migration(s)`);
   }
 
   async dryRunMigrations(): Promise<void> {
     console.log('🔍 DRY RUN: Checking migrations...');
     const pending = await this.getPendingMigrations();
-    
+
     if (pending.length === 0) {
       console.log('✅ No pending migrations');
       return;
     }
-    
+
     console.log(`📋 Would apply ${pending.length} migrations:`);
     for (const migration of pending) {
       console.log(`  - ${migration.name} (${migration.id})`);
@@ -269,26 +276,26 @@ class MigrationRunner {
 
   async verifyRollback(migrationId: string): Promise<boolean> {
     console.log(`🔍 Verifying rollback for ${migrationId}...`);
-    
+
     // Apply migration
     const pending = await this.getPendingMigrations();
-    const migration = pending.find(m => m.id === migrationId);
-    
+    const migration = pending.find((m) => m.id === migrationId);
+
     if (!migration) {
       console.log(`⚠️ Migration ${migrationId} not found or already applied`);
       return false;
     }
-    
+
     // Apply
     await this.applyMigration(migration);
-    
+
     // Rollback
     await this.rollbackMigration(migration);
-    
+
     // Verify rollback completed
     const applied = await this.getAppliedMigrations();
-    const found = applied.find(m => m.id === migrationId);
-    
+    const found = applied.find((m) => m.id === migrationId);
+
     if (!found) {
       console.log(`✅ Rollback verification passed for ${migrationId}`);
       return true;
@@ -309,26 +316,26 @@ async function main() {
   const command = args[0] || 'up';
   const dryRun = args.includes('--dry-run');
   const verbose = args.includes('--verbose');
-  
+
   const runner = new MigrationRunner(dryRun, verbose);
-  
+
   try {
     await runner.initialize();
-    
+
     switch (command) {
       case 'up':
         await runner.run();
         break;
-        
+
       case 'down':
         const steps = parseInt(args[1]) || 1;
         await runner.rollback(steps);
         break;
-        
+
       case 'dry-run':
         await runner.dryRunMigrations();
         break;
-        
+
       case 'verify':
         const migrationId = args[1];
         if (!migrationId) {
@@ -337,7 +344,7 @@ async function main() {
         }
         await runner.verifyRollback(migrationId);
         break;
-        
+
       default:
         console.log(`
 Usage: migrate.ts [command] [options]

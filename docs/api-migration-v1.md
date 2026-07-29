@@ -68,8 +68,8 @@ Link: </api/v1/{path}>; rel="successor-version"
 **Before:**
 
 ```typescript
-const res = await fetch("/api/offramp/quote", {
-  method: "POST",
+const res = await fetch('/api/offramp/quote', {
+  method: 'POST',
   body: JSON.stringify({ amount, currency, feeMethod }),
 });
 ```
@@ -77,8 +77,8 @@ const res = await fetch("/api/offramp/quote", {
 **After:**
 
 ```typescript
-const res = await fetch("/api/v1/offramp/quote", {
-  method: "POST",
+const res = await fetch('/api/v1/offramp/quote', {
+  method: 'POST',
   body: JSON.stringify({ amount, currency, feeMethod }),
 });
 ```
@@ -86,9 +86,9 @@ const res = await fetch("/api/v1/offramp/quote", {
 **Or using the header approach (no URL change needed):**
 
 ```typescript
-const res = await fetch("/api/offramp/quote", {
-  method: "POST",
-  headers: { "X-API-Version": "1" },
+const res = await fetch('/api/offramp/quote', {
+  method: 'POST',
+  headers: { 'X-API-Version': '1' },
   body: JSON.stringify({ amount, currency, feeMethod }),
 });
 ```

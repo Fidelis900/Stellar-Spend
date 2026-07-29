@@ -2,14 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ErrorHandler } from '@/lib/error-handler';
 import { ApiError, ErrorType } from '@/lib/error-types';
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params;
     const body = await req.json();
-    const { action, label, amount, currency, frequency, maxExecutions, retryConfig, notificationsEnabled } = body;
+    const {
+      action,
+      label,
+      amount,
+      currency,
+      frequency,
+      maxExecutions,
+      retryConfig,
+      notificationsEnabled,
+    } = body;
 
     const validActions = ['pause', 'resume', 'update'];
     if (action && !validActions.includes(action)) {
@@ -29,14 +35,13 @@ export async function PUT(
 
     return NextResponse.json({ updated: patch });
   } catch {
-    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to modify recurring schedule'));
+    return ErrorHandler.handle(
+      new ApiError(ErrorType.SERVER_ERROR, 'Failed to modify recurring schedule'),
+    );
   }
 }
 
-export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params;
     if (!id) {
@@ -44,6 +49,8 @@ export async function DELETE(
     }
     return NextResponse.json({ cancelled: id });
   } catch {
-    return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to cancel recurring schedule'));
+    return ErrorHandler.handle(
+      new ApiError(ErrorType.SERVER_ERROR, 'Failed to cancel recurring schedule'),
+    );
   }
 }

@@ -20,11 +20,11 @@ These variables are available only in server-side code (API routes, server compo
 
 ### `PAYCREST_API_KEY`
 
-| | |
-|---|---|
-| Required | Yes |
-| Exposed to browser | No |
-| Example | `pk_live_abc123...` |
+|                    |                     |
+| ------------------ | ------------------- |
+| Required           | Yes                 |
+| Exposed to browser | No                  |
+| Example            | `pk_live_abc123...` |
 
 API key for authenticating requests to the Paycrest sender API. Used by `PaycrestAdapter` to create payout orders, fetch currencies, list institutions, verify accounts, and get FX rates.
 
@@ -36,11 +36,11 @@ Obtain from the Paycrest dashboard under API credentials.
 
 ### `PAYCREST_WEBHOOK_SECRET`
 
-| | |
-|---|---|
-| Required | Yes |
-| Exposed to browser | No |
-| Example | `whsec_xyz789...` |
+|                    |                   |
+| ------------------ | ----------------- |
+| Required           | Yes               |
+| Exposed to browser | No                |
+| Example            | `whsec_xyz789...` |
 
 Signing secret used to verify the HMAC-SHA-256 signature on incoming Paycrest webhook events. The webhook handler at `/api/webhooks/paycrest` rejects any request whose `X-Paycrest-Signature` header does not match.
 
@@ -52,12 +52,12 @@ Obtain from the Paycrest dashboard under webhook settings.
 
 ### `BASE_PRIVATE_KEY`
 
-| | |
-|---|---|
-| Required | Yes |
-| Exposed to browser | No |
-| Format | `0x` + 64 hex characters |
-| Example | `0xabc123...` |
+|                    |                          |
+| ------------------ | ------------------------ |
+| Required           | Yes                      |
+| Exposed to browser | No                       |
+| Format             | `0x` + 64 hex characters |
+| Example            | `0xabc123...`            |
 
 Private key for the Base wallet that signs and submits USDC transfer transactions to Paycrest deposit addresses. Used exclusively by the server-side payout execution logic.
 
@@ -67,12 +67,12 @@ Private key for the Base wallet that signs and submits USDC transfer transaction
 
 ### `BASE_RETURN_ADDRESS`
 
-| | |
-|---|---|
-| Required | Yes |
-| Exposed to browser | No |
-| Format | EVM address (`0x` + 40 hex characters) |
-| Example | `0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045` |
+|                    |                                              |
+| ------------------ | -------------------------------------------- |
+| Required           | Yes                                          |
+| Exposed to browser | No                                           |
+| Format             | EVM address (`0x` + 40 hex characters)       |
+| Example            | `0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045` |
 
 The Base wallet address where Paycrest returns funds if a payout order cannot be completed (e.g., expired or refunded). Also used as the `returnAddress` field when creating Paycrest orders.
 
@@ -80,10 +80,10 @@ The Base wallet address where Paycrest returns funds if a payout order cannot be
 
 ### `BASE_RPC_URL`
 
-| | |
-|---|---|
-| Required | Yes |
-| Exposed to browser | No |
+|                           |                            |
+| ------------------------- | -------------------------- |
+| Required                  | Yes                        |
+| Exposed to browser        | No                         |
 | Default in `.env.example` | `https://mainnet.base.org` |
 
 Base mainnet RPC endpoint used by the server for on-chain USDC transfer execution via `viem`. Can be the public Base RPC or a provider URL from Alchemy, Infura, QuickNode, etc.
@@ -94,10 +94,10 @@ Base mainnet RPC endpoint used by the server for on-chain USDC transfer executio
 
 ### `STELLAR_SOROBAN_RPC_URL`
 
-| | |
-|---|---|
-| Required | Yes |
-| Exposed to browser | No |
+|                           |                                                  |
+| ------------------------- | ------------------------------------------------ |
+| Required                  | Yes                                              |
+| Exposed to browser        | No                                               |
 | Default in `.env.example` | `https://soroban-rpc.mainnet.stellar.gateway.fm` |
 
 Soroban RPC endpoint used server-side for building and submitting Stellar bridge transactions. Mapped to the `SRB` key in the Allbridge SDK's RPC URL config.
@@ -106,10 +106,10 @@ Soroban RPC endpoint used server-side for building and submitting Stellar bridge
 
 ### `STELLAR_HORIZON_URL`
 
-| | |
-|---|---|
-| Required | Yes |
-| Exposed to browser | No |
+|                           |                               |
+| ------------------------- | ----------------------------- |
+| Required                  | Yes                           |
+| Exposed to browser        | No                            |
 | Default in `.env.example` | `https://horizon.stellar.org` |
 
 Stellar Horizon API endpoint used server-side for account lookups and trustline queries. Mapped to the `STLR` key in the Allbridge SDK's RPC URL config.
@@ -122,10 +122,10 @@ These variables are bundled into the client-side JavaScript. They must use the `
 
 ### `NEXT_PUBLIC_STELLAR_SOROBAN_RPC_URL`
 
-| | |
-|---|---|
-| Required | Yes |
-| Exposed to browser | Yes |
+|                           |                                                  |
+| ------------------------- | ------------------------------------------------ |
+| Required                  | Yes                                              |
+| Exposed to browser        | Yes                                              |
 | Default in `.env.example` | `https://soroban-rpc.mainnet.stellar.gateway.fm` |
 
 Browser-safe Soroban RPC endpoint used for client-side Stellar interactions (e.g., wallet connection, transaction simulation). Can be the same value as `STELLAR_SOROBAN_RPC_URL` if the endpoint is publicly accessible.
@@ -134,11 +134,11 @@ Browser-safe Soroban RPC endpoint used for client-side Stellar interactions (e.g
 
 ### `NEXT_PUBLIC_BASE_RETURN_ADDRESS`
 
-| | |
-|---|---|
-| Required | Yes |
-| Exposed to browser | Yes |
-| Format | EVM address (`0x` + 40 hex characters) |
+|                    |                                        |
+| ------------------ | -------------------------------------- |
+| Required           | Yes                                    |
+| Exposed to browser | Yes                                    |
+| Format             | EVM address (`0x` + 40 hex characters) |
 
 Browser-safe version of the Base return address. Exposed to the client so the UI can display or use the return address without a server round-trip. Safe to expose because it is a wallet address, not a private key.
 
@@ -148,12 +148,12 @@ Must match `BASE_RETURN_ADDRESS`.
 
 ### `NEXT_PUBLIC_STELLAR_USDC_ISSUER`
 
-| | |
-|---|---|
-| Required | Yes |
-| Exposed to browser | Yes |
-| Format | Stellar account ID (`G` + 55 characters) |
-| Mainnet value | `GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN` |
+|                    |                                                            |
+| ------------------ | ---------------------------------------------------------- |
+| Required           | Yes                                                        |
+| Exposed to browser | Yes                                                        |
+| Format             | Stellar account ID (`G` + 55 characters)                   |
+| Mainnet value      | `GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN` |
 
 The Stellar account ID of the USDC issuer (Circle). Used client-side to filter the correct USDC trustline from Horizon when reading wallet balances.
 
@@ -167,11 +167,11 @@ These variables are not required for the app to start. Omitting them disables th
 
 ### `SENTRY_DSN`
 
-| | |
-|---|---|
-| Required | No |
-| Exposed to browser | No |
-| Default | _(disabled)_ |
+|                    |              |
+| ------------------ | ------------ |
+| Required           | No           |
+| Exposed to browser | No           |
+| Default            | _(disabled)_ |
 
 Sentry DSN for server-side error monitoring. When set, unhandled server errors are reported to your Sentry project. Obtain from Sentry project settings → Client Keys.
 
@@ -179,11 +179,11 @@ Sentry DSN for server-side error monitoring. When set, unhandled server errors a
 
 ### `NEXT_PUBLIC_SENTRY_DSN`
 
-| | |
-|---|---|
-| Required | No |
-| Exposed to browser | Yes |
-| Default | _(disabled)_ |
+|                    |              |
+| ------------------ | ------------ |
+| Required           | No           |
+| Exposed to browser | Yes          |
+| Default            | _(disabled)_ |
 
 Sentry DSN for browser-side error monitoring. Can be the same value as `SENTRY_DSN`. When set, client-side errors are reported to Sentry.
 
@@ -191,11 +191,11 @@ Sentry DSN for browser-side error monitoring. Can be the same value as `SENTRY_D
 
 ### `SENTRY_ORG`
 
-| | |
-|---|---|
-| Required | No (required for source map uploads) |
-| Exposed to browser | No |
-| Example | `my-org-slug` |
+|                    |                                      |
+| ------------------ | ------------------------------------ |
+| Required           | No (required for source map uploads) |
+| Exposed to browser | No                                   |
+| Example            | `my-org-slug`                        |
 
 Sentry organization slug. Used by the Sentry webpack plugin during `npm run build` to associate source maps with the correct organization.
 
@@ -203,11 +203,11 @@ Sentry organization slug. Used by the Sentry webpack plugin during `npm run buil
 
 ### `SENTRY_PROJECT`
 
-| | |
-|---|---|
-| Required | No (required for source map uploads) |
-| Exposed to browser | No |
-| Example | `stellar-spend` |
+|                    |                                      |
+| ------------------ | ------------------------------------ |
+| Required           | No (required for source map uploads) |
+| Exposed to browser | No                                   |
+| Example            | `stellar-spend`                      |
 
 Sentry project slug. Used alongside `SENTRY_ORG` for source map uploads during CI builds.
 
@@ -215,19 +215,19 @@ Sentry project slug. Used alongside `SENTRY_ORG` for source map uploads during C
 
 ### `SENTRY_AUTH_TOKEN`
 
-| | |
-|---|---|
+|          |                                      |
+| -------- | ------------------------------------ |
 | Required | No (required for source map uploads) |
 
 ---
 
 ### `EMAIL_NOTIFICATION_ENDPOINT`
 
-| | |
-|---|---|
-| Required | No |
-| Exposed to browser | No |
-| Default | _(disabled)_ |
+|                    |              |
+| ------------------ | ------------ |
+| Required           | No           |
+| Exposed to browser | No           |
+| Default            | _(disabled)_ |
 
 HTTP endpoint used by the transaction notification service to send email notifications for transaction status changes. The service sends JSON with `from`, `to`, `subject`, and `text`.
 
@@ -235,11 +235,11 @@ HTTP endpoint used by the transaction notification service to send email notific
 
 ### `EMAIL_NOTIFICATION_AUTH_TOKEN`
 
-| | |
-|---|---|
-| Required | No |
-| Exposed to browser | No |
-| Default | _(unset)_ |
+|                    |           |
+| ------------------ | --------- |
+| Required           | No        |
+| Exposed to browser | No        |
+| Default            | _(unset)_ |
 
 Optional bearer token attached to requests sent to `EMAIL_NOTIFICATION_ENDPOINT`.
 
@@ -247,10 +247,10 @@ Optional bearer token attached to requests sent to `EMAIL_NOTIFICATION_ENDPOINT`
 
 ### `EMAIL_NOTIFICATION_FROM`
 
-| | |
-|---|---|
-| Required | No |
-| Exposed to browser | No |
+|                           |                               |
+| ------------------------- | ----------------------------- |
+| Required                  | No                            |
+| Exposed to browser        | No                            |
 | Default in `.env.example` | `noreply@stellar-spend.local` |
 
 Default sender address used in outbound email notifications.
@@ -259,10 +259,10 @@ Default sender address used in outbound email notifications.
 
 ### `SMS_NOTIFICATION_ENABLED`
 
-| | |
-|---|---|
-| Required | No |
-| Exposed to browser | No |
+|                           |         |
+| ------------------------- | ------- |
+| Required                  | No      |
+| Exposed to browser        | No      |
 | Default in `.env.example` | `false` |
 
 Enables optional SMS delivery for transaction notifications. SMS deliveries are skipped unless this is set to `true` and `SMS_NOTIFICATION_ENDPOINT` is configured.
@@ -271,11 +271,11 @@ Enables optional SMS delivery for transaction notifications. SMS deliveries are 
 
 ### `SMS_NOTIFICATION_ENDPOINT`
 
-| | |
-|---|---|
-| Required | No |
-| Exposed to browser | No |
-| Default | _(disabled)_ |
+|                    |              |
+| ------------------ | ------------ |
+| Required           | No           |
+| Exposed to browser | No           |
+| Default            | _(disabled)_ |
 
 HTTP endpoint used by the transaction notification service to send SMS payloads with `to` and `message`.
 
@@ -283,11 +283,11 @@ HTTP endpoint used by the transaction notification service to send SMS payloads 
 
 ### `SMS_NOTIFICATION_AUTH_TOKEN`
 
-| | |
-|---|---|
-| Required | No |
-| Exposed to browser | No |
-| Default | _(unset)_ |
+|                    |           |
+| ------------------ | --------- |
+| Required           | No        |
+| Exposed to browser | No        |
+| Default            | _(unset)_ |
 
 Optional bearer token attached to requests sent to `SMS_NOTIFICATION_ENDPOINT`.
 
@@ -295,11 +295,11 @@ Optional bearer token attached to requests sent to `SMS_NOTIFICATION_ENDPOINT`.
 
 ### `API_KEY_ADMIN_TOKEN`
 
-| | |
-|---|---|
-| Required | No |
-| Exposed to browser | No |
-| Default | _(disabled)_ |
+|                    |              |
+| ------------------ | ------------ |
+| Required           | No           |
+| Exposed to browser | No           |
+| Default            | _(disabled)_ |
 
 Bearer token used to authorize API key management endpoints under `/api/api-keys`. When unset, key management routes are effectively disabled.
 | Exposed to browser | No |
@@ -312,12 +312,12 @@ Sentry auth token used by the webpack plugin to authenticate source map uploads.
 
 ### `ANALYZE`
 
-| | |
-|---|---|
-| Required | No |
-| Exposed to browser | No |
-| Default | `false` |
-| Valid values | `true`, `false` |
+|                    |                 |
+| ------------------ | --------------- |
+| Required           | No              |
+| Exposed to browser | No              |
+| Default            | `false`         |
+| Valid values       | `true`, `false` |
 
 When set to `true`, running `npm run build:analyze` opens an interactive bundle treemap. Used locally to inspect chunk sizes. Has no effect at runtime.
 
@@ -325,13 +325,13 @@ When set to `true`, running `npm run build:analyze` opens an interactive bundle 
 
 ### `ALLOWED_ORIGINS`
 
-| | |
-|---|---|
-| Required | No |
-| Exposed to browser | No |
-| Default | `http://localhost:3000`, `http://localhost:3001`, `http://localhost:3002` |
-| Format | Comma-separated list of origins |
-| Example | `https://your-app.vercel.app,https://www.your-domain.com` |
+|                    |                                                                           |
+| ------------------ | ------------------------------------------------------------------------- |
+| Required           | No                                                                        |
+| Exposed to browser | No                                                                        |
+| Default            | `http://localhost:3000`, `http://localhost:3001`, `http://localhost:3002` |
+| Format             | Comma-separated list of origins                                           |
+| Example            | `https://your-app.vercel.app,https://www.your-domain.com`                 |
 
 Controls which origins are permitted to call the API from a browser (CORS). When left empty, the development localhost origins are allowed. In production, set this to your actual frontend origin(s).
 

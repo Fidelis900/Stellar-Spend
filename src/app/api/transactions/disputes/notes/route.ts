@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
     const dispute = await disputeRepository.getDispute(disputeId);
     if (!dispute) {
-      return ErrorHandler.notFound("Dispute");
+      return ErrorHandler.notFound('Dispute');
     }
 
     // Only admins can post internal notes

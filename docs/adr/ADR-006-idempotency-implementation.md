@@ -41,6 +41,7 @@ A **server-side idempotency key system** is implemented, backed by the PostgreSQ
 5. Completed records expire after `IDEMPOTENCY_TTL_MS` (default: 24 hours). In-flight locks expire after `IDEMPOTENCY_LOCK_TTL_MS` (default: 5 minutes).
 
 **Response headers on all idempotent routes:**
+
 ```
 Idempotency-Key: <the-key>
 Idempotency-Status: created | replayed | conflict
@@ -48,30 +49,33 @@ Idempotency-Status: created | replayed | conflict
 
 **Endpoints that support `Idempotency-Key`:**
 
-| Endpoint | Side effect protected |
-|---|---|
+| Endpoint                           | Side effect protected                        |
+| ---------------------------------- | -------------------------------------------- |
 | `POST /api/offramp/paycrest/order` | Paycrest order creation + Base USDC transfer |
-| `POST /api/offramp/execute-payout` | Base USDC on-chain transaction |
-| `POST /api/transactions` | Database write |
-| `PATCH /api/transactions/[id]` | Database write |
+| `POST /api/offramp/execute-payout` | Base USDC on-chain transaction               |
+| `POST /api/transactions`           | Database write                               |
+| `PATCH /api/transactions/[id]`     | Database write                               |
 
 ---
 
 ## Consequences
 
 **Positive:**
+
 - Clients can safely retry any listed endpoint on network failure without risk of double execution.
 - In-flight lock prevents concurrent duplicate requests from racing to create the same order.
-- The stored response allows the server to replay the *exact* original response, including IDs and addresses that the client needs for the next step.
+- The stored response allows the server to replay the _exact_ original response, including IDs and addresses that the client needs for the next step.
 - TTL-based cleanup keeps the `idempotency_keys` table from growing unboundedly.
 
 **Negative / Trade-offs:**
+
 - Requires a database round-trip on every call to a protected endpoint, even when no retry is happening.
 - In-flight locks (5-minute TTL) mean a crashed server process can leave a lock that blocks retries for up to 5 minutes.
 - Clients must generate globally unique idempotency keys — typically a UUID combined with a user or session identifier.
 - `5xx` responses are not cached, so a catastrophic failure mid-operation (e.g., Paycrest order created but Base transfer failed) cannot be replayed — the client must check status manually.
 
 **Key generation guidance for clients:**
+
 ```
 <operation-type>-<user-wallet-address>-<timestamp-or-uuid>
 // e.g.: "order-GABC123-9d9f2b9d-1"
@@ -79,4 +83,4 @@ Idempotency-Status: created | replayed | conflict
 
 ---
 
-*Related: [[ADR-001-localstorage-transaction-history]], [[ADR-003-adapter-pattern-external-services]]*
+_Related: [[ADR-001-localstorage-transaction-history]], [[ADR-003-adapter-pattern-external-services]]_

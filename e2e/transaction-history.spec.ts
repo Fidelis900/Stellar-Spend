@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Transaction History', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('http://localhost:3001');
-    
+
     // Connect wallet
     await page.click('button:has-text("Connect Wallet")');
     await page.waitForSelector('[data-testid="wallet-modal"]');
@@ -53,9 +53,12 @@ test.describe('Transaction History', () => {
     // Verify only completed transactions are shown
     const entries = await page.locator('[data-testid="transaction-entry"]');
     const count = await entries.count();
-    
+
     for (let i = 0; i < count; i++) {
-      const status = await entries.nth(i).locator('[data-testid="transaction-status"]').textContent();
+      const status = await entries
+        .nth(i)
+        .locator('[data-testid="transaction-status"]')
+        .textContent();
       expect(status).toContain('Completed');
     }
   });
@@ -74,7 +77,7 @@ test.describe('Transaction History', () => {
     // Verify results contain search term
     const entries = await page.locator('[data-testid="transaction-entry"]');
     const count = await entries.count();
-    
+
     if (count > 0) {
       const firstEntry = await entries.first().textContent();
       expect(firstEntry).toContain('NGN');

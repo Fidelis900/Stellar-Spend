@@ -7,32 +7,39 @@ The Notification Center aggregates all application notifications into a single, 
 ## Features
 
 ### 1. Aggregated Notifications
+
 Collects notifications from multiple sources:
+
 - **Price Alerts** - From `PriceAlertStorage` when alerts trigger
 - **Transaction Updates** - From notification delivery records (pending, completed, failed)
 - **Payout Status** - From transaction polling (pending, processing, settled, failed, refunded, expired)
 - **Tier Changes** - Custom events when user tier changes
 
 ### 2. Unread State & Persistence
+
 - Tracks read/unread state for each notification
 - Persists to localStorage (`stellar_spend_notification_center`)
 - Survives page reloads and browser sessions
 - Shows unread badge with count (capped at "99+")
 
 ### 3. Deep Linking
+
 Each notification includes a link to relevant context:
+
 - Price alerts → `/price-alerts/{alertId}`
 - Transactions → `/transaction/{transactionId}`
 - Payouts → `/transaction/{transactionId}?tab=payout`
 - Tier changes → `/account/tier`
 
 ### 4. Keyboard Accessible
+
 - Escape key closes panel
 - Tab navigation through items
 - Focus management (focuses bell button when closing)
 - Full ARIA labels and roles
 
 ### 5. Visual States
+
 - **Empty State** - Shows when no notifications
 - **Loading State** - While fetching new notifications
 - **Overflow Badge** - Shows "99+" for 100+ unread
@@ -44,16 +51,20 @@ Each notification includes a link to relevant context:
 ### Core Files
 
 **Hook:**
+
 - `src/hooks/useNotificationCenter.ts` - Main state management and aggregation
 
 **Component:**
+
 - `src/components/NotificationCenter.tsx` - Bell icon + dropdown panel UI
 
 **Tests:**
+
 - `src/hooks/__tests__/useNotificationCenter.test.tsx` - Hook tests (40+ cases)
 - `src/components/__tests__/NotificationCenter.test.tsx` - Component tests (25+ cases)
 
 **Updated:**
+
 - `src/components/Header.tsx` - Integrated notification center in header
 
 ### Data Flow
@@ -76,13 +87,14 @@ User Interface (Bell Icon + Dropdown)
 
 ```typescript
 interface NotificationCenterEvent {
-  id: string;                    // Unique identifier
+  id: string; // Unique identifier
   type: 'price_alert' | 'transaction_update' | 'payout_update' | 'tier_change';
-  title: string;                 // e.g., "Price Alert: NGN"
-  description: string;           // e.g., "Your alert for NGN at ₦500 has triggered"
-  read: boolean;                 // Read/unread state
-  createdAt: number;             // Timestamp in milliseconds
-  link?: {                        // Deep link to relevant page
+  title: string; // e.g., "Price Alert: NGN"
+  description: string; // e.g., "Your alert for NGN at ₦500 has triggered"
+  read: boolean; // Read/unread state
+  createdAt: number; // Timestamp in milliseconds
+  link?: {
+    // Deep link to relevant page
     href: string;
     label: string;
   };
@@ -129,7 +141,7 @@ notifications.addEvent({
   description: 'Alert triggered at ₦500',
   read: false,
   createdAt: Date.now(),
-  link: { href: '/price-alerts/1', label: 'View Alert' }
+  link: { href: '/price-alerts/1', label: 'View Alert' },
 });
 
 // Add tier change notification
@@ -166,12 +178,14 @@ notifications.refresh();
 ## Design Details
 
 ### Bell Icon
+
 - Located in header after theme toggle
 - Shows unread count badge when > 0
 - Gold/accent color
 - Changes on hover
 
 ### Dropdown Panel
+
 - Positioned right-aligned below bell
 - Fixed width (320px), scrollable
 - Max height 384px
@@ -179,55 +193,63 @@ notifications.refresh();
 - Z-index 50 for layering
 
 ### Header Section
+
 - Shows "NOTIFICATIONS" title
 - "Mark Read" button to mark all as read
 - Sticky positioning in dropdown
 
 ### Event List
+
 - Sorted newest first
 - Left border accent (gold for unread, dark for read)
 - Hover effect (slightly lighter background)
 - Color-coded by type (icons and borders)
 
 ### Actions
+
 - Click event to mark as read + navigate
 - Click "X" to remove individual event
 - "Clear All" button in footer
 - "Mark Read" in header
 
 ### Empty State
+
 - Bell icon
 - "No notifications yet"
 - Subtext about staying tuned
 
 ### Footer
+
 - "Clear All" button
 - Only shows when events exist
 
 ## Event Type Styling
 
-| Type | Color | Icon | Example |
-|------|-------|------|---------|
-| `price_alert` | Amber | Trending | "Price Alert: NGN" |
-| `transaction_update` | Blue | Download | "Transaction Completed" |
-| `payout_update` | Emerald | Clock | "Payout Settled" |
-| `tier_change` | Purple | Shield | "Tier Changed to Gold" |
+| Type                 | Color   | Icon     | Example                 |
+| -------------------- | ------- | -------- | ----------------------- |
+| `price_alert`        | Amber   | Trending | "Price Alert: NGN"      |
+| `transaction_update` | Blue    | Download | "Transaction Completed" |
+| `payout_update`      | Emerald | Clock    | "Payout Settled"        |
+| `tier_change`        | Purple  | Shield   | "Tier Changed to Gold"  |
 
 ## Accessibility Features
 
 1. **ARIA Labels**
+
    - `aria-label` on bell button
    - `aria-expanded` for panel state
    - `aria-haspopup="dialog"`
    - `role="dialog"` on panel
 
 2. **Keyboard Navigation**
+
    - Tab to bell button
    - Escape to close
    - Tab through notification items
    - Focus management (returns to bell on close)
 
 3. **Screen Reader Support**
+
    - Unread count in button label
    - Event title and description read as one unit
    - "Unread" indicator narrated
@@ -243,6 +265,7 @@ notifications.refresh();
 ### Test Coverage: 65+ Cases
 
 **Hook Tests (40+ cases)**
+
 - Initialization & state management
 - Adding/updating events
 - Mark as read (single & all)
@@ -255,6 +278,7 @@ notifications.refresh();
 - Edge cases & error handling
 
 **Component Tests (25+ cases)**
+
 - Bell button rendering & toggle
 - Unread badge display
 - Empty state
@@ -269,6 +293,7 @@ notifications.refresh();
 - Focus management
 
 ### Run Tests
+
 ```bash
 npm run test -- useNotificationCenter --run
 npm run test -- NotificationCenter --run
@@ -277,11 +302,13 @@ npm run test -- NotificationCenter --run
 ## Performance Considerations
 
 1. **Lazy Loading**
+
    - Events loaded on demand
    - Polling interval: 30 seconds (configurable)
    - Persisted to localStorage for instant load
 
 2. **Memory Management**
+
    - Max 100 events retained (oldest discarded)
    - Event listeners cleaned up on unmount
    - Polling interval cleared on unmount
@@ -302,20 +329,24 @@ npm run test -- NotificationCenter --run
 ## Future Enhancements
 
 1. **Notification Categories**
+
    - Filter by type (Alerts, Transactions, etc.)
    - Favorite/star important notifications
 
 2. **Notification Actions**
+
    - Snooze notifications
    - Archive old notifications
    - Custom sorting (date, type, importance)
 
 3. **Backend Sync**
+
    - Server-side notification history
    - Cross-device sync
    - Notification preferences API
 
 4. **Rich Notifications**
+
    - Action buttons (Retry, Acknowledge)
    - Multi-step notification workflows
    - Notification groups (batch related events)
@@ -347,19 +378,23 @@ npm run test -- NotificationCenter --run
 ## Troubleshooting
 
 ### No notifications appearing
+
 - Check `useNotificationCenter` is initialized with valid user address
 - Verify event sources are calling `addEvent()`
 - Check localStorage is enabled in browser
 
 ### Unread badge not showing
+
 - Verify unread events exist (check localStorage)
 - Confirm `unreadCount > 0`
 
 ### Panel not closing
+
 - Check if outside click listener is attached
 - Verify Escape key handler is registered
 
 ### Events not persisting
+
 - Check browser allows localStorage
 - Verify storage quota not exceeded
 - Check console for errors

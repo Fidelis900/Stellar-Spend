@@ -23,9 +23,7 @@ export default function StatusError({ error, reset }: ErrorProps) {
             Unable to load status information at this time.
           </p>
           {error.message && (
-            <p className="mt-2 text-xs text-muted-foreground break-words">
-              {error.message}
-            </p>
+            <p className="mt-2 text-xs text-muted-foreground break-words">{error.message}</p>
           )}
         </div>
         <div className="flex gap-3 justify-center">
@@ -33,9 +31,7 @@ export default function StatusError({ error, reset }: ErrorProps) {
             Try again
           </Button>
           <Link href="/">
-            <Button variant="outline">
-              Go home
-            </Button>
+            <Button variant="outline">Go home</Button>
           </Link>
         </div>
       </div>

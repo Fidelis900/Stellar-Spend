@@ -6,15 +6,15 @@
 
 ## Incident Summary
 
-| Field | Value |
-|-------|-------|
-| **Title** | _e.g. Stuck Bridge — Allbridge congestion_ |
-| **Date** | YYYY-MM-DD |
-| **Duration** | _e.g. 47 minutes_ |
-| **Severity** | P1 / P2 / P3 |
-| **Incident commander** | @github-handle |
-| **Runbook used** | _e.g. [RB-001](./stuck-bridge.md)_ |
-| **Status** | Resolved / Ongoing |
+| Field                  | Value                                      |
+| ---------------------- | ------------------------------------------ |
+| **Title**              | _e.g. Stuck Bridge — Allbridge congestion_ |
+| **Date**               | YYYY-MM-DD                                 |
+| **Duration**           | _e.g. 47 minutes_                          |
+| **Severity**           | P1 / P2 / P3                               |
+| **Incident commander** | @github-handle                             |
+| **Runbook used**       | _e.g. [RB-001](./stuck-bridge.md)_         |
+| **Status**             | Resolved / Ongoing                         |
 
 **Summary (2–3 sentences):**  
 What happened, how long it lasted, and how many users were affected.
@@ -23,15 +23,15 @@ What happened, how long it lasted, and how many users were affected.
 
 ## Timeline
 
-| Time (UTC) | Event |
-|------------|-------|
-| HH:MM | Alert fired (`ALERT_NAME`) |
-| HH:MM | On-call acknowledged |
-| HH:MM | Incident declared; bridge created |
-| HH:MM | Root cause hypothesised |
-| HH:MM | Mitigation applied |
-| HH:MM | Service restored |
-| HH:MM | Incident resolved; all-clear posted |
+| Time (UTC) | Event                               |
+| ---------- | ----------------------------------- |
+| HH:MM      | Alert fired (`ALERT_NAME`)          |
+| HH:MM      | On-call acknowledged                |
+| HH:MM      | Incident declared; bridge created   |
+| HH:MM      | Root cause hypothesised             |
+| HH:MM      | Mitigation applied                  |
+| HH:MM      | Service restored                    |
+| HH:MM      | Incident resolved; all-clear posted |
 
 ---
 
@@ -93,11 +93,11 @@ _Describe the technical sequence of events that led to the incident._
 
 ## Action Items
 
-| # | Item | Owner | Due Date | Status |
-|---|------|-------|----------|--------|
-| 1 | | @handle | YYYY-MM-DD | Open |
-| 2 | | @handle | YYYY-MM-DD | Open |
-| 3 | | @handle | YYYY-MM-DD | Open |
+| #   | Item | Owner   | Due Date   | Status |
+| --- | ---- | ------- | ---------- | ------ |
+| 1   |      | @handle | YYYY-MM-DD | Open   |
+| 2   |      | @handle | YYYY-MM-DD | Open   |
+| 3   |      | @handle | YYYY-MM-DD | Open   |
 
 ---
 
@@ -119,8 +119,8 @@ _Describe the technical sequence of events that led to the incident._
 
 ## Sign-off
 
-| Role | Name | Date |
-|------|------|------|
-| Incident commander | | |
-| Engineering manager | | |
-| On-call engineer | | |
+| Role                | Name | Date |
+| ------------------- | ---- | ---- |
+| Incident commander  |      |      |
+| Engineering manager |      |      |
+| On-call engineer    |      |      |

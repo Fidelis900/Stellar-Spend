@@ -5,10 +5,7 @@ import { SERVICE_KEYS } from '@/lib/di/registry';
 import { ErrorHandler } from '@/lib/error-handler';
 import { ApiError, ErrorType } from '@/lib/error-types';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { token: string } }
-) {
+export async function GET(req: NextRequest, { params }: { params: { token: string } }) {
   try {
     const { token } = params;
 
@@ -16,7 +13,7 @@ export async function GET(
     const share = await svc.getShareLink(token);
 
     if (!share) {
-      return ErrorHandler.notFound("Share link");
+      return ErrorHandler.notFound('Share link');
     }
 
     if (share.expiresAt && share.expiresAt < Date.now()) {

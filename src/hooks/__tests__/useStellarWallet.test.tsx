@@ -101,9 +101,7 @@ describe('useStellarWallet', () => {
         rememberLastWallet: false,
       };
 
-      (window.localStorage.getItem as any).mockReturnValue(
-        JSON.stringify(savedSettings)
-      );
+      (window.localStorage.getItem as any).mockReturnValue(JSON.stringify(savedSettings));
 
       const { result } = renderHook(() => useStellarWallet());
 
@@ -217,10 +215,7 @@ describe('useStellarWallet', () => {
       await act(async () => {
         const spy = vi.spyOn(window.localStorage, 'setItem');
         result.current.saveLastWallet('freighter');
-        expect(spy).toHaveBeenCalledWith(
-          'stellar.lastWallet',
-          'freighter'
-        );
+        expect(spy).toHaveBeenCalledWith('stellar.lastWallet', 'freighter');
       });
     });
 
@@ -299,9 +294,7 @@ describe('useStellarWallet', () => {
   describe('custom network passphrase', () => {
     it('should accept custom network passphrase', () => {
       const customPassphrase = 'Custom Network ; 2025';
-      const { result } = renderHook(() =>
-        useStellarWallet(customPassphrase)
-      );
+      const { result } = renderHook(() => useStellarWallet(customPassphrase));
 
       expect(result.current).toBeDefined();
       // The passphrase is used internally for signing

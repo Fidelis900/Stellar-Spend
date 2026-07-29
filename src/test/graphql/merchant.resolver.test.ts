@@ -46,11 +46,7 @@ describe('merchantQueries.screeningResult', () => {
 
   it('throws when unauthenticated', async () => {
     await expect(
-      merchantQueries.screeningResult(
-        {},
-        { address: 'GABC' },
-        anonCtx(),
-      ),
+      merchantQueries.screeningResult({}, { address: 'GABC' }, anonCtx()),
     ).rejects.toThrow(/Unauthorized/);
   });
 
@@ -66,23 +62,15 @@ describe('merchantQueries.screeningResult', () => {
       screenAddress: vi.fn().mockResolvedValue(fakeResult),
     }));
 
-    const { merchantQueries: q } = await import(
-      '@/lib/graphql/resolvers/merchant'
-    );
-    const result = await q.screeningResult(
-      {},
-      { address: 'GABC' },
-      authedCtx(),
-    );
+    const { merchantQueries: q } = await import('@/lib/graphql/resolvers/merchant');
+    const result = await q.screeningResult({}, { address: 'GABC' }, authedCtx());
     expect(result).toMatchObject({
       verdict: 'clean',
       score: 0,
       flags: [],
       provider: 'chainalysis',
     });
-    expect(result.screenedAt).toBe(
-      new Date(1_700_000_000_000).toISOString(),
-    );
+    expect(result.screenedAt).toBe(new Date(1_700_000_000_000).toISOString());
   });
 });
 
@@ -92,9 +80,9 @@ describe('merchantQueries.screeningOverrides', () => {
   beforeEach(() => vi.resetModules());
 
   it('throws when caller lacks ops role', async () => {
-    await expect(
-      merchantQueries.screeningOverrides({}, {}, authedCtx()),
-    ).rejects.toThrow(/Forbidden/);
+    await expect(merchantQueries.screeningOverrides({}, {}, authedCtx())).rejects.toThrow(
+      /Forbidden/,
+    );
   });
 
   it('allows ops-role caller', async () => {
@@ -102,9 +90,7 @@ describe('merchantQueries.screeningOverrides', () => {
       getScreeningOverrides: vi.fn().mockReturnValue([]),
     }));
 
-    const { merchantQueries: q } = await import(
-      '@/lib/graphql/resolvers/merchant'
-    );
+    const { merchantQueries: q } = await import('@/lib/graphql/resolvers/merchant');
     const result = await q.screeningOverrides({}, {}, opsCtx());
     expect(Array.isArray(result)).toBe(true);
   });
@@ -114,9 +100,7 @@ describe('merchantQueries.screeningOverrides', () => {
       getScreeningOverrides: vi.fn().mockReturnValue([]),
     }));
 
-    const { merchantQueries: q } = await import(
-      '@/lib/graphql/resolvers/merchant'
-    );
+    const { merchantQueries: q } = await import('@/lib/graphql/resolvers/merchant');
     const result = await q.screeningOverrides({}, {}, adminCtx());
     expect(Array.isArray(result)).toBe(true);
   });
@@ -128,9 +112,9 @@ describe('merchantQueries.analyticsSummary', () => {
   beforeEach(() => vi.resetModules());
 
   it('throws when caller lacks admin role', async () => {
-    await expect(
-      merchantQueries.analyticsSummary({}, {}, authedCtx()),
-    ).rejects.toThrow(/Forbidden/);
+    await expect(merchantQueries.analyticsSummary({}, {}, authedCtx())).rejects.toThrow(
+      /Forbidden/,
+    );
   });
 
   it('calls generateAnalyticsSummary', async () => {
@@ -139,9 +123,7 @@ describe('merchantQueries.analyticsSummary', () => {
       generateAnalyticsSummary: vi.fn().mockResolvedValue(fakeSummary),
     }));
 
-    const { merchantQueries: q } = await import(
-      '@/lib/graphql/resolvers/merchant'
-    );
+    const { merchantQueries: q } = await import('@/lib/graphql/resolvers/merchant');
     const result = await q.analyticsSummary({}, {}, adminCtx());
     expect(result).toEqual(fakeSummary);
   });
@@ -168,21 +150,14 @@ describe('merchantMutations.addScreeningOverride', () => {
       addScreeningOverride: mockAdd,
     }));
 
-    const { merchantMutations: m } = await import(
-      '@/lib/graphql/resolvers/merchant'
-    );
+    const { merchantMutations: m } = await import('@/lib/graphql/resolvers/merchant');
     const result = await m.addScreeningOverride(
       {},
       { address: 'GABC', verdict: 'blocked', reason: 'fraud' },
       opsCtx(),
     );
     expect(result).toBe(true);
-    expect(mockAdd).toHaveBeenCalledWith(
-      'GABC',
-      'blocked',
-      'fraud',
-      'user_abc',
-    );
+    expect(mockAdd).toHaveBeenCalledWith('GABC', 'blocked', 'fraud', 'user_abc');
   });
 });
 
@@ -193,11 +168,7 @@ describe('merchantMutations.removeScreeningOverride', () => {
 
   it('throws when caller lacks ops role', async () => {
     await expect(
-      merchantMutations.removeScreeningOverride(
-        {},
-        { address: 'GABC' },
-        authedCtx(),
-      ),
+      merchantMutations.removeScreeningOverride({}, { address: 'GABC' }, authedCtx()),
     ).rejects.toThrow(/Forbidden/);
   });
 
@@ -207,14 +178,8 @@ describe('merchantMutations.removeScreeningOverride', () => {
       removeScreeningOverride: mockRemove,
     }));
 
-    const { merchantMutations: m } = await import(
-      '@/lib/graphql/resolvers/merchant'
-    );
-    const result = await m.removeScreeningOverride(
-      {},
-      { address: 'GABC' },
-      opsCtx(),
-    );
+    const { merchantMutations: m } = await import('@/lib/graphql/resolvers/merchant');
+    const result = await m.removeScreeningOverride({}, { address: 'GABC' }, opsCtx());
     expect(result).toBe(true);
     expect(mockRemove).toHaveBeenCalledWith('GABC');
   });
@@ -224,8 +189,6 @@ describe('merchantMutations.removeScreeningOverride', () => {
 
 describe('merchantSubscriptions', () => {
   it('screeningAlert has subscribe function', () => {
-    expect(
-      typeof merchantSubscriptions.screeningAlert.subscribe,
-    ).toBe('function');
+    expect(typeof merchantSubscriptions.screeningAlert.subscribe).toBe('function');
   });
 });

@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
-const STORAGE_KEY = "stellar-spend-advanced-options";
+const STORAGE_KEY = 'stellar-spend-advanced-options';
 
 export function useProgressiveDisclosure(key: string, defaultOpen = false) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
@@ -10,7 +10,7 @@ export function useProgressiveDisclosure(key: string, defaultOpen = false) {
     setIsMounted(true);
     const stored = localStorage.getItem(`${STORAGE_KEY}:${key}`);
     if (stored !== null) {
-      setIsOpen(stored === "true");
+      setIsOpen(stored === 'true');
     }
   }, [key]);
 

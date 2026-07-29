@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useMemo } from "react";
-import type { Transaction } from "@/lib/transaction-storage";
-import { formatUsdc } from "../format";
+import { useMemo } from 'react';
+import type { Transaction } from '@/lib/transaction-storage';
+import { formatUsdc } from '../format';
 
 interface HistoryStatsProps {
   transactions: Transaction[];
 }
 
-const ACTIVE_COVERAGE_STATUSES = ["pending", "active", "claimed", "claim_approved"];
+const ACTIVE_COVERAGE_STATUSES = ['pending', 'active', 'claimed', 'claim_approved'];
 
 /** Insurance summary tiles shown above the history table. */
 export function HistoryStats({ transactions }: HistoryStatsProps) {

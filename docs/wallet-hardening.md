@@ -11,11 +11,13 @@ This document describes the hardened wallet flow implementation for Stellar Spen
 The system automatically detects installed wallets (Freighter, Lobstr) or gracefully handles when none are available.
 
 **Implementation:**
+
 - `WalletManager.getAvailableWallets()` - Returns list of detected wallets
 - `WalletManager.isWalletAvailable(type)` - Checks if specific wallet is available
 - `useStellarWallet.detectWallets()` - React hook to detect wallets
 
 **Usage:**
+
 ```typescript
 const { detectedWallets, connect } = useStellarWallet();
 
@@ -29,12 +31,14 @@ if (detectedWallets.includes('freighter')) {
 When a user returns to the app after closing the browser, the wallet connection is automatically restored using localStorage persistence.
 
 **Implementation:**
+
 - Stores last-used wallet in `localStorage.stellar.lastWallet`
 - On app load, automatically reconnects if `autoReconnect` setting is enabled
 - Non-blocking: failure to reconnect doesn't show error to user
 - Graceful fallback if wallet is no longer available
 
 **Configuration:**
+
 ```typescript
 const { settings, saveSettings } = useStellarWallet();
 
@@ -50,12 +54,14 @@ saveSettings({
 The system monitors when users change accounts in their wallet and prompts reconnection.
 
 **Implementation:**
+
 - Listens to `publicKeyChange` (Freighter) and `accountChange` (Lobstr) events
 - Sets `accountChanged` flag and error state
 - Provides actionable error message to user
 - Clears flag when user acknowledges or reconnects
 
 **Usage:**
+
 ```typescript
 const { accountChanged, error } = useStellarWallet();
 
@@ -69,18 +75,21 @@ if (accountChanged) {
 Comprehensive error classification with actionable user-facing messages for common scenarios.
 
 **Error Codes:**
+
 - `WALLET_NOT_AVAILABLE` - Wallet extension not installed
 - `WALLET_CONNECTION_ERROR` - Connection failed (declined, locked, wrong network)
 - `WALLET_SIGNING_ERROR` - Transaction signing failed
 - `ACCOUNT_CHANGED` - User changed account in wallet
 
 **Error Classification:**
+
 - Locked wallet → "Wallet is locked. Please unlock it."
 - User declined → "Connection rejected. Please approve the request in your wallet."
 - Wrong network → "Wrong network. Please switch to the correct network."
 - Not installed → "Wallet extension not found. Please install it."
 
 **Usage:**
+
 ```typescript
 const { error, errorMessage } = useStellarWallet();
 
@@ -97,6 +106,7 @@ return (
 Users can switch between wallets without a full reconnection flow.
 
 **Implementation:**
+
 - `useStellarWallet.switchWallet(newWalletType)` - Switch without full flow
 - Disconnects from current wallet
 - Connects to new wallet
@@ -104,6 +114,7 @@ Users can switch between wallets without a full reconnection flow.
 - Maintains account change listeners
 
 **Usage:**
+
 ```typescript
 const { switchWallet, walletType } = useStellarWallet();
 
@@ -117,19 +128,24 @@ const { switchWallet, walletType } = useStellarWallet();
 Remembers which wallet the user prefers and prioritizes it for auto-reconnect.
 
 **Implementation:**
+
 - Stored in `localStorage.stellar.lastWallet`
 - Optional: controlled via `rememberLastWallet` setting
 - Validated before reconnection (ensures wallet is still available)
 - Cleared on explicit disconnect
 
 **Storage:**
+
 ```typescript
 // Saved automatically on successful connection
 localStorage.setItem('stellar.lastWallet', 'freighter');
-localStorage.setItem('stellar.walletSettings', JSON.stringify({
-  autoReconnect: true,
-  rememberLastWallet: true,
-}));
+localStorage.setItem(
+  'stellar.walletSettings',
+  JSON.stringify({
+    autoReconnect: true,
+    rememberLastWallet: true,
+  }),
+);
 ```
 
 ## Architecture
@@ -137,22 +153,27 @@ localStorage.setItem('stellar.walletSettings', JSON.stringify({
 ### Core Files
 
 **Wallet Adapters:**
+
 - `src/lib/wallets/adapter.ts` - Base interface and error classes
 - `src/lib/wallets/freighter.adapter.ts` - Freighter implementation
 - `src/lib/wallets/lobstr.adapter.ts` - Lobstr implementation
 
 **Manager:**
+
 - `src/lib/wallets/manager.ts` - Orchestrates wallet operations and events
 
 **React Hooks:**
+
 - `src/hooks/useStellarWallet.ts` - Main hook with all features
 - `src/hooks/useWalletFlow.ts` - UI state machine (unchanged)
 
 **Components:**
+
 - `src/components/WalletModal.tsx` - Wallet selection modal (existing)
 - `src/components/WalletErrorDisplay.tsx` - Error display with suggestions (new)
 
 **Tests:**
+
 - `src/lib/wallets/__tests__/manager.test.ts` - Manager tests
 - `src/lib/wallets/__tests__/wallet-integration.test.ts` - Integration tests
 - `src/hooks/__tests__/useStellarWallet.test.tsx` - Hook tests
@@ -264,13 +285,7 @@ export function WalletConnect() {
 
 ```typescript
 export function WalletAccountMonitor() {
-  const {
-    accountChanged,
-    error,
-    clearAccountChanged,
-    connect,
-    walletType,
-  } = useStellarWallet();
+  const { accountChanged, error, clearAccountChanged, connect, walletType } = useStellarWallet();
 
   useEffect(() => {
     if (accountChanged && walletType) {
@@ -317,43 +332,52 @@ export function WalletSwitcher() {
 ### Connection Errors
 
 **User Declined:**
+
 - Message: "Connection rejected. Please approve the request in your wallet."
 - Action: Retry connection
 
 **Wallet Locked:**
+
 - Message: "Wallet is locked. Please unlock it."
 - Action: User unlocks wallet, then retry
 
 **Wrong Network:**
+
 - Message: "Wrong network. Please switch to the correct network."
 - Action: User switches network in wallet, then retry
 
 **Not Installed:**
+
 - Message: "Wallet extension not found. Please install it."
 - Action: Provide install links (already in WalletModal)
 
 ### Signing Errors
 
 **Transaction Rejected:**
+
 - Message: "Transaction rejected. Please approve it in your wallet."
 - Action: Retry signing
 
 **Wallet Locked:**
+
 - Message: "Wallet is locked. Please unlock it."
 - Action: User unlocks wallet, then retry
 
 ## Testing
 
 ### Unit Tests
+
 - `manager.test.ts` - WalletManager functionality
 - `useStellarWallet.test.tsx` - React hook behavior
 - Tests cover initialization, connection, errors, cleanup
 
 ### Integration Tests
+
 - `wallet-integration.test.ts` - End-to-end scenarios
 - Tests cover reconnection, concurrent ops, edge cases
 
 ### Run Tests
+
 ```bash
 npm run test -- src/lib/wallets
 npm run test -- src/hooks/useStellarWallet
@@ -362,26 +386,32 @@ npm run test -- src/hooks/useStellarWallet
 ## Edge Cases Handled
 
 1. **No Wallets Installed**
+
    - Graceful error message with install links
    - Prevents app from crashing
 
 2. **User Switches Wallets Mid-Session**
+
    - Account change event triggers reconnection
    - Seamless transition to new account
 
 3. **Wallet Locked During Operation**
+
    - Clear error state for unlock action
    - Retry mechanism available
 
 4. **Network Mismatch**
+
    - Detects testnet vs mainnet
    - Provides network switch guidance
 
 5. **Browser Storage Unavailable**
+
    - Graceful fallback to session-only mode
    - App continues to function
 
 6. **Multiple Browser Tabs**
+
    - Each tab maintains independent state
    - localStorage acts as single source of truth
 
@@ -417,12 +447,14 @@ npm run test -- src/hooks/useStellarWallet
 ### From Old Flow
 
 **Before:**
+
 ```typescript
 const { connect } = useWalletFlow();
 await walletManager.connect('freighter');
 ```
 
 **After:**
+
 ```typescript
 const { connect } = useStellarWallet();
 await connect('freighter');
@@ -432,6 +464,7 @@ await connect('freighter');
 ### Updating Components
 
 Add error display component:
+
 ```typescript
 import { WalletErrorDisplay } from '@/components/WalletErrorDisplay';
 
@@ -452,21 +485,25 @@ const { error, clearError } = useStellarWallet();
 ## Troubleshooting
 
 ### "Wallet not available" error
+
 - Check wallet is installed and enabled
 - Try refreshing the page
 - Restart browser to clear wallet state
 
 ### Account change not detected
+
 - Wallet events may differ between providers
 - Manual reconnection always works
 - File issue if consistent problem
 
 ### Auto-reconnect not working
+
 - Check `autoReconnect` setting is true
 - Check localStorage is available
 - Manual connection always works
 
 ### Switch wallet hangs
+
 - May indicate wallet provider issue
 - Try manual disconnect then connect
 - Timeout implemented to prevent indefinite hang

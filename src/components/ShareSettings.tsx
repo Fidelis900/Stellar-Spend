@@ -51,9 +51,7 @@ export function ShareSettingsComponent({ onSave, initialSettings }: ShareSetting
 
       {allowSharing && (
         <div>
-          <label className="block text-sm font-medium mb-2">
-            Share Link Expiration (days)
-          </label>
+          <label className="block text-sm font-medium mb-2">Share Link Expiration (days)</label>
           <input
             type="number"
             min="1"

@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { PaycrestAdapter, PaycrestHttpError, mapPaycrestStatus } from '../lib/offramp/adapters/paycrest-adapter';
+import {
+  PaycrestAdapter,
+  PaycrestHttpError,
+  mapPaycrestStatus,
+} from '../lib/offramp/adapters/paycrest-adapter';
 
 const adapter = new PaycrestAdapter('test-api-key');
 
@@ -11,7 +15,7 @@ function mockFetch(data: unknown, ok = true, status = 200) {
       status,
       statusText: ok ? 'OK' : 'Bad Request',
       json: () => Promise.resolve(data),
-    })
+    }),
   );
 }
 
@@ -19,11 +23,11 @@ beforeEach(() => vi.restoreAllMocks());
 
 describe('mapPaycrestStatus', () => {
   it.each([
-    ['payment_order.pending',   'pending'],
+    ['payment_order.pending', 'pending'],
     ['payment_order.validated', 'validated'],
-    ['payment_order.settled',   'settled'],
-    ['payment_order.refunded',  'refunded'],
-    ['payment_order.expired',   'expired'],
+    ['payment_order.settled', 'settled'],
+    ['payment_order.refunded', 'refunded'],
+    ['payment_order.expired', 'expired'],
   ])('%s → %s', (input, expected) => {
     expect(mapPaycrestStatus(input)).toBe(expected);
   });
@@ -39,7 +43,11 @@ describe('PaycrestAdapter.getCurrencies', () => {
     mockFetch([{ code: 'NGN', name: 'Nigerian Naira', symbol: '₦' }]);
     const currencies = await adapter.getCurrencies();
     expect(Array.isArray(currencies)).toBe(true);
-    expect(currencies[0]).toMatchObject({ code: expect.any(String), name: expect.any(String), symbol: expect.any(String) });
+    expect(currencies[0]).toMatchObject({
+      code: expect.any(String),
+      name: expect.any(String),
+      symbol: expect.any(String),
+    });
   });
 
   it('includes NGN in the currencies list', async () => {
@@ -77,9 +85,9 @@ describe('PaycrestAdapter.getInstitutions', () => {
     mockFetch(nigerianBanks);
     const institutions = await adapter.getInstitutions('NGN');
     expect(institutions.length).toBeGreaterThan(0);
-    expect(institutions).toEqual(expect.arrayContaining([
-      expect.objectContaining({ code: 'ACCESS', name: 'Access Bank' }),
-    ]));
+    expect(institutions).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'ACCESS', name: 'Access Bank' })]),
+    );
   });
 
   it('calls the correct endpoint for the given currency', async () => {
@@ -127,7 +135,10 @@ describe('PaycrestAdapter.verifyAccount', () => {
     vi.stubGlobal('fetch', spy);
     await adapter.verifyAccount('GTB', '0123456789');
     expect(spy.mock.calls[0][0]).toContain('/sender/verify-account');
-    expect(JSON.parse(spy.mock.calls[0][1].body)).toEqual({ institution: 'GTB', accountIdentifier: '0123456789' });
+    expect(JSON.parse(spy.mock.calls[0][1].body)).toEqual({
+      institution: 'GTB',
+      accountIdentifier: '0123456789',
+    });
   });
 });
 

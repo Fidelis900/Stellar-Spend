@@ -10,12 +10,7 @@ interface TwoFAVerificationProps {
   method: 'totp' | 'sms' | 'backup';
 }
 
-export function TwoFAVerification({
-  isOpen,
-  onVerify,
-  onCancel,
-  method,
-}: TwoFAVerificationProps) {
+export function TwoFAVerification({ isOpen, onVerify, onCancel, method }: TwoFAVerificationProps) {
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,8 +34,7 @@ export function TwoFAVerification({
 
   if (!isOpen) return null;
 
-  const placeholder =
-    method === 'backup' ? 'XXXXXXXX' : '000000';
+  const placeholder = method === 'backup' ? 'XXXXXXXX' : '000000';
   const maxLength = method === 'backup' ? 8 : 6;
 
   return (
@@ -90,7 +84,7 @@ export function TwoFAVerification({
                 'flex-1 px-4 py-2 text-xs font-semibold transition-colors',
                 isLoading || code.length < maxLength
                   ? 'bg-[#666666] text-[#999999] cursor-not-allowed'
-                  : 'bg-[#c9a962] text-[#0a0a0a] hover:bg-[#d4b574]'
+                  : 'bg-[#c9a962] text-[#0a0a0a] hover:bg-[#d4b574]',
               )}
             >
               {isLoading ? 'Verifying...' : 'Verify'}

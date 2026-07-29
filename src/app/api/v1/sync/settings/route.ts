@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
   try {
     // TODO: Add authentication check to ensure user owns this wallet
-    
+
     const normalizedWallet = wallet.toLowerCase();
     const settings = syncSettingsStore.get(normalizedWallet) || {
       wallet: normalizedWallet,
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
         settings,
         timestamp: Date.now(),
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (err) {
     return ErrorHandler.serverError(err);
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
 
   try {
     // TODO: Add authentication check to ensure user owns this wallet
-    
+
     const normalizedWallet = wallet.toLowerCase();
     const settings: SyncSettingsRecord = {
       wallet: normalizedWallet,
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
         settings,
         timestamp: Date.now(),
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (err) {
     return ErrorHandler.serverError(err);

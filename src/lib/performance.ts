@@ -137,12 +137,8 @@ export function getApiMetrics(): ApiMetrics {
 
   return {
     overall: stats(durations),
-    byRoute: Object.fromEntries(
-      Object.entries(byRoute).map(([k, v]) => [k, stats(v)])
-    ),
-    slowest: [...entries]
-      .sort((a, b) => b.durationMs - a.durationMs)
-      .slice(0, 10),
+    byRoute: Object.fromEntries(Object.entries(byRoute).map(([k, v]) => [k, stats(v)])),
+    slowest: [...entries].sort((a, b) => b.durationMs - a.durationMs).slice(0, 10),
     errorRate: entries.length > 0 ? errors / entries.length : 0,
   };
 }
@@ -151,16 +147,17 @@ export function getDbMetrics(): DbMetrics {
   const entries = dbTimings.all();
   return {
     overall: stats(entries.map((e) => e.durationMs)),
-    slowest: [...entries]
-      .sort((a, b) => b.durationMs - a.durationMs)
-      .slice(0, 10),
+    slowest: [...entries].sort((a, b) => b.durationMs - a.durationMs).slice(0, 10),
   };
 }
 
 // ── Web Vitals ────────────────────────────────────────────────────────────────
 
 export interface VitalsMetrics {
-  byName: Record<string, { avg: number; p75: number; count: number; ratings: Record<string, number> }>;
+  byName: Record<
+    string,
+    { avg: number; p75: number; count: number; ratings: Record<string, number> }
+  >;
 }
 
 export function getVitalsMetrics(): VitalsMetrics {
@@ -177,13 +174,19 @@ export function getVitalsMetrics(): VitalsMetrics {
         const sum = sorted.reduce((s, v) => s + v.value, 0);
         const ratings: Record<string, number> = {};
         for (const item of items) ratings[item.rating] = (ratings[item.rating] ?? 0) + 1;
-        return [name, {
-          avg: Math.round(sum / sorted.length),
-          p75: percentile(sorted.map((v) => v.value), 75),
-          count: sorted.length,
-          ratings,
-        }];
-      })
+        return [
+          name,
+          {
+            avg: Math.round(sum / sorted.length),
+            p75: percentile(
+              sorted.map((v) => v.value),
+              75,
+            ),
+            count: sorted.length,
+            ratings,
+          },
+        ];
+      }),
     ),
   };
 }
@@ -232,12 +235,18 @@ export function getPerfAlerts(): PerfAlerts {
   const db = getDbMetrics().overall;
 
   const apiLevel: PerfAlertLevel =
-    api.p95 >= PERF_THRESHOLDS.apiP95CriticalMs ? 'critical' :
-    api.p95 >= PERF_THRESHOLDS.apiP95WarnMs ? 'warn' : 'ok';
+    api.p95 >= PERF_THRESHOLDS.apiP95CriticalMs
+      ? 'critical'
+      : api.p95 >= PERF_THRESHOLDS.apiP95WarnMs
+        ? 'warn'
+        : 'ok';
 
   const dbLevel: PerfAlertLevel =
-    db.p95 >= PERF_THRESHOLDS.dbP95CriticalMs ? 'critical' :
-    db.p95 >= PERF_THRESHOLDS.dbP95WarnMs ? 'warn' : 'ok';
+    db.p95 >= PERF_THRESHOLDS.dbP95CriticalMs
+      ? 'critical'
+      : db.p95 >= PERF_THRESHOLDS.dbP95WarnMs
+        ? 'warn'
+        : 'ok';
 
   return { apiLatency: apiLevel, dbLatency: dbLevel };
 }

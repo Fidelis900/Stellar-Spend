@@ -29,15 +29,16 @@ export async function POST(request: NextRequest) {
       return ErrorHandler.validation('destinationAddress is required');
     }
 
-    const quote = await getCachedQuote(
-      fiatAmount,
-      fiatCurrency,
-      destinationToken,
-      async () => {
-        const svc = await globalContainer.resolve(SERVICE_KEYS.ONRAMP_SERVICE);
-        return svc.getQuote({ fiatAmount, fiatCurrency, destinationToken, destinationAddress, provider });
-      }
-    );
+    const quote = await getCachedQuote(fiatAmount, fiatCurrency, destinationToken, async () => {
+      const svc = await globalContainer.resolve(SERVICE_KEYS.ONRAMP_SERVICE);
+      return svc.getQuote({
+        fiatAmount,
+        fiatCurrency,
+        destinationToken,
+        destinationAddress,
+        provider,
+      });
+    });
 
     return NextResponse.json(quote);
   } catch (error) {

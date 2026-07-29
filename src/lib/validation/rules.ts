@@ -16,19 +16,19 @@ export function invalid(error: string): ValidationResult {
 }
 
 /** Fails when the trimmed value is empty. */
-export function required(value: string, label = "This field"): ValidationResult {
+export function required(value: string, label = 'This field'): ValidationResult {
   return value.trim().length > 0 ? VALID : invalid(`${label} is required.`);
 }
 
 /** Fails when the trimmed value is shorter than `min` characters. */
-export function minLength(value: string, min: number, label = "This field"): ValidationResult {
+export function minLength(value: string, min: number, label = 'This field'): ValidationResult {
   return value.trim().length >= min
     ? VALID
     : invalid(`${label} must be at least ${min} characters.`);
 }
 
 /** Fails when the trimmed value is longer than `max` characters. */
-export function maxLength(value: string, max: number, label = "This field"): ValidationResult {
+export function maxLength(value: string, max: number, label = 'This field'): ValidationResult {
   return value.trim().length <= max
     ? VALID
     : invalid(`${label} must be ${max} characters or fewer.`);

@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { checkRateLimit, InMemoryRateLimitStore } from "@/lib/rate-limiting";
-import { logger } from "@/lib/logger";
+import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit, InMemoryRateLimitStore } from '@/lib/rate-limiting';
+import { logger } from '@/lib/logger';
 
 // Global rate limit store instance
 const rateLimitStore = new InMemoryRateLimitStore();
@@ -12,30 +12,30 @@ const rateLimitStore = new InMemoryRateLimitStore();
 export async function rateLimitMiddleware(
   request: NextRequest,
   endpoint: string,
-  isAuthenticated: boolean = false
+  isAuthenticated: boolean = false,
 ): Promise<NextResponse | null> {
   try {
     // Get client identifier (IP address or user ID)
     const identifier = isAuthenticated
-      ? (request.headers.get("x-user-id") || getClientIp(request) || "unknown")
-      : getClientIp(request) || "unknown";
+      ? request.headers.get('x-user-id') || getClientIp(request) || 'unknown'
+      : getClientIp(request) || 'unknown';
 
     // Check rate limit
     const { allowed, remaining, resetTime } = await checkRateLimit(
       rateLimitStore,
       endpoint,
       identifier,
-      isAuthenticated
+      isAuthenticated,
     );
 
     // Add rate limit headers to response
     const responseHeaders: Record<string, string> = {
-      "X-RateLimit-Remaining": remaining.toString(),
-      "X-RateLimit-Reset": Math.ceil(resetTime / 1000).toString(),
+      'X-RateLimit-Remaining': remaining.toString(),
+      'X-RateLimit-Reset': Math.ceil(resetTime / 1000).toString(),
     };
 
     if (!allowed) {
-      logger.warn("Rate limit exceeded", {
+      logger.warn('Rate limit exceeded', {
         endpoint,
         identifier,
         isAuthenticated,
@@ -43,25 +43,25 @@ export async function rateLimitMiddleware(
 
       return new NextResponse(
         JSON.stringify({
-          error: "Too many requests",
-          message: "Rate limit exceeded. Please try again later.",
+          error: 'Too many requests',
+          message: 'Rate limit exceeded. Please try again later.',
           retryAfter: Math.ceil((resetTime - Date.now()) / 1000),
         }),
         {
           status: 429,
           headers: {
             ...responseHeaders,
-            "Retry-After": Math.ceil((resetTime - Date.now()) / 1000).toString(),
-            "Content-Type": "application/json",
+            'Retry-After': Math.ceil((resetTime - Date.now()) / 1000).toString(),
+            'Content-Type': 'application/json',
           },
-        }
+        },
       );
     }
 
     // Request is allowed, return null to continue processing
     return null;
   } catch (error) {
-    logger.error("Rate limiting middleware error", { error });
+    logger.error('Rate limiting middleware error', { error });
     // On error, allow the request to proceed
     return null;
   }
@@ -71,11 +71,11 @@ export async function rateLimitMiddleware(
  * Get client IP address from request
  */
 function getClientIp(request: NextRequest): string | null {
-  const forwarded = request.headers.get("x-forwarded-for");
+  const forwarded = request.headers.get('x-forwarded-for');
   if (forwarded) {
-    return forwarded.split(",")[0].trim();
+    return forwarded.split(',')[0].trim();
   }
-  return request.headers.get("x-real-ip");
+  return request.headers.get('x-real-ip');
 }
 
 /**
@@ -93,9 +93,9 @@ export async function resetRateLimit(endpoint: string, identifier: string): Prom
 export async function getRateLimitStatus(
   endpoint: string,
   identifier: string,
-  isAuthenticated: boolean = false
+  isAuthenticated: boolean = false,
 ): Promise<{ current: number; limit: number | null }> {
-  const key = `ratelimit:${isAuthenticated ? "auth" : "anon"}:${endpoint}:${identifier}`;
+  const key = `ratelimit:${isAuthenticated ? 'auth' : 'anon'}:${endpoint}:${identifier}`;
   const current = await rateLimitStore.get(key);
 
   // This is a simplified version - in production you'd want to get the actual limit
