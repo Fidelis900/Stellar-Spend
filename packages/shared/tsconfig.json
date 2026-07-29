@@ -1,9 +1,12 @@
 {
-  "extends": "./tsconfig.base.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
-    "types": ["node", "jest"],
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "types": ["node"],
     "module": "commonjs",
     "target": "ES2020"
   },
