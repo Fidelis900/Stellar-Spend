@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     return ErrorHandler.validation(
       'Provide userId to initiate, or recoveryToken + newMethod to complete',
     );
-  } catch (error) {
+  } catch (_error) {
     return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Recovery flow failed'));
   }
 }

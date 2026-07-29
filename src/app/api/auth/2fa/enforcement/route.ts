@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
     const policy = TwoFAService.getEnforcementPolicy();
     return NextResponse.json(policy);
-  } catch (error) {
+  } catch (_error) {
     return ErrorHandler.handle(
       new ApiError(ErrorType.SERVER_ERROR, 'Failed to fetch enforcement policy'),
     );
@@ -29,7 +29,7 @@ export async function PUT(req: NextRequest) {
     const updates = await req.json();
     const policy = TwoFAService.updateEnforcementPolicy(updates);
     return NextResponse.json(policy);
-  } catch (error) {
+  } catch (_error) {
     return ErrorHandler.handle(
       new ApiError(ErrorType.SERVER_ERROR, 'Failed to update enforcement policy'),
     );
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ userId, isEnforced: enforce });
-  } catch (error) {
+  } catch (_error) {
     return ErrorHandler.handle(
       new ApiError(ErrorType.SERVER_ERROR, 'Failed to update enforcement'),
     );

@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ backupCodes: newCodes });
-  } catch (error) {
+  } catch (_error) {
     return ErrorHandler.handle(
       new ApiError(ErrorType.SERVER_ERROR, 'Failed to regenerate backup codes'),
     );

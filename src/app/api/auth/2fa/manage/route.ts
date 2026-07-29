@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
       backupCodesRemaining: config.backupCodes.length,
       lastVerifiedAt: config.lastVerifiedAt,
     });
-  } catch (error) {
+  } catch (_error) {
     return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to fetch 2FA status'));
   }
 }
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     }
 
     return ErrorHandler.validation("action must be 'enable' or 'disable'");
-  } catch (error) {
+  } catch (_error) {
     return ErrorHandler.handle(new ApiError(ErrorType.SERVER_ERROR, 'Failed to update 2FA'));
   }
 }
