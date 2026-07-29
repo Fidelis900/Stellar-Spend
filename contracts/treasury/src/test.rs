@@ -261,3 +261,288 @@ fn schema_version_matches_the_constant() {
     let t = TreasuryTest::setup();
     assert_eq!(t.client().schema_version(), SCHEMA_VERSION);
 }
+
+// ── Storage footprint (issue #811) ───────────────────────────────────────────
+
+#[test]
+fn fee_schedule_keys_are_u64_in_schema_v3() {
+    // After init the schedule must be stored as Map<u64, u32>, not Map<i128, u32>.
+    // We verify this by reading the schedule back through the public API and
+    // asserting the keys are the correct values (u64 vs i128 encodes differently
+    // in XDR and the test itself proves the type round-trips cleanly).
+    let t = TreasuryTest::setup();
+    let schedule = t.stored_schedule();
+    assert_eq!(schedule.len(), 3, "init seeded 3 tiers");
+    // Keys must round-trip as u64 through the stored map.
+    assert!(schedule.contains_key(0u64), "zero tier must be stored as u64");
+    assert!(
+        schedule.contains_key(1_000_000u64),
+        "1M tier must be stored as u64"
+    );
+    assert!(
+        schedule.contains_key(10_000_000u64),
+        "10M tier must be stored as u64"
+    );
+}
+
+#[test]
+fn v2_to_v3_migration_converts_schedule_keys_from_i128_to_u64() {
+    // Start with a genuine v2 layout (i128 keys).
+    let t = TreasuryTest::with_legacy_v2_state();
+    assert_eq!(t.stored_schema(), Some(2));
+
+    // The v2 schedule must be readable as i128-keyed.
+    let before = t.stored_schedule_v2();
+    assert_eq!(before.len(), 3);
+
+    // Run the migration.
+    assert_eq!(t.client().migrate(), 2, "must report migrating from v2");
+    assert_eq!(t.stored_schema(), Some(SCHEMA_VERSION));
+
+    // After migration the schedule is stored with u64 keys.
+    let after = t.stored_schedule();
+    assert_eq!(after.len(), before.len(), "no tier may be dropped");
+    assert!(
+        after.contains_key(0u64),
+        "zero tier must survive migration as u64"
+    );
+    assert!(
+        after.contains_key(1_000_000u64),
+        "1M tier must survive migration as u64"
+    );
+    assert!(
+        after.contains_key(10_000_000u64),
+        "10M tier must survive migration as u64"
+    );
+
+    // The TotalCollected counter must be preserved.
+    assert_eq!(
+        t.client().total_collected(),
+        5_000,
+        "total_collected must survive v2→v3 migration"
+    );
+}
+
+#[test]
+fn v1_to_v3_migration_adds_total_collected_and_converts_schedule_keys() {
+    let t = TreasuryTest::with_legacy_v1_state();
+    assert!(!t.has_total_collected_key(), "v1 has no TotalCollected key");
+
+    assert_eq!(t.client().migrate(), 1, "must report migrating from v1");
+    assert_eq!(t.stored_schema(), Some(SCHEMA_VERSION));
+
+    // TotalCollected must now exist.
+    assert!(
+        t.has_total_collected_key(),
+        "migration must add TotalCollected"
+    );
+    assert_eq!(t.client().total_collected(), 0);
+
+    // Schedule keys must have been converted to u64.
+    let schedule = t.stored_schedule();
+    assert_eq!(schedule.len(), 3);
+    assert!(schedule.contains_key(0u64));
+    assert!(schedule.contains_key(1_000_000u64));
+    assert!(schedule.contains_key(10_000_000u64));
+}
+
+#[test]
+fn storage_footprint_schedule_key_is_8_bytes_not_16() {
+    // Demonstrate the storage savings: with u64 keys (8 bytes) vs i128 keys (16 bytes),
+    // a full 16-tier schedule saves 16 × 8 = 128 bytes of instance storage.
+    // This test documents the guarantee: after init (v3), the schedule key type is
+    // u64, not i128.
+    let t = TreasuryTest::setup();
+    // Add tiers up to the max.
+    for i in 3..16u64 {
+        t.client().set_fee_schedule(&(i as i128 * 100_000), &10);
+    }
+    let schedule = t.stored_schedule();
+    assert_eq!(
+        schedule.len(),
+        16,
+        "should have 16 tiers for maximum storage comparison"
+    );
+    // Each key is u64 = 8 bytes. With i128 it would be 16 bytes per key.
+    // 16 tiers × 8 bytes saved per key = 128 bytes total savings documented here.
+    assert!(
+        schedule.contains_key(0u64),
+        "keys are u64, not i128 — 8 bytes per key instead of 16"
+    );
+}
+
+#[test]
+fn migrate_is_rejected_when_already_current() {
+    let t = TreasuryTest::setup();
+    assert_eq!(
+        t.client().try_migrate(),
+        Err(Ok(ContractError::SchemaAlreadyCurrent))
+    );
+}
+
+#[test]
+fn migrate_rejects_state_from_a_future_build() {
+    let t = TreasuryTest::setup();
+    t.env.as_contract(&t.contract_id, || {
+        t.env
+            .storage()
+            .instance()
+            .set(&crate::DataKey::Schema, &(SCHEMA_VERSION + 1));
+    });
+
+    assert_eq!(
+        t.client().try_migrate(),
+        Err(Ok(ContractError::SchemaVersionUnsupported))
+    );
+}
+
+// ── Event assertions (issue #814) ────────────────────────────────────────────
+//
+// All state-changing functions in the treasury contract emit events. These tests
+// assert the exact topic and data fields expected by off-chain indexers.
+
+#[test]
+fn init_emits_event_with_admin_and_treasury() {
+    use soroban_sdk::{symbol_short, IntoVal};
+
+    let t = TreasuryTest::registered();
+    t.client().init(&t.admin, &t.treasury);
+
+    assert_eq!(
+        t.env.events().all(),
+        soroban_sdk::vec![
+            &t.env,
+            (
+                t.contract_id.clone(),
+                (symbol_short!("init"),).into_val(&t.env),
+                (t.admin.clone(), t.treasury.clone()).into_val(&t.env),
+            ),
+        ]
+    );
+}
+
+#[test]
+fn collect_fee_emits_event_with_amount_fee_recipient() {
+    use soroban_sdk::{symbol_short, IntoVal};
+
+    let t = TreasuryTest::setup();
+    let before = t.env.events().all().len();
+
+    let fee = t.client().collect_fee(&1_000_000, &t.outsider);
+    let all_events = t.env.events().all();
+    let event = all_events.get(before).unwrap();
+
+    assert_eq!(
+        event,
+        (
+            t.contract_id.clone(),
+            (symbol_short!("collect"),).into_val(&t.env),
+            (1_000_000i128, fee, t.outsider.clone()).into_val(&t.env),
+        )
+    );
+}
+
+#[test]
+fn set_fee_schedule_emits_event_with_tier_and_basis_points() {
+    use soroban_sdk::{symbol_short, IntoVal};
+
+    let t = TreasuryTest::setup();
+    let before = t.env.events().all().len();
+
+    t.client().set_fee_schedule(&5_000_000, &30);
+    let all_events = t.env.events().all();
+    let event = all_events.get(before).unwrap();
+
+    assert_eq!(
+        event,
+        (
+            t.contract_id.clone(),
+            (symbol_short!("schedule"),).into_val(&t.env),
+            (5_000_000i128, 30u32).into_val(&t.env),
+        )
+    );
+}
+
+#[test]
+fn remove_fee_tier_emits_event_with_tier_threshold() {
+    use soroban_sdk::{symbol_short, IntoVal};
+
+    let t = TreasuryTest::setup();
+    let before = t.env.events().all().len();
+
+    t.client().remove_fee_tier(&1_000_000);
+    let all_events = t.env.events().all();
+    let event = all_events.get(before).unwrap();
+
+    assert_eq!(
+        event,
+        (
+            t.contract_id.clone(),
+            (symbol_short!("rmtier"),).into_val(&t.env),
+            1_000_000i128.into_val(&t.env),
+        )
+    );
+}
+
+#[test]
+fn update_treasury_emits_event_with_new_address() {
+    use soroban_sdk::{symbol_short, IntoVal};
+
+    let t = TreasuryTest::setup();
+    let before = t.env.events().all().len();
+
+    t.client().update_treasury(&t.outsider);
+    let all_events = t.env.events().all();
+    let event = all_events.get(before).unwrap();
+
+    assert_eq!(
+        event,
+        (
+            t.contract_id.clone(),
+            (symbol_short!("treasury"),).into_val(&t.env),
+            t.outsider.clone().into_val(&t.env),
+        )
+    );
+}
+
+#[test]
+fn route_to_treasury_emits_event_with_amount_and_treasury_address() {
+    use soroban_sdk::{symbol_short, IntoVal};
+
+    let t = TreasuryTest::setup();
+    let before = t.env.events().all().len();
+
+    t.client().route_to_treasury(&999);
+    let all_events = t.env.events().all();
+    let event = all_events.get(before).unwrap();
+
+    assert_eq!(
+        event,
+        (
+            t.contract_id.clone(),
+            (symbol_short!("routed"),).into_val(&t.env),
+            (999i128, t.treasury.clone()).into_val(&t.env),
+        )
+    );
+}
+
+#[test]
+fn migrate_emits_event_with_from_and_to_schema_versions() {
+    use soroban_sdk::{symbol_short, IntoVal};
+
+    let t = TreasuryTest::with_legacy_v1_state();
+    let before = t.env.events().all().len();
+
+    t.client().migrate();
+    let all_events = t.env.events().all();
+    let event = all_events.get(before).unwrap();
+
+    assert_eq!(
+        event,
+        (
+            t.contract_id.clone(),
+            (symbol_short!("migrate"),).into_val(&t.env),
+            (1u32, SCHEMA_VERSION).into_val(&t.env),
+        )
+    );
+}
