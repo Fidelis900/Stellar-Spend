@@ -43,13 +43,13 @@ export function subscribeEventBus() {
 
           const payload = buildPayloadForVersion(
             { event, id: eventId, timestamp: eventData.timestamp, data: eventData.data },
-            sub.schemaVersion ?? DEFAULT_SCHEMA_VERSION
+            sub.schemaVersion ?? DEFAULT_SCHEMA_VERSION,
           );
           const payloadBody = JSON.stringify(payload);
 
           const record = await enqueue(
             { headers: {}, body: payloadBody, source: 'event-bus' },
-            sub.endpointUrl
+            sub.endpointUrl,
           );
 
           const result = await attempt(record, sub.signingSecret);

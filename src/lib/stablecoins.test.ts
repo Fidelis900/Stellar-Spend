@@ -9,7 +9,7 @@ import {
 
 describe('SUPPORTED_STABLECOINS', () => {
   it('contains USDC and USDT', () => {
-    const symbols = SUPPORTED_STABLECOINS.map(s => s.symbol);
+    const symbols = SUPPORTED_STABLECOINS.map((s) => s.symbol);
     expect(symbols).toContain('USDC');
     expect(symbols).toContain('USDT');
   });
@@ -66,7 +66,7 @@ describe('getStablecoinConfig', () => {
   });
 
   it('returns undefined for inactive stablecoin', () => {
-    const inactive = SUPPORTED_STABLECOINS.find(s => !s.active);
+    const inactive = SUPPORTED_STABLECOINS.find((s) => !s.active);
     if (inactive) {
       expect(getStablecoinConfig(inactive.symbol)).toBeUndefined();
     }
@@ -76,13 +76,13 @@ describe('getStablecoinConfig', () => {
 describe('getActiveStablecoins', () => {
   it('returns only active stablecoins', () => {
     const active = getActiveStablecoins();
-    expect(active.every(s => s.active)).toBe(true);
+    expect(active.every((s) => s.active)).toBe(true);
     expect(active.length).toBeGreaterThan(0);
   });
 
   it('includes USDC and USDT', () => {
     const active = getActiveStablecoins();
-    const symbols = active.map(s => s.symbol);
+    const symbols = active.map((s) => s.symbol);
     expect(symbols).toContain('USDC');
     expect(symbols).toContain('USDT');
   });

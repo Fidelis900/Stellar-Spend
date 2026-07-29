@@ -49,11 +49,7 @@ describe('SorobanEventIndexer', () => {
       query: async () => [{ id: 'stored-event-1' }],
     } as any;
 
-    const indexer = new SorobanEventIndexer(
-      mockDb,
-      'http://localhost:8000',
-      ['CAAAAA', 'CBBBBB']
-    );
+    const indexer = new SorobanEventIndexer(mockDb, 'http://localhost:8000', ['CAAAAA', 'CBBBBB']);
 
     expect(mockEvents).toHaveLength(3);
     expect(mockEvents[0].contractId).toBe('CAAAAA');
@@ -62,11 +58,7 @@ describe('SorobanEventIndexer', () => {
   it('should reconcile on-chain vs off-chain status', async () => {
     const mockDb = {} as any;
 
-    const indexer = new SorobanEventIndexer(
-      mockDb,
-      'http://localhost:8000',
-      ['CAAAAA']
-    );
+    const indexer = new SorobanEventIndexer(mockDb, 'http://localhost:8000', ['CAAAAA']);
 
     const mockGetEvents = async () => [
       {
@@ -92,7 +84,7 @@ describe('SorobanEventIndexer', () => {
     ];
 
     expect(eventVariants).toHaveLength(3);
-    expect(eventVariants.every(e => e.data)).toBe(true);
+    expect(eventVariants.every((e) => e.data)).toBe(true);
   });
 
   it('should handle reorg and missed events gracefully', () => {

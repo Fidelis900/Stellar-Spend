@@ -107,7 +107,10 @@ export class SorobanEventIndexer {
     return eventCount;
   }
 
-  private async fetchContractEvents(contractId: string, fromLedger: number): Promise<SorobanEvent[]> {
+  private async fetchContractEvents(
+    contractId: string,
+    fromLedger: number,
+  ): Promise<SorobanEvent[]> {
     try {
       const response = await fetch(`${this.rpcUrl}/events`, {
         method: 'POST',
@@ -116,14 +119,18 @@ export class SorobanEventIndexer {
           jsonrpc: '2.0',
           id: '1',
           method: 'getEvents',
-          params: [{
-            filters: [{
-              type: 'contract',
-              contractIds: [contractId],
-            }],
-            startLedger: fromLedger,
-            limit: 100,
-          }],
+          params: [
+            {
+              filters: [
+                {
+                  type: 'contract',
+                  contractIds: [contractId],
+                },
+              ],
+              startLedger: fromLedger,
+              limit: 100,
+            },
+          ],
         }),
       });
 
@@ -221,7 +228,7 @@ export class SorobanEventIndexer {
       SELECT * FROM soroban_events WHERE tx_hash = ${txHash}
     `;
 
-    return result.map(row => ({
+    return result.map((row) => ({
       id: row.id,
       contractId: row.contract_id,
       type: row.event_type,
@@ -240,7 +247,7 @@ export class SorobanEventIndexer {
       return { onChain: false, status: 'pending_indexing' };
     }
 
-    const status = events.some(e => e.type === 'success') ? 'success' : 'failed';
+    const status = events.some((e) => e.type === 'success') ? 'success' : 'failed';
     return { onChain: true, status };
   }
 }

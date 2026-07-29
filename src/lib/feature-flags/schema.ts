@@ -54,7 +54,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
 
 export function resolveGradualRollback(
   flag: boolean | z.infer<typeof GradualRolloutSchema>,
-  userId?: string
+  userId?: string,
 ): boolean {
   if (typeof flag === 'boolean') return flag;
   if (!flag.enabled) return false;

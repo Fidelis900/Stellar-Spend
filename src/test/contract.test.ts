@@ -19,7 +19,7 @@ function mockFetch(data: unknown, ok = true, status = 200) {
       status,
       statusText: ok ? 'OK' : 'Bad Request',
       json: () => Promise.resolve(data),
-    })
+    }),
   );
 }
 
@@ -48,7 +48,7 @@ describe('Paycrest contract tests', () => {
     it('includes expected currencies', async () => {
       mockFetch(paycrestCurrencies);
       const currencies = await adapter.getCurrencies();
-      const codes = currencies.map(c => c.code);
+      const codes = currencies.map((c) => c.code);
       expect(codes).toContain('NGN');
       expect(codes).toContain('KES');
       expect(codes).toContain('GHS');
@@ -73,7 +73,7 @@ describe('Paycrest contract tests', () => {
     it('includes well-known Nigerian banks', async () => {
       mockFetch(paycrestInstitutions);
       const institutions = await adapter.getInstitutions('NGN');
-      const codes = institutions.map(i => i.code);
+      const codes = institutions.map((i) => i.code);
       expect(codes).toContain('ACCESS');
       expect(codes).toContain('GTB');
       expect(codes).toContain('ZENITH');
@@ -135,31 +135,50 @@ describe('Paycrest error-response contract tests', () => {
   const adapter = new PaycrestAdapter('test-api-key');
 
   it('throws HttpClientError on 400 error', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: false, status: 400, statusText: 'Bad Request',
-      json: () => Promise.resolve({ message: 'Invalid request' }),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        json: () => Promise.resolve({ message: 'Invalid request' }),
+      }),
+    );
     await expect(adapter.getCurrencies()).rejects.toBeInstanceOf(HttpClientError);
   });
 
   it('throws HttpClientError on 401 error', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: false, status: 401, statusText: 'Unauthorized',
-      json: () => Promise.resolve({ message: 'Unauthorized' }),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        json: () => Promise.resolve({ message: 'Unauthorized' }),
+      }),
+    );
     await expect(adapter.getCurrencies()).rejects.toBeInstanceOf(HttpClientError);
   });
 
   it('throws HttpClientError on 500 error', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: false, status: 500, statusText: 'Server Error',
-      json: () => Promise.resolve({ message: 'Server error' }),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: 'Server Error',
+        json: () => Promise.resolve({ message: 'Server error' }),
+      }),
+    );
     await expect(adapter.getCurrencies()).rejects.toBeInstanceOf(HttpClientError);
   }, 15000);
 
   it('account_not_found returns empty string', async () => {
-    mockFetch(paycrestErrors.account_not_found.body, false, paycrestErrors.account_not_found.status);
+    mockFetch(
+      paycrestErrors.account_not_found.body,
+      false,
+      paycrestErrors.account_not_found.status,
+    );
     const name = await adapter.verifyAccount('GTB', '0000000000');
     expect(name).toBe('');
   });
@@ -170,8 +189,8 @@ describe('Allbridge contract tests', () => {
     it('has stellar and base chains with USDC', () => {
       expect(allbridgeTokens).toHaveProperty('stellar');
       expect(allbridgeTokens).toHaveProperty('base');
-      expect(allbridgeTokens.stellar.tokens.some(t => t.symbol === 'USDC')).toBe(true);
-      expect(allbridgeTokens.base.tokens.some(t => t.symbol === 'USDC')).toBe(true);
+      expect(allbridgeTokens.stellar.tokens.some((t) => t.symbol === 'USDC')).toBe(true);
+      expect(allbridgeTokens.base.tokens.some((t) => t.symbol === 'USDC')).toBe(true);
     });
 
     it('all tokens have required fields', () => {
@@ -188,8 +207,8 @@ describe('Allbridge contract tests', () => {
     });
 
     it('stellar USDC has 7 decimals, base USDC has 6', () => {
-      const stellarUsdc = allbridgeTokens.stellar.tokens.find(t => t.symbol === 'USDC')!;
-      const baseUsdc = allbridgeTokens.base.tokens.find(t => t.symbol === 'USDC')!;
+      const stellarUsdc = allbridgeTokens.stellar.tokens.find((t) => t.symbol === 'USDC')!;
+      const baseUsdc = allbridgeTokens.base.tokens.find((t) => t.symbol === 'USDC')!;
       expect(stellarUsdc.decimals).toBe(7);
       expect(baseUsdc.decimals).toBe(6);
     });

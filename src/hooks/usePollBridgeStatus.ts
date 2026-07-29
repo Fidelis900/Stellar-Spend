@@ -3,7 +3,11 @@
 import { useCallback } from 'react';
 import type { BridgeStatus } from '@/lib/offramp/types';
 import { TransactionStorage } from '@/lib/transaction-storage';
-import { usePollingManager, DurationExceededError, ConsecutiveErrorsExceededError } from '@/lib/polling/polling-manager';
+import {
+  usePollingManager,
+  DurationExceededError,
+  ConsecutiveErrorsExceededError,
+} from '@/lib/polling/polling-manager';
 import type { StatusResponse } from '@/lib/polling/polling-manager';
 import { BRIDGE_CONFIG } from '@/lib/polling/backoff';
 
@@ -26,17 +30,23 @@ export function usePollBridgeStatus() {
   const { start } = usePollingManager(BRIDGE_CONFIG);
 
   const pollBridgeStatus = useCallback(
-    async (txHash: string, { transactionId, onBridgeComplete }: PollBridgeStatusOptions): Promise<void> => {
+    async (
+      txHash: string,
+      { transactionId, onBridgeComplete }: PollBridgeStatusOptions,
+    ): Promise<void> => {
       const fetchFn = async (id: string, signal: AbortSignal): Promise<StatusResponse> => {
         const res = await fetch(`/api/offramp/bridge/status/${id}`, {
           cache: 'no-store',
           signal,
         });
 
-        const data: { data?: { status?: BridgeStatus }; status?: BridgeStatus; error?: string } = await res.json();
+        const data: { data?: { status?: BridgeStatus }; status?: BridgeStatus; error?: string } =
+          await res.json();
 
         // Support both wrapped { data: { status } } and flat { status } response shapes
-        const status: BridgeStatus = (data.data?.status ?? data.status ?? 'pending') as BridgeStatus;
+        const status: BridgeStatus = (data.data?.status ??
+          data.status ??
+          'pending') as BridgeStatus;
 
         if (status) {
           TransactionStorage.update(transactionId, { bridgeStatus: status });
@@ -48,7 +58,7 @@ export function usePollBridgeStatus() {
       };
 
       try {
-        const result = await start(txHash, fetchFn, () => { });
+        const result = await start(txHash, fetchFn, () => {});
 
         const status = result.status as BridgeStatus;
 
@@ -61,7 +71,7 @@ export function usePollBridgeStatus() {
           throw new Error(
             status === 'failed'
               ? 'Bridge transfer failed. Please contact support.'
-              : 'Bridge transfer expired. Please try again.'
+              : 'Bridge transfer expired. Please try again.',
           );
         }
       } catch (err) {
@@ -72,7 +82,7 @@ export function usePollBridgeStatus() {
         throw err;
       }
     },
-    [start]
+    [start],
   );
 
   return { pollBridgeStatus };

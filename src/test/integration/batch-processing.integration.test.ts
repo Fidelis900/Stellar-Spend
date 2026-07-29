@@ -114,16 +114,19 @@ function dispatchQuery(sql: string, params: unknown[]): { rows: unknown[] } {
   // ── SELECT * FROM batch_transactions WHERE batch_id = $1 ───────────────────
   if (s.includes('SELECT * FROM batch_transactions WHERE batch_id')) {
     const [batchId] = params as [string];
-    const rows = Array.from(batchTransactions.values()).filter(
-      (r) => r.batch_id === batchId,
-    );
+    const rows = Array.from(batchTransactions.values()).filter((r) => r.batch_id === batchId);
     return { rows };
   }
 
   // ── UPDATE batch_transactions SET status = $1, transaction_id = $2 ─────────
   // Full 4-param form used by updateBatchTransactionStatus
   if (s.includes('UPDATE batch_transactions') && s.includes('transaction_id')) {
-    const [newStatus, txId, errMsg, id] = params as [string, string | undefined, string | undefined, string];
+    const [newStatus, txId, errMsg, id] = params as [
+      string,
+      string | undefined,
+      string | undefined,
+      string,
+    ];
     const row = batchTransactions.get(id);
     if (row) {
       row.status = newStatus;
@@ -184,9 +187,8 @@ function dispatchQuery(sql: string, params: unknown[]): { rows: unknown[] } {
   //   1. SELECT status, COUNT(*) FROM transaction_batches GROUP BY status
   //   2. SELECT bt.status, COUNT(*) FROM batch_transactions bt JOIN ... GROUP BY bt.status
   if (s.includes('GROUP BY') && s.includes('COUNT(*)')) {
-    const source = s.includes('transaction_batches') && !s.includes('JOIN')
-      ? batches
-      : batchTransactions;
+    const source =
+      s.includes('transaction_batches') && !s.includes('JOIN') ? batches : batchTransactions;
     const statusCounts: Record<string, number> = {};
     for (const row of source.values()) {
       statusCounts[row.status] = (statusCounts[row.status] ?? 0) + 1;
@@ -216,8 +218,8 @@ vi.mock('@/lib/db/client', () => ({
 describe('#850 — Batch transaction processing integration tests', () => {
   beforeEach(() => {
     resetDb();
-    poolQueryMock.mockImplementation(
-      (sql: string, params: unknown[]) => dispatchQuery(sql, params),
+    poolQueryMock.mockImplementation((sql: string, params: unknown[]) =>
+      dispatchQuery(sql, params),
     );
   });
 
@@ -375,11 +377,14 @@ describe('#850 — Batch transaction processing integration tests', () => {
 
       // Items at call-index 1 and 3 (0-based) will fail
       let callIndex = 0;
-      await executeBatch(batch.id, vi.fn().mockImplementation(async () => {
-        const idx = callIndex++;
-        if (idx === 1 || idx === 3) throw new Error('fail');
-        return `tx-${idx}`;
-      }));
+      await executeBatch(
+        batch.id,
+        vi.fn().mockImplementation(async () => {
+          const idx = callIndex++;
+          if (idx === 1 || idx === 3) throw new Error('fail');
+          return `tx-${idx}`;
+        }),
+      );
 
       const progress = await getBatchProgress(batch.id);
       expect(progress.total).toBe(5);
@@ -395,10 +400,13 @@ describe('#850 — Batch transaction processing integration tests', () => {
       const badTx = await addTransactionToBatch(batch.id, { ref: 'bad' });
 
       let call = 0;
-      await executeBatch(batch.id, vi.fn().mockImplementation(async () => {
-        if (++call === 2) throw new Error('fail');
-        return 'real-tx-id-001';
-      }));
+      await executeBatch(
+        batch.id,
+        vi.fn().mockImplementation(async () => {
+          if (++call === 2) throw new Error('fail');
+          return 'real-tx-id-001';
+        }),
+      );
 
       const goodRow = batchTransactions.get(goodTx.id);
       const badRow = batchTransactions.get(badTx.id);

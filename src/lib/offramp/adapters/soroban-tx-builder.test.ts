@@ -63,16 +63,16 @@ describe('Soroban Number Conversion Utilities', () => {
 
     it('should consistently return positive values across multiple calls', () => {
       const nonces = Array.from({ length: 10 }, () => getNonceBigInt());
-      
-      nonces.forEach(nonce => {
+
+      nonces.forEach((nonce) => {
         expect(nonce).toBeGreaterThan(BigInt(0));
       });
     });
 
     it('should generate unique nonces', () => {
       const nonces = Array.from({ length: 100 }, () => getNonceBigInt());
-      const uniqueNonces = new Set(nonces.map(n => n.toString()));
-      
+      const uniqueNonces = new Set(nonces.map((n) => n.toString()));
+
       expect(uniqueNonces.size).toBe(100);
     });
   });

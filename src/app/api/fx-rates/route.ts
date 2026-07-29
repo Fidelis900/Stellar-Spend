@@ -24,7 +24,7 @@ export async function GET() {
 
     return NextResponse.json(
       { rates },
-      { headers: { 'Cache-Control': 'public, max-age=30, stale-while-revalidate=60' } }
+      { headers: { 'Cache-Control': 'public, max-age=30, stale-while-revalidate=60' } },
     );
   } catch (error) {
     logger.error('fx-rates.error', {}, error);

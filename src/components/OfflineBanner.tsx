@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-import { useBackgroundSync } from "@/lib/background-sync";
+import { useEffect, useRef, useState } from 'react';
+import { useBackgroundSync } from '@/lib/background-sync';
 
 /**
  * Shows a degraded-mode banner while offline and automatically retries
@@ -19,12 +19,12 @@ export default function OfflineBanner() {
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
 
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
     return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
     };
   }, []);
 

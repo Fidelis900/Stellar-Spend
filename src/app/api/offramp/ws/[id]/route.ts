@@ -21,14 +21,14 @@ export { onConnect, broadcast, closeForId } from '@/lib/polling/ws-server';
 export type { StatusPush } from '@/lib/polling/ws-server';
 
 export async function GET(): Promise<Response> {
-    return new Response(
-        JSON.stringify({
-            error: 'WebSocket upgrade not supported in Next.js App Router route handlers.',
-            hint: 'Use a custom Node.js server and import { onConnect, broadcast, closeForId } from @/lib/polling/ws-server.',
-        }),
-        {
-            status: 501,
-            headers: { 'Content-Type': 'application/json' },
-        },
-    );
+  return new Response(
+    JSON.stringify({
+      error: 'WebSocket upgrade not supported in Next.js App Router route handlers.',
+      hint: 'Use a custom Node.js server and import { onConnect, broadcast, closeForId } from @/lib/polling/ws-server.',
+    }),
+    {
+      status: 501,
+      headers: { 'Content-Type': 'application/json' },
+    },
+  );
 }

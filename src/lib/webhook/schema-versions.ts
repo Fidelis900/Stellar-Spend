@@ -61,14 +61,17 @@ function buildV2(input: BuildPayloadInput): SchemaV2Payload {
 /** Builds the canonical (latest) payload, then transforms it down to the requested version. */
 export function buildPayloadForVersion(
   input: BuildPayloadInput,
-  version: SchemaVersion = DEFAULT_SCHEMA_VERSION
+  version: SchemaVersion = DEFAULT_SCHEMA_VERSION,
 ): VersionedPayload {
   const canonical = buildV2(input);
   return transformPayload(canonical, version);
 }
 
 /** Transforms a v2 (canonical) payload into the shape of any supported version. */
-export function transformPayload(payload: SchemaV2Payload, toVersion: SchemaVersion): VersionedPayload {
+export function transformPayload(
+  payload: SchemaV2Payload,
+  toVersion: SchemaVersion,
+): VersionedPayload {
   switch (toVersion) {
     case '2':
       return payload;

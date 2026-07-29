@@ -28,7 +28,7 @@ export interface QuoteResult {
  */
 export async function fetchPaycrestQuote(
   receiveAmount: string,
-  currency: string
+  currency: string,
 ): Promise<{ rate: number; destinationAmount: string }> {
   if (!receiveAmount || !currency) {
     throw new Error('receiveAmount and currency are required');
@@ -50,7 +50,7 @@ export async function fetchPaycrestQuote(
 
 /**
  * Build and validate quote object
- * 
+ *
  * @throws Error if quote contains NaN or negative values
  */
 export function buildQuote(
@@ -59,7 +59,7 @@ export function buildQuote(
   currency: string,
   bridgeFee: string = '0',
   payoutFee: string = '0',
-  estimatedTime: number = 300
+  estimatedTime: number = 300,
 ): QuoteResult {
   const quote: QuoteResult = {
     destinationAmount,
@@ -80,7 +80,7 @@ export function buildQuote(
 /**
  * Calculate amount to send to bridge based on fee method
  * If stablecoin fee: subtract stablecoin fee from amount before quoting
- * 
+ *
  * @param amount - Original amount in USDC
  * @param feeMethod - 'native' (XLM) or 'stablecoin' (USDC)
  * @param stablecoinFee - Fee amount if using stablecoin method
@@ -89,24 +89,24 @@ export function buildQuote(
 export function calculateBridgeAmount(
   amount: string,
   feeMethod: 'native' | 'stablecoin',
-  stablecoinFee: string = '0'
+  stablecoinFee: string = '0',
 ): string {
   const baseAmount = parseFloat(amount);
-  
+
   if (isNaN(baseAmount) || baseAmount <= 0) {
     throw new Error('Invalid amount');
   }
-  
+
   if (feeMethod === 'stablecoin') {
     const fee = parseFloat(stablecoinFee);
     const adjusted = baseAmount - fee;
-    
+
     if (adjusted <= 0) {
       throw new Error('Amount is less than stablecoin fee');
     }
-    
+
     return adjusted.toString();
   }
-  
+
   return amount;
 }

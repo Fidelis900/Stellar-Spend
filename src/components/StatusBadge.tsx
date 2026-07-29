@@ -1,22 +1,22 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { cn } from "@/lib/cn";
-import type { RecentOfframpRow } from "@/types/stellaramp";
-import type { OfframpStep } from "@/types/stellaramp";
+import { useState } from 'react';
+import { cn } from '@/lib/cn';
+import type { RecentOfframpRow } from '@/types/stellaramp';
+import type { OfframpStep } from '@/types/stellaramp';
 
 // ---------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------
 
 type TransactionStatus =
-  | RecentOfframpRow["status"]
+  | RecentOfframpRow['status']
   | OfframpStep
-  | "pending"
-  | "completed"
-  | "failed"
-  | "reversed"
-  | "partially_reversed";
+  | 'pending'
+  | 'completed'
+  | 'failed'
+  | 'reversed'
+  | 'partially_reversed';
 
 interface StatusConfig {
   label: string;
@@ -29,111 +29,111 @@ interface StatusConfig {
 const STATUS_CONFIG: Record<string, StatusConfig> = {
   // RecentOfframpRow statuses
   SETTLING: {
-    label: "Settling",
-    tooltip: "Funds are being transferred to your bank account.",
-    colorClasses: "bg-[#c9a962]/15 border border-[#c9a962]/60 text-[#c9a962]",
-    dotClasses: "bg-[#c9a962]",
+    label: 'Settling',
+    tooltip: 'Funds are being transferred to your bank account.',
+    colorClasses: 'bg-[#c9a962]/15 border border-[#c9a962]/60 text-[#c9a962]',
+    dotClasses: 'bg-[#c9a962]',
     animate: true,
   },
   COMPLETE: {
-    label: "Complete",
-    tooltip: "Transaction completed successfully.",
-    colorClasses: "bg-green-500/10 border border-green-500/40 text-green-400",
-    dotClasses: "bg-green-500",
+    label: 'Complete',
+    tooltip: 'Transaction completed successfully.',
+    colorClasses: 'bg-green-500/10 border border-green-500/40 text-green-400',
+    dotClasses: 'bg-green-500',
   },
   // OfframpStep statuses
   idle: {
-    label: "Idle",
-    tooltip: "No active transaction.",
-    colorClasses: "bg-[#333333]/40 border border-[#333333] text-[#777777]",
-    dotClasses: "bg-[#555555]",
+    label: 'Idle',
+    tooltip: 'No active transaction.',
+    colorClasses: 'bg-[#333333]/40 border border-[#333333] text-[#777777]',
+    dotClasses: 'bg-[#555555]',
   },
   initiating: {
-    label: "Initiating",
-    tooltip: "Preparing your transaction details.",
-    colorClasses: "bg-blue-500/10 border border-blue-500/40 text-blue-400",
-    dotClasses: "bg-blue-400",
+    label: 'Initiating',
+    tooltip: 'Preparing your transaction details.',
+    colorClasses: 'bg-blue-500/10 border border-blue-500/40 text-blue-400',
+    dotClasses: 'bg-blue-400',
     animate: true,
   },
-  "awaiting-signature": {
-    label: "Awaiting Signature",
-    tooltip: "Waiting for wallet approval.",
-    colorClasses: "bg-yellow-500/10 border border-yellow-500/40 text-yellow-400",
-    dotClasses: "bg-yellow-400",
+  'awaiting-signature': {
+    label: 'Awaiting Signature',
+    tooltip: 'Waiting for wallet approval.',
+    colorClasses: 'bg-yellow-500/10 border border-yellow-500/40 text-yellow-400',
+    dotClasses: 'bg-yellow-400',
     animate: true,
   },
   submitting: {
-    label: "Submitting",
-    tooltip: "Broadcasting to the Stellar network.",
-    colorClasses: "bg-blue-500/10 border border-blue-500/40 text-blue-400",
-    dotClasses: "bg-blue-400",
+    label: 'Submitting',
+    tooltip: 'Broadcasting to the Stellar network.',
+    colorClasses: 'bg-blue-500/10 border border-blue-500/40 text-blue-400',
+    dotClasses: 'bg-blue-400',
     animate: true,
   },
   processing: {
-    label: "Processing",
-    tooltip: "Waiting for on-chain confirmation.",
-    colorClasses: "bg-[#c9a962]/15 border border-[#c9a962]/60 text-[#c9a962]",
-    dotClasses: "bg-[#c9a962]",
+    label: 'Processing',
+    tooltip: 'Waiting for on-chain confirmation.',
+    colorClasses: 'bg-[#c9a962]/15 border border-[#c9a962]/60 text-[#c9a962]',
+    dotClasses: 'bg-[#c9a962]',
     animate: true,
   },
   settling: {
-    label: "Settling",
-    tooltip: "Transferring funds to your bank account.",
-    colorClasses: "bg-[#c9a962]/15 border border-[#c9a962]/60 text-[#c9a962]",
-    dotClasses: "bg-[#c9a962]",
+    label: 'Settling',
+    tooltip: 'Transferring funds to your bank account.',
+    colorClasses: 'bg-[#c9a962]/15 border border-[#c9a962]/60 text-[#c9a962]',
+    dotClasses: 'bg-[#c9a962]',
     animate: true,
   },
   success: {
-    label: "Success",
-    tooltip: "Transaction completed successfully.",
-    colorClasses: "bg-green-500/10 border border-green-500/40 text-green-400",
-    dotClasses: "bg-green-500",
+    label: 'Success',
+    tooltip: 'Transaction completed successfully.',
+    colorClasses: 'bg-green-500/10 border border-green-500/40 text-green-400',
+    dotClasses: 'bg-green-500',
   },
   error: {
-    label: "Failed",
-    tooltip: "Transaction failed. Please try again.",
-    colorClasses: "bg-red-500/10 border border-red-500/40 text-red-400",
-    dotClasses: "bg-red-500",
+    label: 'Failed',
+    tooltip: 'Transaction failed. Please try again.',
+    colorClasses: 'bg-red-500/10 border border-red-500/40 text-red-400',
+    dotClasses: 'bg-red-500',
   },
   // Transaction storage statuses
   pending: {
-    label: "Pending",
-    tooltip: "Transaction is pending.",
-    colorClasses: "bg-yellow-500/10 border border-yellow-500/40 text-yellow-400",
-    dotClasses: "bg-yellow-400",
+    label: 'Pending',
+    tooltip: 'Transaction is pending.',
+    colorClasses: 'bg-yellow-500/10 border border-yellow-500/40 text-yellow-400',
+    dotClasses: 'bg-yellow-400',
     animate: true,
   },
   completed: {
-    label: "Completed",
-    tooltip: "Transaction completed successfully.",
-    colorClasses: "bg-green-500/10 border border-green-500/40 text-green-400",
-    dotClasses: "bg-green-500",
+    label: 'Completed',
+    tooltip: 'Transaction completed successfully.',
+    colorClasses: 'bg-green-500/10 border border-green-500/40 text-green-400',
+    dotClasses: 'bg-green-500',
   },
   failed: {
-    label: "Failed",
-    tooltip: "Transaction failed.",
-    colorClasses: "bg-red-500/10 border border-red-500/40 text-red-400",
-    dotClasses: "bg-red-500",
+    label: 'Failed',
+    tooltip: 'Transaction failed.',
+    colorClasses: 'bg-red-500/10 border border-red-500/40 text-red-400',
+    dotClasses: 'bg-red-500',
   },
   reversed: {
-    label: "Reversed",
-    tooltip: "Transaction was fully reversed.",
-    colorClasses: "bg-purple-500/10 border border-purple-500/40 text-purple-400",
-    dotClasses: "bg-purple-500",
+    label: 'Reversed',
+    tooltip: 'Transaction was fully reversed.',
+    colorClasses: 'bg-purple-500/10 border border-purple-500/40 text-purple-400',
+    dotClasses: 'bg-purple-500',
   },
   partially_reversed: {
-    label: "Partially Reversed",
-    tooltip: "Part of the transaction was reversed.",
-    colorClasses: "bg-purple-500/10 border border-purple-500/40 text-purple-400",
-    dotClasses: "bg-purple-500",
+    label: 'Partially Reversed',
+    tooltip: 'Part of the transaction was reversed.',
+    colorClasses: 'bg-purple-500/10 border border-purple-500/40 text-purple-400',
+    dotClasses: 'bg-purple-500',
   },
 };
 
 const FALLBACK_CONFIG: StatusConfig = {
-  label: "Unknown",
-  tooltip: "Status unknown.",
-  colorClasses: "bg-[#333333]/40 border border-[#333333] text-[#777777]",
-  dotClasses: "bg-[#555555]",
+  label: 'Unknown',
+  tooltip: 'Status unknown.',
+  colorClasses: 'bg-[#333333]/40 border border-[#333333] text-[#777777]',
+  dotClasses: 'bg-[#555555]',
 };
 
 // ---------------------------------------------------------------------------
@@ -163,21 +163,21 @@ export function StatusBadge({ status, showIcon = true, className }: StatusBadgeP
         onBlur={() => setTooltipVisible(false)}
         tabIndex={0}
         className={cn(
-          "inline-flex items-center gap-1.5 px-2.5 py-0.5",
-          "text-[10px] tracking-widest uppercase font-semibold",
-          "cursor-default select-none rounded-sm",
-          "focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]",
+          'inline-flex items-center gap-1.5 px-2.5 py-0.5',
+          'text-[10px] tracking-widest uppercase font-semibold',
+          'cursor-default select-none rounded-sm',
+          'focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]',
           config.colorClasses,
-          className
+          className,
         )}
       >
         {showIcon && (
           <span
             aria-hidden="true"
             className={cn(
-              "inline-block h-1.5 w-1.5 rounded-full flex-shrink-0",
+              'inline-block h-1.5 w-1.5 rounded-full flex-shrink-0',
               config.dotClasses,
-              config.animate && "animate-pulse"
+              config.animate && 'animate-pulse',
             )}
           />
         )}
@@ -189,9 +189,9 @@ export function StatusBadge({ status, showIcon = true, className }: StatusBadgeP
         <span
           role="tooltip"
           className={cn(
-            "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-10",
-            "px-2.5 py-1.5 text-[10px] text-white bg-[#1a1a1a] border border-[#333333]",
-            "whitespace-nowrap pointer-events-none shadow-lg"
+            'absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-10',
+            'px-2.5 py-1.5 text-[10px] text-white bg-[#1a1a1a] border border-[#333333]',
+            'whitespace-nowrap pointer-events-none shadow-lg',
           )}
         >
           {config.tooltip}

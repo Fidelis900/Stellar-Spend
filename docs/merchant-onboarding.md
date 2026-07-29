@@ -20,6 +20,7 @@ Content-Type: application/json
 ```
 
 **Response (201)**:
+
 ```json
 {
   "data": {
@@ -83,6 +84,7 @@ Idempotency-Key: <unique-key>
 ```
 
 **Response (201)**:
+
 ```json
 {
   "data": {
@@ -140,12 +142,12 @@ function verifyWebhook(payload: string, signature: string, secret: string): bool
 
 ### Event Types
 
-| Event | Triggered when |
-|-------|----------------|
-| `payout.completed` | All items settled |
-| `payout.failed` | Batch has failures |
+| Event                   | Triggered when      |
+| ----------------------- | ------------------- |
+| `payout.completed`      | All items settled   |
+| `payout.failed`         | Batch has failures  |
 | `payout.item.completed` | Single item settled |
-| `payout.item.failed` | Single item failed |
+| `payout.item.failed`    | Single item failed  |
 
 ---
 
@@ -158,6 +160,7 @@ GET /api/merchant/stats?merchantId=<id>
 ```
 
 Returns:
+
 ```json
 {
   "data": {

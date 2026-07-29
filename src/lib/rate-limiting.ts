@@ -57,55 +57,55 @@ export class InMemoryRateLimitStore implements RateLimitStore {
  */
 export const RATE_LIMIT_CONFIGS: Record<string, RateLimitConfig> = {
   // Public endpoints - strict limits
-  "/api/offramp/quote": {
+  '/api/offramp/quote': {
     windowMs: 60 * 1000, // 1 minute
     maxRequests: 30,
   },
-  "/api/offramp/currencies": {
+  '/api/offramp/currencies': {
     windowMs: 60 * 1000,
     maxRequests: 100,
   },
-  "/api/offramp/rate": {
+  '/api/offramp/rate': {
     windowMs: 10 * 1000, // 10 seconds
     maxRequests: 10,
   },
 
   // Bridge endpoints - moderate limits
-  "/api/offramp/bridge/build-tx": {
+  '/api/offramp/bridge/build-tx': {
     windowMs: 60 * 1000,
     maxRequests: 20,
   },
-  "/api/offramp/bridge/submit-soroban": {
+  '/api/offramp/bridge/submit-soroban': {
     windowMs: 60 * 1000,
     maxRequests: 10,
   },
-  "/api/offramp/bridge/status": {
+  '/api/offramp/bridge/status': {
     windowMs: 10 * 1000,
     maxRequests: 30,
   },
 
   // Payout endpoints - strict limits
-  "/api/offramp/paycrest/order": {
+  '/api/offramp/paycrest/order': {
     windowMs: 60 * 1000,
     maxRequests: 5,
   },
-  "/api/offramp/execute-payout": {
+  '/api/offramp/execute-payout': {
     windowMs: 60 * 1000,
     maxRequests: 5,
   },
-  "/api/offramp/status": {
+  '/api/offramp/status': {
     windowMs: 10 * 1000,
     maxRequests: 30,
   },
 
   // Webhook endpoints - no rate limit (use signature verification instead)
-  "/api/webhooks/paycrest": {
+  '/api/webhooks/paycrest': {
     windowMs: 60 * 1000,
     maxRequests: 1000, // Very high limit for webhooks
   },
 
   // Health check - no rate limit
-  "/api/health": {
+  '/api/health': {
     windowMs: 60 * 1000,
     maxRequests: 1000,
   },
@@ -122,7 +122,7 @@ export function getRateLimitConfig(endpoint: string): RateLimitConfig | null {
 
   // Pattern match (e.g., /api/offramp/bridge/status/[hash])
   for (const [pattern, config] of Object.entries(RATE_LIMIT_CONFIGS)) {
-    const regex = new RegExp(`^${pattern.replace(/\[.*?\]/g, "[^/]+")}$`);
+    const regex = new RegExp(`^${pattern.replace(/\[.*?\]/g, '[^/]+')}$`);
     if (regex.test(endpoint)) {
       return config;
     }
@@ -137,9 +137,9 @@ export function getRateLimitConfig(endpoint: string): RateLimitConfig | null {
 export function generateRateLimitKey(
   endpoint: string,
   identifier: string,
-  isAuthenticated: boolean
+  isAuthenticated: boolean,
 ): string {
-  const prefix = isAuthenticated ? "auth" : "anon";
+  const prefix = isAuthenticated ? 'auth' : 'anon';
   return `ratelimit:${prefix}:${endpoint}:${identifier}`;
 }
 
@@ -150,7 +150,7 @@ export async function checkRateLimit(
   store: RateLimitStore,
   endpoint: string,
   identifier: string,
-  isAuthenticated: boolean
+  isAuthenticated: boolean,
 ): Promise<{ allowed: boolean; remaining: number; resetTime: number }> {
   const config = getRateLimitConfig(endpoint);
   if (!config) {

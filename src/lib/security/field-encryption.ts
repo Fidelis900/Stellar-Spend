@@ -109,9 +109,12 @@ export function isEncrypted(value: string): boolean {
  * values replaced by `[MASKED]`.
  */
 const PII_LOG_KEYS = new Set([
-  'accountidentifier', 'account_identifier',
-  'accountname', 'account_name',
-  'beneficiary_account_identifier', 'beneficiary_account_name',
+  'accountidentifier',
+  'account_identifier',
+  'accountname',
+  'account_name',
+  'beneficiary_account_identifier',
+  'beneficiary_account_name',
 ]);
 
 export function maskPiiForLog<T extends Record<string, unknown>>(obj: T): T {
@@ -152,7 +155,7 @@ export interface RotationResult {
  */
 export function rotateFieldEncryption<T extends Record<string, unknown>>(
   records: T[],
-  fields: string[]
+  fields: string[],
 ): RotationResult {
   const result: RotationResult = { rotated: 0, skipped: 0, failed: 0, errors: [] };
 
@@ -166,16 +169,20 @@ export function rotateFieldEncryption<T extends Record<string, unknown>>(
           parent = parent[parts[i]] as Record<string, unknown>;
           if (!parent) break;
         }
-        if (!parent) { result.skipped++; continue; }
+        if (!parent) {
+          result.skipped++;
+          continue;
+        }
 
         const key = parts[parts.length - 1];
         const current = parent[key] as string | undefined | null;
-        if (current == null) { result.skipped++; continue; }
+        if (current == null) {
+          result.skipped++;
+          continue;
+        }
 
         // Decrypt with old key (or just use plaintext if not yet encrypted)
-        const plaintext = isEncrypted(current)
-          ? decryptField(current, 'ENCRYPTION_KEY')
-          : current;
+        const plaintext = isEncrypted(current) ? decryptField(current, 'ENCRYPTION_KEY') : current;
 
         // Re-encrypt with new key
         const newKey = process.env.NEW_ENCRYPTION_KEY;
@@ -193,9 +200,7 @@ export function rotateFieldEncryption<T extends Record<string, unknown>>(
         result.rotated++;
       } catch (err) {
         result.failed++;
-        result.errors.push(
-          `${field}: ${err instanceof Error ? err.message : String(err)}`
-        );
+        result.errors.push(`${field}: ${err instanceof Error ? err.message : String(err)}`);
         logger.error('field_encryption.rotation_failed', { field }, err);
       }
     }

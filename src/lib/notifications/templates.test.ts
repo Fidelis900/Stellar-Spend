@@ -24,7 +24,7 @@ describe('deriveNotificationEvent', () => {
         transaction: { ...baseTransaction, status: 'completed' },
         previousStatus: 'pending',
         source: 'webhook',
-      })
+      }),
     ).toBe('completed');
   });
 
@@ -34,7 +34,7 @@ describe('deriveNotificationEvent', () => {
         transaction: { ...baseTransaction, status: 'failed', error: 'Order expired' },
         previousStatus: 'pending',
         source: 'webhook',
-      })
+      }),
     ).toBe('failed');
   });
 
@@ -45,7 +45,7 @@ describe('deriveNotificationEvent', () => {
         previousStatus: 'pending',
         previousPayoutStatus: undefined,
         source: 'webhook',
-      })
+      }),
     ).toBe('pending');
   });
 });

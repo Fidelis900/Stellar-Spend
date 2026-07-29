@@ -1,22 +1,22 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { cn } from "@/lib/cn";
-import { ThemeToggle } from "./ThemeToggle";
-import { CopyButton } from "./CopyButton";
-import { WalletModal } from "./WalletModal";
-import { LanguageSelector } from "@/lib/i18n/LanguageSelector";
-import { NotificationCenter } from "./NotificationCenter";
-import { useFxRate } from "@/hooks/useFxRate";
-import { useNotificationCenter } from "@/hooks/useNotificationCenter";
-import type { WalletType } from "@/lib/stellar/wallet-adapter";
+import { useEffect, useState } from 'react';
+import { cn } from '@/lib/cn';
+import { ThemeToggle } from './ThemeToggle';
+import { CopyButton } from './CopyButton';
+import { WalletModal } from './WalletModal';
+import { LanguageSelector } from '@/lib/i18n/LanguageSelector';
+import { NotificationCenter } from './NotificationCenter';
+import { useFxRate } from '@/hooks/useFxRate';
+import { useNotificationCenter } from '@/hooks/useNotificationCenter';
+import type { WalletType } from '@/lib/stellar/wallet-adapter';
 
 export interface HeaderProps {
   subtitle: string;
   isConnected: boolean;
   isConnecting: boolean;
   walletAddress?: string;
-  walletType?: "Freighter" | "Lobstr" | null;
+  walletType?: 'Freighter' | 'Lobstr' | null;
   stellarUsdcBalance?: string | null;
   stellarXlmBalance?: string | null;
   isBalanceLoading?: boolean;
@@ -44,22 +44,24 @@ function WalletButton({
   isConnected: boolean;
   isConnecting: boolean;
   walletAddress?: string;
-  walletType?: "Freighter" | "Lobstr" | null;
+  walletType?: 'Freighter' | 'Lobstr' | null;
   onOpenModal: () => void;
   onDisconnect: () => void;
 }) {
   const label = isConnecting
-    ? "CONNECTING..."
+    ? 'CONNECTING...'
     : isConnected && walletAddress
-    ? truncateAddress(walletAddress)
-    : "CONNECT WALLET";
+      ? truncateAddress(walletAddress)
+      : 'CONNECT WALLET';
 
   const disabled = isConnecting;
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
       {isConnected && walletType && (
-        <span className="text-xs text-slate-500 tracking-widest hidden sm:inline">{walletType.toUpperCase()}</span>
+        <span className="text-xs text-slate-500 tracking-widest hidden sm:inline">
+          {walletType.toUpperCase()}
+        </span>
       )}
       {isConnected && walletAddress && (
         <CopyButton text={walletAddress} label="" className="text-xs" keyboardShortcut="w" />
@@ -67,13 +69,13 @@ function WalletButton({
       <button
         onClick={isConnected ? onDisconnect : onOpenModal}
         disabled={disabled}
-        aria-label={isConnected ? "Disconnect wallet" : "Connect wallet"}
+        aria-label={isConnected ? 'Disconnect wallet' : 'Connect wallet'}
         className={cn(
-          "px-4 py-2 min-h-[44px] text-xs tracking-widest border transition-colors duration-150",
-          "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a962] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0a]",
-          "border-[#c9a962] bg-[#0a0a0a] text-[#c9a962]",
-          !disabled && "hover:bg-[#c9a962] hover:text-[#0a0a0a]",
-          disabled && "opacity-60 cursor-not-allowed"
+          'px-4 py-2 min-h-[44px] text-xs tracking-widest border transition-colors duration-150',
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a962] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0a]',
+          'border-[#c9a962] bg-[#0a0a0a] text-[#c9a962]',
+          !disabled && 'hover:bg-[#c9a962] hover:text-[#0a0a0a]',
+          disabled && 'opacity-60 cursor-not-allowed',
         )}
       >
         {label}
@@ -100,7 +102,7 @@ export function Header({
   const { rate, flash } = useFxRate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [connectingWallet, setConnectingWallet] = useState<WalletType | null>(null);
-  
+
   // Load notifications
   const notificationCenter = useNotificationCenter(isConnected ? walletAddress || null : null);
 
@@ -133,12 +135,15 @@ export function Header({
 
   return (
     <>
-      <header className="w-full px-6 py-5 flex items-start justify-between gap-6 max-[720px]:flex-col max-[720px]:items-start" role="banner">
+      <header
+        className="w-full px-6 py-5 flex items-start justify-between gap-6 max-[720px]:flex-col max-[720px]:items-start"
+        role="banner"
+      >
         {/* Left: title + subtitle + FX chip */}
         <div className="flex flex-col gap-1">
           <h1
             className="font-space-grotesk font-bold text-white leading-none tracking-tight"
-            style={{ fontSize: "clamp(1.5rem, 4vw, 2.5rem)" }}
+            style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)' }}
           >
             STELLAR-SPEND
           </h1>
@@ -147,13 +152,13 @@ export function Header({
             aria-live="polite"
             aria-label="Live FX rate"
             className={cn(
-              "mt-1 inline-block self-start px-2 py-0.5 text-[10px] tracking-widest uppercase border border-[#c9a962]/40 text-[#c9a962] transition-colors duration-300",
-              flash && "bg-[#c9a962]/20"
+              'mt-1 inline-block self-start px-2 py-0.5 text-[10px] tracking-widest uppercase border border-[#c9a962]/40 text-[#c9a962] transition-colors duration-300',
+              flash && 'bg-[#c9a962]/20',
             )}
           >
             {rate != null
               ? `LIVE RATE: ₦${Math.round(rate).toLocaleString()} / USDC`
-              : "LIVE RATE: —"}
+              : 'LIVE RATE: —'}
           </span>
         </div>
 
@@ -165,8 +170,8 @@ export function Header({
               onClick={onHelpOpen}
               aria-label="Open help"
               className={cn(
-                "p-2 text-[#777777] hover:text-[#c9a962] transition-colors",
-                "focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]"
+                'p-2 text-[#777777] hover:text-[#c9a962] transition-colors',
+                'focus:outline-none focus-visible:ring-1 focus-visible:ring-[#c9a962]',
               )}
               title="Help & Documentation (Shift + ?)"
             >
@@ -213,10 +218,10 @@ export function Header({
               ) : (
                 <>
                   <span className="text-xs text-[#c9a962] tracking-wider">
-                    {stellarUsdcBalance ?? "—"} USDC
+                    {stellarUsdcBalance ?? '—'} USDC
                   </span>
                   <span className="text-xs text-[#777777] tracking-wider">
-                    {stellarXlmBalance ?? "—"} XLM
+                    {stellarXlmBalance ?? '—'} XLM
                   </span>
                 </>
               )}

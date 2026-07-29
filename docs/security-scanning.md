@@ -26,6 +26,7 @@ npx eslint . --ext .ts,.tsx --plugin security
 ```
 
 **Detects**:
+
 - Object injection vulnerabilities
 - Unsafe regex patterns
 - Hardcoded secrets
@@ -40,6 +41,7 @@ trufflehog filesystem . --only-verified
 ```
 
 **Detects**:
+
 - API keys
 - Database credentials
 - Private keys
@@ -54,6 +56,7 @@ license-checker --onlyAllow "MIT,Apache-2.0,BSD,ISC,MPL-2.0"
 ```
 
 **Approved Licenses**:
+
 - MIT
 - Apache 2.0
 - BSD
@@ -79,6 +82,7 @@ GitHub's CodeQL performs deep semantic analysis.
 ## CI/CD Integration
 
 Security scans run on:
+
 - Every push to main/develop
 - Every pull request
 - Daily schedule (3 AM UTC)
@@ -133,6 +137,7 @@ Add to `.trufflehog.json`:
 ## Security Policies
 
 See [SECURITY.md](../SECURITY.md) for:
+
 - Vulnerability disclosure
 - Security contact
 - Patch policy

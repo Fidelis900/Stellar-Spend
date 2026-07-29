@@ -12,15 +12,11 @@ import AxeBuilder from '@axe-core/playwright';
 const BASE_URL = process.env.BASE_URL ?? 'http://localhost:3001';
 
 async function scan(page: Page) {
-  return new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-    .analyze();
+  return new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
 }
 
 function seriousViolations(results: Awaited<ReturnType<AxeBuilder['analyze']>>) {
-  return results.violations.filter(
-    (v) => v.impact === 'serious' || v.impact === 'critical'
-  );
+  return results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
 }
 
 function format(violations: ReturnType<typeof seriousViolations>): string {
@@ -40,9 +36,7 @@ test.describe('A11y (axe): Transaction/payment form flows', () => {
   test('every visible form field has an accessible name', async ({ page }) => {
     await page.goto(BASE_URL, { waitUntil: 'networkidle' });
 
-    const fields = page.locator(
-      'input:visible, select:visible, textarea:visible'
-    );
+    const fields = page.locator('input:visible, select:visible, textarea:visible');
     const count = await fields.count();
     for (let i = 0; i < count; i++) {
       const field = fields.nth(i);

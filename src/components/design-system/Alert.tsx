@@ -16,16 +16,12 @@ export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
     };
 
     return (
-      <div
-        ref={ref}
-        className={cn('p-4 rounded', variantStyles[variant], className)}
-        {...props}
-      >
+      <div ref={ref} className={cn('p-4 rounded', variantStyles[variant], className)} {...props}>
         {title && <h3 className="font-semibold mb-1">{title}</h3>}
         <div>{children}</div>
       </div>
     );
-  }
+  },
 );
 
 Alert.displayName = 'Alert';

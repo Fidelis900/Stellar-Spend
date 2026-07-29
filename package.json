@@ -8,6 +8,8 @@
     "build:analyze": "ANALYZE=true node ./scripts/run-next.cjs build",
     "start": "node ./scripts/run-next.cjs start",
     "lint": "npx -y -p eslint@9.39.4 -p @typescript-eslint/parser@8.46.1 -p @typescript-eslint/eslint-plugin@8.46.1 -p eslint-plugin-react@7.37.5 -p eslint-plugin-react-hooks@5.2.0 -p @next/eslint-plugin-next@15.2.0 eslint . --max-warnings 50",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:coverage": "vitest --run --coverage",
@@ -20,7 +22,11 @@
     "dead-code": "knip",
     "dead-code:ci": "knip --reporter compact",
     "storybook:check-orphans": "node scripts/check-orphaned-stories.js",
-    "storybook:fix-orphans": "node scripts/check-orphaned-stories.js --fix"
+    "storybook:fix-orphans": "node scripts/check-orphaned-stories.js --fix",
+    "license:check": "node scripts/check-licenses.js",
+    "license:report": "node scripts/check-licenses.js --report",
+    "type:coverage": "type-coverage",
+    "type:coverage:detail": "type-coverage --detail"
   },
   "dependencies": {
     "@allbridge/bridge-core-sdk": "^3.29.1",
@@ -64,9 +70,12 @@
     "eslint-plugin-storybook": "^10.4.6",
     "jsdom": "^29.0.1",
     "knip": "^5.88.1",
+    "license-checker": "^25.0.1",
     "node-mocks-http": "^1.14.1",
     "playwright": "^1.61.1",
+    "prettier": "^3.4.2",
     "storybook": "^10.4.6",
+    "type-coverage": "^2.29.7",
     "typescript": "5.7.3",
     "vite": "^8.1.0",
     "vitest": "^4.1.1"

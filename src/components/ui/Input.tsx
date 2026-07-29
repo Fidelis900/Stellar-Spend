@@ -26,7 +26,7 @@ export const inputVariants = cva(
       variant: 'default',
       inputSize: 'md',
     },
-  }
+  },
 );
 
 export interface InputProps
@@ -41,7 +41,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       className={cn(inputVariants({ variant, inputSize }), className)}
       {...props}
     />
-  )
+  ),
 );
 
 Input.displayName = 'Input';

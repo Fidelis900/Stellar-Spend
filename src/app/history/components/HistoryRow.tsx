@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import type { Transaction } from "@/lib/transaction-storage";
-import { CopyButton } from "@/components/CopyButton";
-import { StatusBadge } from "@/components/StatusBadge";
-import { cn } from "@/lib/cn";
-import { getCurrencyFlag } from "@/lib/currency-flags";
-import { formatDate, getCurrencySymbol, truncateTxHash } from "../format";
-import { NoteCell } from "./NoteCell";
-import { InsuranceCell } from "./InsuranceCell";
+import type { Transaction } from '@/lib/transaction-storage';
+import { CopyButton } from '@/components/CopyButton';
+import { StatusBadge } from '@/components/StatusBadge';
+import { cn } from '@/lib/cn';
+import { getCurrencyFlag } from '@/lib/currency-flags';
+import { formatDate, getCurrencySymbol, truncateTxHash } from '../format';
+import { NoteCell } from './NoteCell';
+import { InsuranceCell } from './InsuranceCell';
 
 interface HistoryRowProps {
   tx: Transaction;
@@ -21,9 +21,9 @@ export function HistoryRow({ tx, index, onSaveNote, onFileClaim }: HistoryRowPro
   return (
     <tr
       className={cn(
-        "border-b border-[#222222] transition-colors duration-100",
-        index % 2 === 0 ? "bg-[#111111]" : "bg-[#0f0f0f]",
-        "hover:bg-[#1a1a1a]",
+        'border-b border-[#222222] transition-colors duration-100',
+        index % 2 === 0 ? 'bg-[#111111]' : 'bg-[#0f0f0f]',
+        'hover:bg-[#1a1a1a]',
       )}
     >
       <td className="px-5 py-3 text-xs text-[#aaaaaa] whitespace-nowrap">

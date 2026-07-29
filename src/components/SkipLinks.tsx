@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Skip Links Component
@@ -10,7 +10,7 @@ export function SkipLinks() {
     const element = document.getElementById(id);
     if (element) {
       element.focus();
-      element.scrollIntoView({ behavior: "smooth" });
+      element.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -20,7 +20,7 @@ export function SkipLinks() {
         <ul className="flex flex-col gap-2 p-4 bg-blue-600 text-white">
           <li>
             <button
-              onClick={() => handleSkipTo("main-content")}
+              onClick={() => handleSkipTo('main-content')}
               className="underline hover:no-underline"
             >
               Skip to main content
@@ -28,7 +28,7 @@ export function SkipLinks() {
           </li>
           <li>
             <button
-              onClick={() => handleSkipTo("form-section")}
+              onClick={() => handleSkipTo('form-section')}
               className="underline hover:no-underline"
             >
               Skip to form
@@ -36,17 +36,14 @@ export function SkipLinks() {
           </li>
           <li>
             <button
-              onClick={() => handleSkipTo("transaction-history")}
+              onClick={() => handleSkipTo('transaction-history')}
               className="underline hover:no-underline"
             >
               Skip to transaction history
             </button>
           </li>
           <li>
-            <button
-              onClick={() => handleSkipTo("footer")}
-              className="underline hover:no-underline"
-            >
+            <button onClick={() => handleSkipTo('footer')} className="underline hover:no-underline">
               Skip to footer
             </button>
           </li>
@@ -59,7 +56,7 @@ export function SkipLinks() {
 /**
  * Utility class for screen reader only content
  * Add to your globals.css:
- * 
+ *
  * .sr-only {
  *   position: absolute;
  *   width: 1px;
@@ -71,7 +68,7 @@ export function SkipLinks() {
  *   white-space: nowrap;
  *   border-width: 0;
  * }
- * 
+ *
  * .focus-within\:not-sr-only:focus-within {
  *   position: static;
  *   width: auto;

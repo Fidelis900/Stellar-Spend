@@ -67,7 +67,9 @@ test.describe('Critical Journeys', () => {
         (window as any).freighter = {
           isConnected: async () => true,
           getPublicKey: async () => 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5',
-          signTransaction: async () => { throw new Error('User rejected signing'); },
+          signTransaction: async () => {
+            throw new Error('User rejected signing');
+          },
         };
       });
 
@@ -145,11 +147,9 @@ test.describe('Critical Journeys', () => {
       await page.getByRole('button', { name: /connect wallet/i }).click();
       await page.waitForTimeout(500);
 
-      const results = await new AxeBuilder({ page })
-        .withTags(['wcag2a', 'wcag2aa'])
-        .analyze();
+      const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
       const criticalViolations = results.violations.filter(
-        v => v.impact === 'critical' || v.impact === 'serious'
+        (v) => v.impact === 'critical' || v.impact === 'serious',
       );
       expect(criticalViolations).toHaveLength(0);
     });

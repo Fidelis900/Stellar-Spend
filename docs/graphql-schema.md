@@ -24,7 +24,12 @@ query GetTransaction($id: ID!) {
     amount
     currency
     userAddress
-    beneficiary { institution accountIdentifier accountName currency }
+    beneficiary {
+      institution
+      accountIdentifier
+      accountName
+      currency
+    }
     stellarTxHash
     createdAt
   }
@@ -100,7 +105,11 @@ query {
     totalVolume
     completedTransactions
     failedTransactions
-    topCurrencies { currency count volume }
+    topCurrencies {
+      currency
+      count
+      volume
+    }
   }
 }
 ```
@@ -246,14 +255,14 @@ Errors are aligned with the REST middleware format:
 }
 ```
 
-| error code | HTTP equivalent |
-|---|---|
-| `UNAUTHORIZED` | 401 |
-| `FORBIDDEN` | 403 |
-| `VALIDATION_ERROR` | 400 |
-| `QUERY_TOO_DEEP` | 400 |
-| `QUERY_TOO_COMPLEX` | 400 |
-| `SERVER_ERROR` | 500 |
+| error code          | HTTP equivalent |
+| ------------------- | --------------- |
+| `UNAUTHORIZED`      | 401             |
+| `FORBIDDEN`         | 403             |
+| `VALIDATION_ERROR`  | 400             |
+| `QUERY_TOO_DEEP`    | 400             |
+| `QUERY_TOO_COMPLEX` | 400             |
+| `SERVER_ERROR`      | 500             |
 
 ## Security
 

@@ -28,7 +28,7 @@ function sleep(ms: number): Promise<void> {
 /** Resolve which channels to fan out to for a given event, honouring per-event overrides first */
 function resolveChannels(
   prefs: NotificationPreferences,
-  event: TransactionNotificationEvent
+  event: TransactionNotificationEvent,
 ): NotificationChannel[] {
   // Per-event routing override takes precedence
   if (prefs.channelRouting?.[event]?.length) {
@@ -42,7 +42,10 @@ function resolveChannels(
   return channels;
 }
 
-function destinationFor(channel: NotificationChannel, prefs: NotificationPreferences): string | undefined {
+function destinationFor(
+  channel: NotificationChannel,
+  prefs: NotificationPreferences,
+): string | undefined {
   if (channel === 'email') return prefs.email;
   if (channel === 'sms') return prefs.phoneNumber;
   if (channel === 'push') return prefs.pushToken;
@@ -51,7 +54,7 @@ function destinationFor(channel: NotificationChannel, prefs: NotificationPrefere
 
 function shouldSendForEvent(
   prefs: NotificationPreferences,
-  event: TransactionNotificationEvent
+  event: TransactionNotificationEvent,
 ): boolean {
   if (event === 'pending') return prefs.notifyOnPending;
   if (event === 'completed') return prefs.notifyOnCompleted;
@@ -62,7 +65,7 @@ async function attemptDelivery(
   adapter: ChannelAdapter,
   destination: string,
   subject: string,
-  message: string
+  message: string,
 ): Promise<DeliveryResult> {
   let lastResult: DeliveryResult = { status: 'failed', errorMessage: 'No attempt made' };
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
@@ -77,7 +80,7 @@ async function attemptDelivery(
 }
 
 export async function getOrCreateNotificationPreferences(
-  userAddress: string
+  userAddress: string,
 ): Promise<NotificationPreferences> {
   const existing = await getNotificationPreferences(userAddress);
   if (existing) return existing;
@@ -99,7 +102,7 @@ export async function getOrCreateNotificationPreferences(
  */
 export async function notifyTransactionStatusUpdate(
   context: NotificationContext,
-  adapters: ChannelAdapter[] = defaultAdapters
+  adapters: ChannelAdapter[] = defaultAdapters,
 ): Promise<void> {
   const event = deriveNotificationEvent(context);
   if (!event) return;
@@ -130,7 +133,9 @@ export async function notifyTransactionStatusUpdate(
           subject: template.subject,
           message: template.message,
           attemptCount: 0,
-          errorMessage: !adapter ? `No adapter for channel ${channel}` : 'No destination configured',
+          errorMessage: !adapter
+            ? `No adapter for channel ${channel}`
+            : 'No destination configured',
           metadata: { source: context.source },
         });
         return;
@@ -141,7 +146,7 @@ export async function notifyTransactionStatusUpdate(
         (err: unknown): DeliveryResult => ({
           status: 'failed',
           errorMessage: err instanceof Error ? err.message : String(err),
-        })
+        }),
       );
 
       const record = await createNotificationDelivery({
@@ -169,13 +174,13 @@ export async function notifyTransactionStatusUpdate(
             (err: unknown): DeliveryResult => ({
               status: 'failed',
               errorMessage: err instanceof Error ? err.message : String(err),
-            })
+            }),
           );
           await retryNotificationDelivery(record.id, result, attempt);
           if (result.status !== 'failed') break;
         }
       }
-    })
+    }),
   );
 }
 

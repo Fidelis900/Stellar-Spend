@@ -12,11 +12,24 @@ export class BatchServiceWrapper {
   createBatch(userId: string, totalAmount: number): Promise<Record<string, unknown>> {
     return batchModule.createBatch(userId, totalAmount);
   }
-  addTransactionToBatch(batchId: string, transactionData: Record<string, unknown>): Promise<Record<string, unknown>> {
+  addTransactionToBatch(
+    batchId: string,
+    transactionData: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
     return batchModule.addTransactionToBatch(batchId, transactionData);
   }
-  updateBatchTransactionStatus(batchTransactionId: string, status: string, transactionId?: string, errorMessage?: string): Promise<Record<string, unknown>> {
-    return batchModule.updateBatchTransactionStatus(batchTransactionId, status, transactionId, errorMessage);
+  updateBatchTransactionStatus(
+    batchTransactionId: string,
+    status: string,
+    transactionId?: string,
+    errorMessage?: string,
+  ): Promise<Record<string, unknown>> {
+    return batchModule.updateBatchTransactionStatus(
+      batchTransactionId,
+      status,
+      transactionId,
+      errorMessage,
+    );
   }
   getBatchStatus(batchId: string): Promise<Record<string, unknown>> {
     return batchModule.getBatchStatus(batchId);
@@ -30,7 +43,10 @@ export class BatchServiceWrapper {
   cancelBatch(batchId: string): Promise<Record<string, unknown>> {
     return batchModule.cancelBatch(batchId);
   }
-  executeBatch(batchId: string, handler: (txPayload: Record<string, unknown>) => Promise<string>): Promise<{ succeeded: number; failed: number; batchStatus: string }> {
+  executeBatch(
+    batchId: string,
+    handler: (txPayload: Record<string, unknown>) => Promise<string>,
+  ): Promise<{ succeeded: number; failed: number; batchStatus: string }> {
     return batchModule.executeBatch(batchId, handler);
   }
   getBatchAnalytics(userId?: string): Promise<Record<string, unknown>> {
@@ -63,7 +79,10 @@ export class ReferralServiceWrapper {
   getReferralLeaderboard(limit?: number): Promise<Record<string, unknown>[]> {
     return referralModule.getReferralLeaderboard(limit);
   }
-  detectReferralFraud(userId: string, referralCode: string): Promise<{ suspicious: boolean; reasons: string[] }> {
+  detectReferralFraud(
+    userId: string,
+    referralCode: string,
+  ): Promise<{ suspicious: boolean; reasons: string[] }> {
     return referralModule.detectReferralFraud(userId, referralCode);
   }
 }
@@ -72,7 +91,12 @@ export class InsuranceServiceWrapper {
   calculateInsurancePremium(amount: number, currency: string): Promise<Record<string, unknown>> {
     return insuranceModule.calculateInsurancePremium(amount, currency);
   }
-  createInsurance(transactionId: string, premium: number, coverage: number, provider: string): Promise<Record<string, unknown>> {
+  createInsurance(
+    transactionId: string,
+    premium: number,
+    coverage: number,
+    provider: string,
+  ): Promise<Record<string, unknown>> {
     return insuranceModule.createInsurance(transactionId, premium, coverage, provider);
   }
   getInsuranceStatus(transactionId: string): Promise<Record<string, unknown>> {
@@ -81,7 +105,11 @@ export class InsuranceServiceWrapper {
   getInsuranceById(insuranceId: string): Promise<Record<string, unknown>> {
     return insuranceModule.getInsuranceById(insuranceId);
   }
-  fileClaim(insuranceId: string, reason: string, evidence?: string): Promise<Record<string, unknown>> {
+  fileClaim(
+    insuranceId: string,
+    reason: string,
+    evidence?: string,
+  ): Promise<Record<string, unknown>> {
     return insuranceModule.fileClaim(insuranceId, reason, evidence);
   }
   verifyClaim(insuranceId: string): Promise<{ valid: boolean; reason?: string }> {
@@ -102,7 +130,12 @@ export class InsuranceServiceWrapper {
 }
 
 export class SchedulingServiceWrapper {
-  scheduleTransaction(userId: string, amount: number, currency: string, scheduledFor: Date): Promise<Record<string, unknown>> {
+  scheduleTransaction(
+    userId: string,
+    amount: number,
+    currency: string,
+    scheduledFor: Date,
+  ): Promise<Record<string, unknown>> {
     return schedulingModule.scheduleTransaction(userId, amount, currency, scheduledFor);
   }
   getScheduledTransactions(userId: string): Promise<Record<string, unknown>[]> {
@@ -111,13 +144,19 @@ export class SchedulingServiceWrapper {
   getPendingScheduledTransactions(): Promise<Record<string, unknown>[]> {
     return schedulingModule.getPendingScheduledTransactions();
   }
-  executeScheduledTransaction(scheduledId: string, transactionId: string): Promise<Record<string, unknown>> {
+  executeScheduledTransaction(
+    scheduledId: string,
+    transactionId: string,
+  ): Promise<Record<string, unknown>> {
     return schedulingModule.executeScheduledTransaction(scheduledId, transactionId);
   }
   cancelScheduledTransaction(scheduledId: string): Promise<Record<string, unknown>> {
     return schedulingModule.cancelScheduledTransaction(scheduledId);
   }
-  updateScheduledTransaction(scheduledId: string, scheduledFor: Date): Promise<Record<string, unknown>> {
+  updateScheduledTransaction(
+    scheduledId: string,
+    scheduledFor: Date,
+  ): Promise<Record<string, unknown>> {
     return schedulingModule.updateScheduledTransaction(scheduledId, scheduledFor);
   }
 }

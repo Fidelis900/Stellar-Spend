@@ -36,12 +36,7 @@ export class ResourceFeeEstimator {
     sourceAccount: Account,
   ): Promise<ResourceFeeEstimate> {
     try {
-      const simulation = await this.simulateTransaction(
-        contractId,
-        method,
-        args,
-        sourceAccount,
-      );
+      const simulation = await this.simulateTransaction(contractId, method, args, sourceAccount);
 
       return this.calculateFeeEstimate(simulation);
     } catch (error) {
@@ -87,7 +82,11 @@ export class ResourceFeeEstimator {
 
       if (result.error) {
         logger.error('Simulation error:', {}, result.error);
-        return { footprint: { readBytes: 0, writeBytes: 0 }, estimatedFee: 0, error: result.error.message };
+        return {
+          footprint: { readBytes: 0, writeBytes: 0 },
+          estimatedFee: 0,
+          error: result.error.message,
+        };
       }
 
       const resultXdr = result.result.results?.[0];
@@ -110,7 +109,7 @@ export class ResourceFeeEstimator {
     const cpuInstructions = Math.max(1000, storageOps * 500);
     const estimatedFeeStroops = Math.max(
       simulation.estimatedFee,
-      cpuInstructions + (storageOps * BASE_FEE_STROOPS),
+      cpuInstructions + storageOps * BASE_FEE_STROOPS,
     );
 
     return {

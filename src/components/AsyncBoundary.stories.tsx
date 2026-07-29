@@ -1,10 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import {
-  AsyncBoundary,
-  ListLoadingState,
-  ListEmptyState,
-  ListErrorState,
-} from './AsyncBoundary';
+import { AsyncBoundary, ListLoadingState, ListEmptyState, ListErrorState } from './AsyncBoundary';
 
 const meta = {
   title: 'Components/AsyncBoundary',
@@ -74,12 +69,7 @@ export const ErrorState: Story = {
     isLoading: false,
     isEmpty: false,
     error: 'Failed to fetch transactions. Please try again.',
-    errorContent: (error) => (
-      <ListErrorState
-        error={error}
-        onRetry={() => alert('Retrying...')}
-      />
-    ),
+    errorContent: (error) => <ListErrorState error={error} onRetry={() => alert('Retrying...')} />,
     children: <SampleList />,
   },
 };

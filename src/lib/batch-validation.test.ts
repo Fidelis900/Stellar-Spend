@@ -8,12 +8,12 @@ interface BatchBeneficiary {
 function validateBatch(beneficiaries: BatchBeneficiary[]) {
   const errors = [];
   if (beneficiaries.length === 0) errors.push('Batch is empty');
-  
+
   beneficiaries.forEach((b, i) => {
     if (!b.accountNumber) errors.push(`Row ${i + 1}: Missing account number`);
     if (b.amount <= 0) errors.push(`Row ${i + 1}: Invalid amount`);
   });
-  
+
   return {
     isValid: errors.length === 0,
     errors,

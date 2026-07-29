@@ -1,0 +1,27 @@
+# Build output
+.next/
+out/
+dist/
+build/
+
+# Dependencies
+node_modules/
+
+# Generated files
+package-lock.json
+public/sw.js
+
+# Rust contracts (formatted by rustfmt)
+contracts/
+
+# Terraform files
+terraform/
+
+# Migrations
+migrations/
+
+# Coverage reports
+coverage/
+
+# Storybook
+storybook-static/

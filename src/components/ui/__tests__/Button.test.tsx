@@ -54,7 +54,7 @@ describe('Button (cva variants)', () => {
     rerender(
       <Button onClick={onClick} disabled>
         x
-      </Button>
+      </Button>,
     );
     await user.click(screen.getByRole('button'));
     expect(onClick).toHaveBeenCalledTimes(1);

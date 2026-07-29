@@ -27,9 +27,7 @@ export class InMemoryTransactionRepository implements TransactionRepository {
   }
 
   async getByUser(userAddress: string): Promise<Transaction[]> {
-    return Array.from(this.transactions.values()).filter(
-      (t) => t.userAddress === userAddress
-    );
+    return Array.from(this.transactions.values()).filter((t) => t.userAddress === userAddress);
   }
 
   async getByPayoutOrderId(orderId: string): Promise<Transaction | null> {

@@ -1,18 +1,22 @@
 # RB-003: Database Failover
 
 ## Severity
+
 P1
 
 ## Triggering Alerts
+
 - `ALERT_DB_UNHEALTHY` — RDS health check failing
 - `ALERT_DB_REPLICATION_LAG` — replica lag > 5 minutes
 - `ALERT_DB_CONNECTIONS_EXHAUSTED` — connection pool at 100%
 - `ALERT_BACKUP_FAILED` — see also RB-005
 
 ## Impact
+
 Full application outage. All API endpoints depending on the database (all transaction endpoints, auth, KYC, webhooks) return 500. Users cannot initiate or track transactions.
 
 ## Prerequisites
+
 - AWS Console access (RDS, CloudWatch)
 - DB admin credentials (1Password vault: `ops/db-admin`)
 - Terraform state access (for infrastructure changes)
@@ -53,12 +57,12 @@ aws cloudwatch get-metric-statistics \
 
 ### 3. Classify the failure
 
-| Symptom | Likely cause |
-|---------|-------------|
-| RDS status "failed" | Hardware / AZ failure → automatic failover should trigger |
-| High connections, DB responsive | Connection pool exhaustion → restart app pods |
-| Replica lag > 5 min | Network issue or write storm → monitor or promote replica |
-| `pg_stat_activity` locked queries | Long-running query blocking others → identify and kill |
+| Symptom                           | Likely cause                                              |
+| --------------------------------- | --------------------------------------------------------- |
+| RDS status "failed"               | Hardware / AZ failure → automatic failover should trigger |
+| High connections, DB responsive   | Connection pool exhaustion → restart app pods             |
+| Replica lag > 5 min               | Network issue or write storm → monitor or promote replica |
+| `pg_stat_activity` locked queries | Long-running query blocking others → identify and kill    |
 
 ---
 
@@ -99,6 +103,7 @@ psql -h $DB_HOST -U $DB_USER -c "
 ```
 
 If caused by a deployment surge, scale down excess application pods:
+
 ```bash
 kubectl scale deployment stellar-spend --replicas=2
 ```
@@ -134,6 +139,7 @@ aws rds restore-db-instance-from-db-snapshot \
 ```
 
 After restore, run integrity validation:
+
 ```bash
 npx ts-node scripts/migrate.ts --validate
 ```
@@ -163,18 +169,19 @@ aws rds restore-db-instance-to-point-in-time \
 
 ## Escalation
 
-| Time elapsed | Action |
-|-------------|--------|
-| 0–5 min | Confirm automatic failover triggered; monitor |
-| 5 min | If no auto-failover, page infra lead + begin manual steps |
-| 15 min | Engineering manager informed; post status update |
-| 30 min | CTO informed |
+| Time elapsed | Action                                                    |
+| ------------ | --------------------------------------------------------- |
+| 0–5 min      | Confirm automatic failover triggered; monitor             |
+| 5 min        | If no auto-failover, page infra lead + begin manual steps |
+| 15 min       | Engineering manager informed; post status update          |
+| 30 min       | CTO informed                                              |
 
 ---
 
 ## Post-Incident
 
 File PIR within 24 hours. Include:
+
 - Root cause of DB failure
 - Failover duration and whether Multi-AZ performed as expected
 - Any data loss (compare RPO against backup records)
@@ -183,5 +190,6 @@ File PIR within 24 hours. Include:
 See: [Disaster Recovery Plan](../disaster-recovery-plan.md), [Backup & Recovery](../backup-recovery.md).
 
 ## Related Runbooks
+
 - [RB-004: High Error Rate](./high-error-rate.md)
 - [RB-005: Backup Failure](./backup-failure.md)

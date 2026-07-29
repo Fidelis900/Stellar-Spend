@@ -35,7 +35,7 @@ export interface RecoverySession {
 
 const DEFAULT_ENFORCEMENT: TwoFAEnforcementPolicy = {
   requireFor: ['withdrawal', 'api_key'],
-  gracePeriodMs: 5 * 60 * 1000,  // 5 minutes
+  gracePeriodMs: 5 * 60 * 1000, // 5 minutes
   allowedMethods: ['totp', 'sms', 'backup'],
 };
 
@@ -45,7 +45,7 @@ const recoveryStore = new Map<string, RecoverySession>();
 let enforcementPolicy: TwoFAEnforcementPolicy = { ...DEFAULT_ENFORCEMENT };
 
 export class TwoFAService {
-  private static readonly TOTP_WINDOW = 30;    // seconds
+  private static readonly TOTP_WINDOW = 30; // seconds
   private static readonly TOTP_DIGITS = 6;
   private static readonly BACKUP_CODE_COUNT = 10;
 
@@ -107,9 +107,7 @@ export class TwoFAService {
   // ---------------------------------------------------------------------------
 
   static generateBackupCodes(count = this.BACKUP_CODE_COUNT): string[] {
-    return Array.from({ length: count }, () =>
-      crypto.randomBytes(4).toString('hex').toUpperCase(),
-    );
+    return Array.from({ length: count }, () => crypto.randomBytes(4).toString('hex').toUpperCase());
   }
 
   static verifyBackupCode(
@@ -144,7 +142,7 @@ export class TwoFAService {
       method,
       secret: method === 'totp' ? (extra?.secret ?? this.generateTOTPSecret()) : undefined,
       phoneNumber: method === 'sms' ? extra?.phoneNumber : undefined,
-      isEnabled: false,        // enabled after first successful verification
+      isEnabled: false, // enabled after first successful verification
       isEnforced: false,
       backupCodes: this.generateBackupCodes(),
       usedBackupCodes: existing?.usedBackupCodes ?? [],
@@ -228,7 +226,7 @@ export class TwoFAService {
     const session: RecoverySession = {
       token,
       userId,
-      expiresAt: Date.now() + 15 * 60 * 1000,  // 15 minutes
+      expiresAt: Date.now() + 15 * 60 * 1000, // 15 minutes
       used: false,
     };
     recoveryStore.set(token, session);

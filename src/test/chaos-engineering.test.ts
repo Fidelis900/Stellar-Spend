@@ -1,15 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import {
-  HttpClient,
-  CircuitOpenError,
-  HttpClientError,
-} from '@/lib/clients/http-client';
+import { HttpClient, CircuitOpenError, HttpClientError } from '@/lib/clients/http-client';
 import { getCacheClient, resetCacheClient } from '@/lib/cache/client';
-import {
-  getCachedRate,
-  getCachedQuote,
-  getCachedCurrencies,
-} from '@/lib/cache/service';
+import { getCachedRate, getCachedQuote, getCachedCurrencies } from '@/lib/cache/service';
 
 // ─── Provider Timeout / 5xx Injection ────────────────────────────────────────
 
@@ -39,8 +31,8 @@ describe('Provider failure injection: timeouts and 5xx', () => {
             const e = new Error('The operation was aborted');
             e.name = 'AbortError';
             reject(e);
-          }, 300)
-        )
+          }, 300),
+        ),
     );
 
     await expect(client.get('/api/quote')).rejects.toThrow(HttpClientError);
@@ -69,7 +61,7 @@ describe('Provider failure injection: timeouts and 5xx', () => {
       return { ok: true, status: 200, json: async () => ({ data: { rate: 1600 } }) };
     });
 
-    const result = await client.get('/api/rate') as { rate: number };
+    const result = (await client.get('/api/rate')) as { rate: number };
     expect(result.rate).toBe(1600);
     expect(calls).toBe(3);
   });
@@ -78,7 +70,12 @@ describe('Provider failure injection: timeouts and 5xx', () => {
     let calls = 0;
     (fetch as ReturnType<typeof vi.fn>).mockImplementation(async () => {
       calls++;
-      return { ok: false, status: 400, statusText: 'Bad Request', json: async () => ({ message: 'Invalid amount' }) };
+      return {
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        json: async () => ({ message: 'Invalid amount' }),
+      };
     });
 
     await expect(client.get('/api/quote')).rejects.toMatchObject({ status: 400 });
@@ -126,7 +123,10 @@ describe('Circuit breaker engagement', () => {
 
   it('opens circuit after threshold failures and throws CircuitOpenError', async () => {
     (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-      ok: false, status: 503, statusText: 'Service Unavailable', json: async () => ({}),
+      ok: false,
+      status: 503,
+      statusText: 'Service Unavailable',
+      json: async () => ({}),
     });
 
     // exhaust threshold
@@ -165,7 +165,10 @@ describe('Circuit breaker engagement', () => {
 
   it('does not open circuit on 4xx errors', async () => {
     (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-      ok: false, status: 404, statusText: 'Not Found', json: async () => ({}),
+      ok: false,
+      status: 404,
+      statusText: 'Not Found',
+      json: async () => ({}),
     });
 
     for (let i = 0; i < 5; i++) {
@@ -174,7 +177,9 @@ describe('Circuit breaker engagement', () => {
 
     // Circuit should remain closed; a successful call resolves normally
     (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      ok: true, status: 200, json: async () => ({ data: 'alive' }),
+      ok: true,
+      status: 200,
+      json: async () => ({ data: 'alive' }),
     });
     const result = await client.get('/resource');
     expect(result).toBe('alive');
@@ -253,11 +258,15 @@ describe('DB unavailability simulation', () => {
         throw new Error('Connection pool timeout: no connections available');
       }
       active++;
-      return { release: () => { active--; } };
+      return {
+        release: () => {
+          active--;
+        },
+      };
     };
 
     const requests = Array.from({ length: POOL_SIZE + 3 }, () =>
-      acquireConnection().catch((e) => ({ error: e.message }))
+      acquireConnection().catch((e) => ({ error: e.message })),
     );
 
     const results = await Promise.all(requests);

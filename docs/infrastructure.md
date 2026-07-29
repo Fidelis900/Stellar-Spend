@@ -58,11 +58,11 @@ terraform/
 
 ## Prerequisites
 
-| Tool | Version | Install |
-|------|---------|---------|
-| Terraform | ≥ 1.6.0 | [terraform.io](https://developer.hashicorp.com/terraform/install) |
-| AWS CLI | ≥ 2.x | [aws.amazon.com/cli](https://aws.amazon.com/cli/) |
-| tflint (optional) | latest | [github.com/terraform-linters/tflint](https://github.com/terraform-linters/tflint) |
+| Tool              | Version | Install                                                                            |
+| ----------------- | ------- | ---------------------------------------------------------------------------------- |
+| Terraform         | ≥ 1.6.0 | [terraform.io](https://developer.hashicorp.com/terraform/install)                  |
+| AWS CLI           | ≥ 2.x   | [aws.amazon.com/cli](https://aws.amazon.com/cli/)                                  |
+| tflint (optional) | latest  | [github.com/terraform-linters/tflint](https://github.com/terraform-linters/tflint) |
 
 AWS credentials must be configured before running `terraform plan` or `apply`:
 
@@ -89,16 +89,16 @@ aws dynamodb create-table \
 
 Two environments are defined, each with its own tfvars file:
 
-| Setting | Staging | Production |
-|---------|---------|------------|
-| `desired_count` | 1 | 2 |
-| `cpu` | 256 (0.25 vCPU) | 512 (0.5 vCPU) |
-| `memory` | 512 MiB | 1024 MiB |
-| Capacity provider | `FARGATE_SPOT` | `FARGATE` |
-| Secret recovery window | 0 days (immediate delete) | 30 days |
-| Log retention | 14 days | 90 days |
-| Auto-scaling max | 4 tasks | 10 tasks |
-| VPC CIDR | `10.1.0.0/16` | `10.0.0.0/16` |
+| Setting                | Staging                   | Production     |
+| ---------------------- | ------------------------- | -------------- |
+| `desired_count`        | 1                         | 2              |
+| `cpu`                  | 256 (0.25 vCPU)           | 512 (0.5 vCPU) |
+| `memory`               | 512 MiB                   | 1024 MiB       |
+| Capacity provider      | `FARGATE_SPOT`            | `FARGATE`      |
+| Secret recovery window | 0 days (immediate delete) | 30 days        |
+| Log retention          | 14 days                   | 90 days        |
+| Auto-scaling max       | 4 tasks                   | 10 tasks       |
+| VPC CIDR               | `10.1.0.0/16`             | `10.0.0.0/16`  |
 
 Both environments use identical resource types and the same Terraform code — only the variable values differ.
 
@@ -108,12 +108,12 @@ Both environments use identical resource types and the same Terraform code — o
 
 Sensitive values are stored in **AWS Secrets Manager** under the path `stellar-spend-<env>/app-secrets`. The secret is a JSON object with these keys:
 
-| Key | Description |
-|-----|-------------|
-| `PAYCREST_API_KEY` | Paycrest dashboard API key |
-| `PAYCREST_WEBHOOK_SECRET` | Paycrest webhook HMAC secret |
-| `BASE_PRIVATE_KEY` | Base payout wallet private key |
-| `DATABASE_URL` | PostgreSQL connection string |
+| Key                       | Description                    |
+| ------------------------- | ------------------------------ |
+| `PAYCREST_API_KEY`        | Paycrest dashboard API key     |
+| `PAYCREST_WEBHOOK_SECRET` | Paycrest webhook HMAC secret   |
+| `BASE_PRIVATE_KEY`        | Base payout wallet private key |
+| `DATABASE_URL`            | PostgreSQL connection string   |
 
 Secrets are **never committed** to the repository. Supply them at plan/apply time via environment variables:
 
@@ -206,24 +206,24 @@ terraform destroy -var-file=envs/staging.tfvars
 
 The GitHub Actions workflow at [`.github/workflows/terraform.yml`](../.github/workflows/terraform.yml) runs automatically on any change to `terraform/**`:
 
-| Job | Trigger | What it does |
-|-----|---------|--------------|
-| `validate` | push + PR | `fmt -check`, `init -backend=false`, `validate` |
-| `plan-staging` | PR only | Full `terraform plan` against staging state |
+| Job            | Trigger   | What it does                                    |
+| -------------- | --------- | ----------------------------------------------- |
+| `validate`     | push + PR | `fmt -check`, `init -backend=false`, `validate` |
+| `plan-staging` | PR only   | Full `terraform plan` against staging state     |
 
 Required GitHub repository secrets and variables:
 
-| Name | Type | Description |
-|------|------|-------------|
-| `AWS_ACCESS_KEY_ID` | Secret | IAM key for CI |
-| `AWS_SECRET_ACCESS_KEY` | Secret | IAM secret for CI |
-| `PAYCREST_API_KEY` | Secret | Passed to `terraform plan` |
-| `PAYCREST_WEBHOOK_SECRET` | Secret | Passed to `terraform plan` |
-| `BASE_PRIVATE_KEY` | Secret | Passed to `terraform plan` |
-| `DATABASE_URL` | Secret | Passed to `terraform plan` |
-| `TF_STATE_BUCKET` | Variable | S3 bucket name for Terraform state |
-| `TF_LOCK_TABLE` | Variable | DynamoDB table name for state locking |
-| `AWS_REGION` | Variable | AWS region (e.g. `us-east-1`) |
+| Name                      | Type     | Description                           |
+| ------------------------- | -------- | ------------------------------------- |
+| `AWS_ACCESS_KEY_ID`       | Secret   | IAM key for CI                        |
+| `AWS_SECRET_ACCESS_KEY`   | Secret   | IAM secret for CI                     |
+| `PAYCREST_API_KEY`        | Secret   | Passed to `terraform plan`            |
+| `PAYCREST_WEBHOOK_SECRET` | Secret   | Passed to `terraform plan`            |
+| `BASE_PRIVATE_KEY`        | Secret   | Passed to `terraform plan`            |
+| `DATABASE_URL`            | Secret   | Passed to `terraform plan`            |
+| `TF_STATE_BUCKET`         | Variable | S3 bucket name for Terraform state    |
+| `TF_LOCK_TABLE`           | Variable | DynamoDB table name for state locking |
+| `AWS_REGION`              | Variable | AWS region (e.g. `us-east-1`)         |
 
 ### Local validation
 
@@ -235,17 +235,17 @@ Required GitHub repository secrets and variables:
 
 ## Resource reference
 
-| Resource | Name pattern | Notes |
-|----------|-------------|-------|
-| VPC | `stellar-spend-<env>-vpc` | Dedicated per environment |
-| Public subnets (×2) | `stellar-spend-<env>-public-{1,2}` | ALB placement |
-| Private subnets (×2) | `stellar-spend-<env>-private-{1,2}` | ECS task placement |
-| NAT Gateway | `stellar-spend-<env>-nat` | Single NAT (cost optimised) |
-| ALB | `stellar-spend-<env>-alb` | HTTP→HTTPS redirect; HTTPS requires ACM cert |
-| ECS Cluster | `stellar-spend-<env>` | Container Insights enabled |
-| ECS Service | `stellar-spend-<env>-svc` | Rolling deploy, CPU autoscaling |
-| Task Definition | `stellar-spend-<env>` | Fargate, awsvpc networking |
-| Secrets Manager | `stellar-spend-<env>/app-secrets` | JSON with 4 secret keys |
-| CloudWatch Log Group | `/ecs/stellar-spend-<env>` | 14d staging / 90d production |
-| IAM Execution Role | `stellar-spend-<env>-task-execution` | Pulls image + reads secrets |
-| IAM Task Role | `stellar-spend-<env>-task` | App runtime permissions |
+| Resource             | Name pattern                         | Notes                                        |
+| -------------------- | ------------------------------------ | -------------------------------------------- |
+| VPC                  | `stellar-spend-<env>-vpc`            | Dedicated per environment                    |
+| Public subnets (×2)  | `stellar-spend-<env>-public-{1,2}`   | ALB placement                                |
+| Private subnets (×2) | `stellar-spend-<env>-private-{1,2}`  | ECS task placement                           |
+| NAT Gateway          | `stellar-spend-<env>-nat`            | Single NAT (cost optimised)                  |
+| ALB                  | `stellar-spend-<env>-alb`            | HTTP→HTTPS redirect; HTTPS requires ACM cert |
+| ECS Cluster          | `stellar-spend-<env>`                | Container Insights enabled                   |
+| ECS Service          | `stellar-spend-<env>-svc`            | Rolling deploy, CPU autoscaling              |
+| Task Definition      | `stellar-spend-<env>`                | Fargate, awsvpc networking                   |
+| Secrets Manager      | `stellar-spend-<env>/app-secrets`    | JSON with 4 secret keys                      |
+| CloudWatch Log Group | `/ecs/stellar-spend-<env>`           | 14d staging / 90d production                 |
+| IAM Execution Role   | `stellar-spend-<env>-task-execution` | Pulls image + reads secrets                  |
+| IAM Task Role        | `stellar-spend-<env>-task`           | App runtime permissions                      |

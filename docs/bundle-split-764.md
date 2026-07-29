@@ -9,10 +9,10 @@ only rendered on a specific user action or tab selection.
 
 ## Changes
 
-| File | Component | Before | After |
-|------|-----------|--------|-------|
-| `src/app/settings/page.tsx` | `KYCLimitManager` | static import | `next/dynamic` (ssr: false) |
-| `src/app/history/page.tsx` | `InsuranceClaimForm` | static import | `next/dynamic` (ssr: false) |
+| File                        | Component            | Before        | After                       |
+| --------------------------- | -------------------- | ------------- | --------------------------- |
+| `src/app/settings/page.tsx` | `KYCLimitManager`    | static import | `next/dynamic` (ssr: false) |
+| `src/app/history/page.tsx`  | `InsuranceClaimForm` | static import | `next/dynamic` (ssr: false) |
 
 Both components are replaced with `next/dynamic` lazy wrappers that show a
 lightweight skeleton while the real module loads asynchronously.
@@ -20,11 +20,11 @@ lightweight skeleton while the real module loads asynchronously.
 ## Why These Components
 
 - **`KYCLimitManager`** — rendered only when the user navigates to the
-  *Security* tab of Settings. It pulls in `@/lib/kyc-limits`,
+  _Security_ tab of Settings. It pulls in `@/lib/kyc-limits`,
   `@/lib/bank-validation`, and `@/lib/corridor-config` which are sizable
   modules not needed on any other page.
 
-- **`InsuranceClaimForm`** — rendered only when the user clicks *"File Claim"*
+- **`InsuranceClaimForm`** — rendered only when the user clicks _"File Claim"_
   on a specific transaction. It pulls in insurance logic and form validation
   not needed for the common read-only history view.
 

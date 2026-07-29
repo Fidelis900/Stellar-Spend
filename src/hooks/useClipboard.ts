@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback } from 'react';
 
 export function useClipboard(timeout = 2000) {
   const [isCopied, setIsCopied] = useState(false);
@@ -6,7 +6,7 @@ export function useClipboard(timeout = 2000) {
   const copy = useCallback(
     async (text: string) => {
       if (!navigator?.clipboard) {
-        console.warn("Clipboard not supported");
+        console.warn('Clipboard not supported');
         return false;
       }
 
@@ -16,12 +16,12 @@ export function useClipboard(timeout = 2000) {
         setTimeout(() => setIsCopied(false), timeout);
         return true;
       } catch (error) {
-        console.warn("Copy failed", error);
+        console.warn('Copy failed', error);
         setIsCopied(false);
         return false;
       }
     },
-    [timeout]
+    [timeout],
   );
 
   return { isCopied, copy };

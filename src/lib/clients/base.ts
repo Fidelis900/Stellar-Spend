@@ -14,7 +14,7 @@ export class ClientError extends Error {
   constructor(
     message: string,
     public readonly status: number,
-    public readonly details?: unknown
+    public readonly details?: unknown,
   ) {
     super(message);
     this.name = 'ClientError';
@@ -22,10 +22,7 @@ export class ClientError extends Error {
   }
 }
 
-export async function withRetry<T>(
-  fn: () => Promise<T>,
-  options: RetryOptions
-): Promise<T> {
+export async function withRetry<T>(fn: () => Promise<T>, options: RetryOptions): Promise<T> {
   let lastError: Error | undefined;
   let delay = options.delayMs;
 

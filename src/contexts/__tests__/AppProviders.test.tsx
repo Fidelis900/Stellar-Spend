@@ -6,7 +6,7 @@ describe('AppProviders', () => {
     render(
       <AppProviders>
         <div data-testid="test-child">Test Content</div>
-      </AppProviders>
+      </AppProviders>,
     );
 
     expect(screen.getByTestId('test-child')).toBeInTheDocument();
@@ -17,7 +17,7 @@ describe('AppProviders', () => {
     const { container } = render(
       <AppProviders>
         <div>Content</div>
-      </AppProviders>
+      </AppProviders>,
     );
 
     expect(container).toBeInTheDocument();
@@ -27,7 +27,7 @@ describe('AppProviders', () => {
     const { container } = render(
       <AppProviders>
         <></>
-      </AppProviders>
+      </AppProviders>,
     );
 
     expect(container).toBeInTheDocument();
@@ -39,7 +39,7 @@ describe('AppProviders', () => {
         <div data-testid="first">First</div>
         <div data-testid="second">Second</div>
         <div data-testid="third">Third</div>
-      </AppProviders>
+      </AppProviders>,
     );
 
     expect(screen.getByTestId('first')).toBeInTheDocument();

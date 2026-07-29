@@ -28,7 +28,13 @@ const PAYLOAD = '{"event":"payment_order.settled","data":{"id":"order_123"}}';
 
 async function makeSignature(payload: string, secret: string): Promise<string> {
   const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey('raw', encoder.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
   const mac = await crypto.subtle.sign('HMAC', key, encoder.encode(payload));
   return Buffer.from(mac).toString('hex');
 }

@@ -49,10 +49,7 @@ describe('api key service', () => {
     expect(result.status).toBe('active');
     expect(poolQueryMock).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO api_keys'),
-      expect.arrayContaining([
-        'Partner',
-        120,
-      ])
+      expect.arrayContaining(['Partner', 120]),
     );
   });
 

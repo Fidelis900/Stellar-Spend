@@ -77,10 +77,7 @@ export class CircuitBreaker {
    * @param opts.fallback - Optional function called when the breaker is OPEN.
    *                        If not provided and breaker is OPEN, a CircuitOpenError is thrown.
    */
-  async execute<T>(
-    fn: () => Promise<T>,
-    opts?: { fallback?: () => T | Promise<T> },
-  ): Promise<T> {
+  async execute<T>(fn: () => Promise<T>, opts?: { fallback?: () => T | Promise<T> }): Promise<T> {
     this.maybeTransitionToHalfOpen();
 
     if (this.state === 'OPEN') {
@@ -110,9 +107,7 @@ export class CircuitBreaker {
       state: this.state,
       failures: this.failures,
       lastFailureAt: this.lastFailureAt,
-      nextAttemptAt: this.openedAt !== null
-        ? this.openedAt + this.resetTimeoutMs
-        : null,
+      nextAttemptAt: this.openedAt !== null ? this.openedAt + this.resetTimeoutMs : null,
     };
   }
 
@@ -158,7 +153,11 @@ export class CircuitBreaker {
   private onFailure(err: unknown): void {
     this.failures++;
     this.lastFailureAt = Date.now();
-    logger.warn('circuit-breaker.failure', { name: this.name, failures: this.failures, threshold: this.failureThreshold }, err);
+    logger.warn(
+      'circuit-breaker.failure',
+      { name: this.name, failures: this.failures, threshold: this.failureThreshold },
+      err,
+    );
 
     if (this.state === 'HALF_OPEN' || this.failures >= this.failureThreshold) {
       this.state = 'OPEN';
@@ -176,8 +175,14 @@ export class CircuitBreaker {
       }, this.timeoutMs);
 
       fn().then(
-        (value) => { clearTimeout(timer); resolve(value); },
-        (err)   => { clearTimeout(timer); reject(err); },
+        (value) => {
+          clearTimeout(timer);
+          resolve(value);
+        },
+        (err) => {
+          clearTimeout(timer);
+          reject(err);
+        },
       );
     });
   }
@@ -191,7 +196,9 @@ export class CircuitOpenError extends Error {
     public readonly openedAt: number,
     public readonly resetTimeoutMs: number,
   ) {
-    super(`Circuit '${circuitName}' is OPEN — upstream unavailable. Retry after ${resetTimeoutMs / 1000}s.`);
+    super(
+      `Circuit '${circuitName}' is OPEN — upstream unavailable. Retry after ${resetTimeoutMs / 1000}s.`,
+    );
     this.name = 'CircuitOpenError';
     Object.setPrototypeOf(this, new.target.prototype);
   }

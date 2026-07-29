@@ -42,18 +42,18 @@ signature = HMAC-SHA256(message, SECRET)
 ### Example (Node.js)
 
 ```javascript
-import crypto from "crypto";
+import crypto from 'crypto';
 
-const method = "POST";
-const path = "/api/offramp/quote";
-const body = JSON.stringify({ amount: "100", currency: "NGN" });
+const method = 'POST';
+const path = '/api/offramp/quote';
+const body = JSON.stringify({ amount: '100', currency: 'NGN' });
 const timestamp = Date.now().toString();
-const secret = "your-shared-secret";
+const secret = 'your-shared-secret';
 
-const message = [method, path, body, timestamp].join("\n");
-const hmac = crypto.createHmac("sha256", secret);
+const message = [method, path, body, timestamp].join('\n');
+const hmac = crypto.createHmac('sha256', secret);
 hmac.update(message);
-const signature = hmac.digest("hex");
+const signature = hmac.digest('hex');
 ```
 
 ### Example (Python)
@@ -157,35 +157,35 @@ import {
   generateSignature,
   verifySignature,
   createSignedRequestHeaders,
-} from "@/lib/request-signing";
+} from '@/lib/request-signing';
 
 // Generate signature
 const signature = generateSignature(
-  "POST",
-  "/api/offramp/quote",
+  'POST',
+  '/api/offramp/quote',
   '{"amount":"100"}',
-  "1234567890000",
-  "secret"
+  '1234567890000',
+  'secret',
 );
 
 // Verify signature
 const result = verifySignature(
-  "POST",
-  "/api/offramp/quote",
+  'POST',
+  '/api/offramp/quote',
   '{"amount":"100"}',
-  "1234567890000",
+  '1234567890000',
   signature,
-  "secret"
+  'secret',
 );
 
 console.log(result.valid); // true
 
 // Create signed headers
 const headers = createSignedRequestHeaders(
-  "POST",
-  "/api/offramp/quote",
+  'POST',
+  '/api/offramp/quote',
   '{"amount":"100"}',
-  "secret"
+  'secret',
 );
 ```
 

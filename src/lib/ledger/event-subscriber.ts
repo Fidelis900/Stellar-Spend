@@ -23,7 +23,12 @@ export function subscribeLedgerEvents() {
           await recordFeeCapture(txId, amount, (tx.fiatCurrency as string) ?? 'USD', 'stablecoin');
         }
         if (fees.payoutFee) {
-          await recordFeeCapture(txId, fees.payoutFee, (tx.fiatCurrency as string) ?? 'USD', 'payout');
+          await recordFeeCapture(
+            txId,
+            fees.payoutFee,
+            (tx.fiatCurrency as string) ?? 'USD',
+            'payout',
+          );
         }
       }
     } catch (err) {

@@ -41,7 +41,7 @@ describe('Batch Transaction Processing Service - Partial Failures & Analytics', 
       expect(batch).toEqual(mockBatchRow);
       expect(db.query).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO transaction_batches'),
-        ['user-batch-1', 1000.0]
+        ['user-batch-1', 1000.0],
       );
     });
 
@@ -61,7 +61,7 @@ describe('Batch Transaction Processing Service - Partial Failures & Analytics', 
       expect(added).toEqual(mockBatchTxRow);
       expect(db.query).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO batch_transactions'),
-        ['batch-uuid-1', 'pending', JSON.stringify(mockTxData)]
+        ['batch-uuid-1', 'pending', JSON.stringify(mockTxData)],
       );
     });
   });
@@ -71,9 +71,24 @@ describe('Batch Transaction Processing Service - Partial Failures & Analytics', 
 
     it('should process batch with PARTIAL FAILURES: some items succeed, some fail', async () => {
       const mockBatchHeader = { id: mockBatchId, user_id: 'user-1', status: 'pending' };
-      const mockTx1 = { id: 'btx-1', batch_id: mockBatchId, status: 'pending', payload: { amount: 100 } };
-      const mockTx2 = { id: 'btx-2', batch_id: mockBatchId, status: 'pending', payload: { amount: 200 } };
-      const mockTx3 = { id: 'btx-3', batch_id: mockBatchId, status: 'pending', payload: { amount: 300 } };
+      const mockTx1 = {
+        id: 'btx-1',
+        batch_id: mockBatchId,
+        status: 'pending',
+        payload: { amount: 100 },
+      };
+      const mockTx2 = {
+        id: 'btx-2',
+        batch_id: mockBatchId,
+        status: 'pending',
+        payload: { amount: 200 },
+      };
+      const mockTx3 = {
+        id: 'btx-3',
+        batch_id: mockBatchId,
+        status: 'pending',
+        payload: { amount: 300 },
+      };
 
       (db.query as any)
         // getBatchStatus queries
@@ -107,15 +122,22 @@ describe('Batch Transaction Processing Service - Partial Failures & Analytics', 
       expect(result.batchStatus).toBe('completed'); // Completed as long as at least 1 succeeds
 
       // Verify item tx2 status update recorded error message
-      expect(db.query).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE batch_transactions'),
-        ['failed', undefined, 'Insufficient funds on ledger', 'btx-2']
-      );
+      expect(db.query).toHaveBeenCalledWith(expect.stringContaining('UPDATE batch_transactions'), [
+        'failed',
+        undefined,
+        'Insufficient funds on ledger',
+        'btx-2',
+      ]);
     });
 
     it('should set batchStatus to failed if ALL items in batch fail execution', async () => {
       const mockBatchHeader = { id: mockBatchId, user_id: 'user-1', status: 'pending' };
-      const mockTx1 = { id: 'btx-10', batch_id: mockBatchId, status: 'pending', payload: { amount: 500 } };
+      const mockTx1 = {
+        id: 'btx-10',
+        batch_id: mockBatchId,
+        status: 'pending',
+        payload: { amount: 500 },
+      };
 
       (db.query as any)
         // getBatchStatus
@@ -138,7 +160,7 @@ describe('Batch Transaction Processing Service - Partial Failures & Analytics', 
       expect(result.batchStatus).toBe('failed');
       expect(db.query).toHaveBeenLastCalledWith(
         expect.stringContaining('UPDATE transaction_batches SET status = $1 WHERE id = $2'),
-        ['failed', mockBatchId]
+        ['failed', mockBatchId],
       );
     });
 
@@ -150,7 +172,7 @@ describe('Batch Transaction Processing Service - Partial Failures & Analytics', 
         .mockResolvedValueOnce({ rows: [] });
 
       await expect(executeBatch(mockBatchId, async () => 'tx-id')).rejects.toThrow(
-        'Batch not found or already cancelled'
+        'Batch not found or already cancelled',
       );
     });
   });
@@ -189,11 +211,11 @@ describe('Batch Transaction Processing Service - Partial Failures & Analytics', 
 
       expect(db.query).toHaveBeenCalledWith(
         expect.stringContaining("UPDATE batch_transactions SET status = 'cancelled'"),
-        [mockBatchId]
+        [mockBatchId],
       );
       expect(db.query).toHaveBeenCalledWith(
         expect.stringContaining("UPDATE transaction_batches SET status = 'cancelled'"),
-        [mockBatchId]
+        [mockBatchId],
       );
       expect((result as any).rows[0].status).toBe('cancelled');
     });
@@ -214,9 +236,7 @@ describe('Batch Transaction Processing Service - Partial Failures & Analytics', 
         ],
       };
 
-      (db.query as any)
-        .mockResolvedValueOnce(mockBatchRows)
-        .mockResolvedValueOnce(mockTxRows);
+      (db.query as any).mockResolvedValueOnce(mockBatchRows).mockResolvedValueOnce(mockTxRows);
 
       const analytics = await getBatchAnalytics('user-analytics-1');
 

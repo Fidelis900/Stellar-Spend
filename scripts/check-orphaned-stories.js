@@ -20,9 +20,7 @@ const path = require('path');
 // ──────────────────────────────────────────────────────────────────────────────
 // Config
 // ──────────────────────────────────────────────────────────────────────────────
-const STORIES_GLOB_DIRS = [
-  path.resolve(__dirname, '../src'),
-];
+const STORIES_GLOB_DIRS = [path.resolve(__dirname, '../src')];
 
 const STORY_EXTENSIONS = ['.stories.ts', '.stories.tsx', '.stories.js', '.stories.jsx'];
 const COMPONENT_EXTENSIONS = ['.tsx', '.ts', '.jsx', '.js'];
@@ -104,9 +102,7 @@ for (const rootDir of STORIES_GLOB_DIRS) {
     const relativeImports = extractRelativeImports(source);
 
     // Filter down to only non-type imports that resolve to missing files
-    const missingImports = relativeImports.filter(
-      (specifier) => !importExists(file, specifier),
-    );
+    const missingImports = relativeImports.filter((specifier) => !importExists(file, specifier));
 
     if (missingImports.length > 0) {
       orphans.push({ file, missingImports });

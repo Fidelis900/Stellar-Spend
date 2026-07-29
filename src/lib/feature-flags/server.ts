@@ -7,11 +7,7 @@ export async function getFeatureFlags(userId?: string): Promise<FeatureFlags> {
   return featureFlagStore.get(userId);
 }
 
-export function isFlagEnabled(
-  flags: FeatureFlags,
-  path: string,
-  userId?: string,
-): boolean {
+export function isFlagEnabled(flags: FeatureFlags, path: string, userId?: string): boolean {
   const parts = path.split('.');
   let current: unknown = flags;
 

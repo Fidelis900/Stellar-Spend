@@ -15,10 +15,18 @@ describe('Mutation: HttpClient circuit breaker logic', () => {
 
   it('circuit opens at exactly the threshold, not before', async () => {
     const THRESHOLD = 3;
-    const client = new HttpClient({ retries: 0, circuitBreakerThreshold: THRESHOLD, timeout: 500, circuitBreakerResetMs: 60000 });
+    const client = new HttpClient({
+      retries: 0,
+      circuitBreakerThreshold: THRESHOLD,
+      timeout: 500,
+      circuitBreakerResetMs: 60000,
+    });
 
     (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-      ok: false, status: 503, statusText: '', json: async () => ({}),
+      ok: false,
+      status: 503,
+      statusText: '',
+      json: async () => ({}),
     });
 
     // threshold - 1 calls: circuit still closed
@@ -34,12 +42,21 @@ describe('Mutation: HttpClient circuit breaker logic', () => {
   });
 
   it('circuit resets to closed after reset period elapses', async () => {
-    const client = new HttpClient({ retries: 0, circuitBreakerThreshold: 2, timeout: 500, circuitBreakerResetMs: 5 });
+    const client = new HttpClient({
+      retries: 0,
+      circuitBreakerThreshold: 2,
+      timeout: 500,
+      circuitBreakerResetMs: 5,
+    });
 
     (fetch as ReturnType<typeof vi.fn>)
       .mockResolvedValueOnce({ ok: false, status: 503, statusText: '', json: async () => ({}) })
       .mockResolvedValueOnce({ ok: false, status: 503, statusText: '', json: async () => ({}) })
-      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ data: { value: 42 } }) });
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: { value: 42 } }),
+      });
 
     await expect(client.get('/x')).rejects.toThrow(HttpClientError);
     await expect(client.get('/x')).rejects.toThrow(HttpClientError);
@@ -74,7 +91,9 @@ describe('Mutation: HttpClient circuit breaker logic', () => {
 
     // Not open yet (only 3 failures since last success, threshold is 5)
     (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      ok: true, status: 200, json: async () => ({ data: 'alive' }),
+      ok: true,
+      status: 200,
+      json: async () => ({ data: 'alive' }),
     });
     await expect(client.get('/x')).resolves.toBe('alive');
   });
@@ -83,7 +102,10 @@ describe('Mutation: HttpClient circuit breaker logic', () => {
     const client = new HttpClient({ retries: 0, circuitBreakerThreshold: 2, timeout: 500 });
 
     (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-      ok: false, status: 404, statusText: 'Not Found', json: async () => ({}),
+      ok: false,
+      status: 404,
+      statusText: 'Not Found',
+      json: async () => ({}),
     });
 
     // 5 × 404 — circuit must stay closed
@@ -93,7 +115,9 @@ describe('Mutation: HttpClient circuit breaker logic', () => {
 
     // Should still be reachable (not CircuitOpenError)
     (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      ok: true, status: 200, json: async () => ({ data: 'up' }),
+      ok: true,
+      status: 200,
+      json: async () => ({ data: 'up' }),
     });
     await expect(client.get('/x')).resolves.toBe('up');
   });
@@ -105,7 +129,13 @@ describe('Mutation: HttpClient circuit breaker logic', () => {
       return { ok: false, status: 500, statusText: '', json: async () => ({}) };
     });
 
-    const client = new HttpClient({ retries: 2, retryDelay: 1, backoffMultiplier: 1, timeout: 500, circuitBreakerThreshold: 10 });
+    const client = new HttpClient({
+      retries: 2,
+      retryDelay: 1,
+      backoffMultiplier: 1,
+      timeout: 500,
+      circuitBreakerThreshold: 10,
+    });
     await expect(client.get('/x')).rejects.toThrow(HttpClientError);
     expect(calls).toBe(3);
   });
@@ -113,13 +143,20 @@ describe('Mutation: HttpClient circuit breaker logic', () => {
   it('exponential backoff multiplies delay correctly', async () => {
     const delays: number[] = [];
     const origSetTimeout = globalThis.setTimeout;
-    vi.spyOn(globalThis, 'setTimeout').mockImplementation(((fn: () => void, ms: number, ...args: unknown[]) => {
+    vi.spyOn(globalThis, 'setTimeout').mockImplementation(((
+      fn: () => void,
+      ms: number,
+      ...args: unknown[]
+    ) => {
       delays.push(ms);
       return origSetTimeout(fn, 0, ...args);
     }) as typeof setTimeout);
 
     (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-      ok: false, status: 503, statusText: '', json: async () => ({}),
+      ok: false,
+      status: 503,
+      statusText: '',
+      json: async () => ({}),
     });
 
     const client = new HttpClient({
@@ -265,11 +302,9 @@ describe('Mutation: Transaction status transitions (money path)', () => {
   const isTerminal = (status: TxStatus): boolean =>
     status === 'settled' || status === 'failed' || status === 'refunded';
 
-  const canRetry = (status: TxStatus): boolean =>
-    status === 'pending' || status === 'failed';
+  const canRetry = (status: TxStatus): boolean => status === 'pending' || status === 'failed';
 
-  const canRefund = (status: TxStatus): boolean =>
-    status === 'failed';
+  const canRefund = (status: TxStatus): boolean => status === 'failed';
 
   it('settled, failed, refunded are terminal states', () => {
     expect(isTerminal('settled')).toBe(true);
@@ -305,11 +340,9 @@ describe('Mutation: Transaction status transitions (money path)', () => {
 // ─── Security: Input boundary mutations ──────────────────────────────────────
 
 describe('Mutation: Security — input boundaries', () => {
-  const sanitizeInput = (input: string): string =>
-    input.replace(/<[^>]*>/g, '').trim();
+  const sanitizeInput = (input: string): string => input.replace(/<[^>]*>/g, '').trim();
 
-  const isValidAccountNumber = (acc: string): boolean =>
-    /^\d{10}$/.test(acc);
+  const isValidAccountNumber = (acc: string): boolean => /^\d{10}$/.test(acc);
 
   const isValidBankCode = (code: string): string | false =>
     /^[A-Z]{2,6}$/.test(code) ? code : false;

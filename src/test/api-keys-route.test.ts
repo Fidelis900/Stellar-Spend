@@ -47,9 +47,7 @@ describe('api key management routes', () => {
       plaintextKey: 'ssp_live_abc.secret',
     });
 
-    const response = await createPOST(
-      makeRequest('/api/api-keys', 'POST', { name: 'Partner' })
-    );
+    const response = await createPOST(makeRequest('/api/api-keys', 'POST', { name: 'Partner' }));
 
     expect(response.status).toBe(201);
     expect((await response.json()).data.plaintextKey).toMatch(/^ssp_live_/);
@@ -67,22 +65,20 @@ describe('api key management routes', () => {
     revokeApiKeyMock.mockResolvedValue({ id: 'key_1', status: 'revoked' });
     listApiKeyUsageMock.mockResolvedValue([{ id: 'usage_1', apiKeyId: 'key_1' }]);
 
-    const rotateResponse = await rotatePOST(
-      makeRequest('/api/api-keys/key_1/rotate', 'POST'),
-      { params: Promise.resolve({ id: 'key_1' }) }
-    );
+    const rotateResponse = await rotatePOST(makeRequest('/api/api-keys/key_1/rotate', 'POST'), {
+      params: Promise.resolve({ id: 'key_1' }),
+    });
     expect(rotateResponse.status).toBe(200);
 
     const revokeResponse = await revokePOST(
       makeRequest('/api/api-keys/key_1/revoke', 'POST', { reason: 'compromised' }),
-      { params: Promise.resolve({ id: 'key_1' }) }
+      { params: Promise.resolve({ id: 'key_1' }) },
     );
     expect(revokeResponse.status).toBe(200);
 
-    const usageResponse = await usageGET(
-      makeRequest('/api/api-keys/key_1/usage', 'GET'),
-      { params: Promise.resolve({ id: 'key_1' }) }
-    );
+    const usageResponse = await usageGET(makeRequest('/api/api-keys/key_1/usage', 'GET'), {
+      params: Promise.resolve({ id: 'key_1' }),
+    });
     expect(usageResponse.status).toBe(200);
     expect((await usageResponse.json()).data).toHaveLength(1);
   });

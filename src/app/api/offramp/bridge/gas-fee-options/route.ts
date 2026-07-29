@@ -20,7 +20,7 @@ const CACHE_DURATION = 60 * 1000; // 60 seconds
 
 /**
  * GET /api/offramp/bridge/gas-fee-options
- * 
+ *
  * Fetches gas fee options from Allbridge SDK.
  * Returns native (XLM) and stablecoin (USDC) fee options.
  * Caches result for 60 seconds.
@@ -36,7 +36,9 @@ export async function GET(): Promise<NextResponse<GasFeeOptions | { error: strin
     }
 
     // Initialize Allbridge SDK
-    const { AllbridgeCoreSdk, nodeRpcUrlsDefault, Messenger, FeePaymentMethod } = await import('@allbridge/bridge-core-sdk');
+    const { AllbridgeCoreSdk, nodeRpcUrlsDefault, Messenger, FeePaymentMethod } = await import(
+      '@allbridge/bridge-core-sdk'
+    );
 
     const sdk = new AllbridgeCoreSdk({
       ...nodeRpcUrlsDefault,
@@ -46,20 +48,23 @@ export async function GET(): Promise<NextResponse<GasFeeOptions | { error: strin
     });
 
     // Get chain details to find USDC tokens
-    const chainDetails = await withAllbridgeTimeout(
-      sdk.chainDetailsMap(),
-      'chainDetailsMap'
-    );
+    const chainDetails = await withAllbridgeTimeout(sdk.chainDetailsMap(), 'chainDetailsMap');
 
     let stellarChain: any = null;
     let baseChain: any = null;
 
     for (const [, chain] of Object.entries(chainDetails)) {
       const chainObj = chain as any;
-      if (chainObj.name?.toLowerCase().includes('stellar') || chainObj.name?.toLowerCase().includes('soroban')) {
+      if (
+        chainObj.name?.toLowerCase().includes('stellar') ||
+        chainObj.name?.toLowerCase().includes('soroban')
+      ) {
         stellarChain = chainObj;
       }
-      if (chainObj.name?.toLowerCase().includes('ethereum') || chainObj.name?.toLowerCase().includes('base')) {
+      if (
+        chainObj.name?.toLowerCase().includes('ethereum') ||
+        chainObj.name?.toLowerCase().includes('base')
+      ) {
         baseChain = chainObj;
       }
     }
@@ -79,12 +84,15 @@ export async function GET(): Promise<NextResponse<GasFeeOptions | { error: strin
     // Get gas fee options from Allbridge SDK
     const gasFeeOptions = await withAllbridgeTimeout(
       sdk.getGasFeeOptions(stellarUsdc, baseUsdc, Messenger.ALLBRIDGE),
-      'getGasFeeOptions'
+      'getGasFeeOptions',
     );
 
     // Normalize fee options — SDK returns keyed by FeePaymentMethod enum values
-    const nativeFee = (gasFeeOptions as any)[FeePaymentMethod.WITH_NATIVE_CURRENCY] ?? (gasFeeOptions as any).native;
-    const stablecoinFee = (gasFeeOptions as any)[FeePaymentMethod.WITH_STABLECOIN] ?? (gasFeeOptions as any).stablecoin;
+    const nativeFee =
+      (gasFeeOptions as any)[FeePaymentMethod.WITH_NATIVE_CURRENCY] ??
+      (gasFeeOptions as any).native;
+    const stablecoinFee =
+      (gasFeeOptions as any)[FeePaymentMethod.WITH_STABLECOIN] ?? (gasFeeOptions as any).stablecoin;
 
     const result: GasFeeOptions = {
       feeOptions: {

@@ -33,10 +33,7 @@ function generateReferralCode(): string {
   return crypto.randomBytes(6).toString('hex').toUpperCase().slice(0, 10);
 }
 
-export async function createReferralCode(
-  userId: string,
-  rewardAmount: number = 5,
-) {
+export async function createReferralCode(userId: string, rewardAmount: number = 5) {
   const code = generateReferralCode();
   const result = await pool.query(
     `INSERT INTO referral_codes (user_id, code, reward_amount)
@@ -48,18 +45,14 @@ export async function createReferralCode(
 }
 
 export async function getReferralCode(userId: string) {
-  const result = await pool.query(
-    `SELECT * FROM referral_codes WHERE user_id = $1`,
-    [userId],
-  );
+  const result = await pool.query(`SELECT * FROM referral_codes WHERE user_id = $1`, [userId]);
   return result.rows[0];
 }
 
 export async function trackReferral(referralCode: string, referredUserId: string) {
-  const codeRecord = await pool.query(
-    `SELECT * FROM referral_codes WHERE code = $1`,
-    [referralCode],
-  );
+  const codeRecord = await pool.query(`SELECT * FROM referral_codes WHERE code = $1`, [
+    referralCode,
+  ]);
 
   if (!codeRecord.rows[0]) {
     throw new Error('Invalid referral code');
@@ -75,10 +68,9 @@ export async function trackReferral(referralCode: string, referredUserId: string
     [referrerId, referredUserId, referralCode, rewardAmount],
   );
 
-  await pool.query(
-    `UPDATE referral_codes SET claimed_count = claimed_count + 1 WHERE code = $1`,
-    [referralCode],
-  );
+  await pool.query(`UPDATE referral_codes SET claimed_count = claimed_count + 1 WHERE code = $1`, [
+    referralCode,
+  ]);
 
   return result.rows[0];
 }
@@ -93,10 +85,7 @@ export async function getReferralStats(userId: string) {
 }
 
 /** Compute the reward amount for a referral based on tier thresholds. */
-export function calculateReward(
-  baseReward: number,
-  claimedCount: number,
-): number {
+export function calculateReward(baseReward: number, claimedCount: number): number {
   if (claimedCount >= 50) return baseReward * 3;
   if (claimedCount >= 20) return baseReward * 2;
   if (claimedCount >= 10) return baseReward * 1.5;
@@ -105,10 +94,7 @@ export function calculateReward(
 
 /** Mark a pending referral reward as completed and credit the referrer. */
 export async function distributeReward(referralId: string) {
-  const existing = await pool.query(
-    `SELECT * FROM referral_rewards WHERE id = $1`,
-    [referralId],
-  );
+  const existing = await pool.query(`SELECT * FROM referral_rewards WHERE id = $1`, [referralId]);
 
   if (!existing.rows[0]) {
     throw new Error('Referral reward not found');
@@ -183,10 +169,9 @@ export async function detectReferralFraud(
   const reasons: string[] = [];
 
   // Check if user is referring themselves
-  const codeOwner = await pool.query(
-    `SELECT user_id FROM referral_codes WHERE code = $1`,
-    [referralCode],
-  );
+  const codeOwner = await pool.query(`SELECT user_id FROM referral_codes WHERE code = $1`, [
+    referralCode,
+  ]);
   if (codeOwner.rows[0]?.user_id === userId) {
     reasons.push('Self-referral detected');
   }

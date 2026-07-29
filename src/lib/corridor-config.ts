@@ -21,7 +21,9 @@ export interface CorridorKycDefaults {
   /** Initial tier granted after document verification */
   verificationTier: LimitTier;
   /** Tier-specific limits that override the global defaults */
-  tierOverrides?: Partial<Record<LimitTier, { dailyLimit: number; monthlyLimit: number; transactionLimit: number }>>;
+  tierOverrides?: Partial<
+    Record<LimitTier, { dailyLimit: number; monthlyLimit: number; transactionLimit: number }>
+  >;
 }
 
 export interface InstitutionInfo {
@@ -70,9 +72,7 @@ const CORRIDOR_CONFIG: Record<string, CorridorDefinition> = {
         tier2: { dailyLimit: 10000, monthlyLimit: 100000, transactionLimit: 5000 },
       },
     },
-    providers: [
-      { name: 'paycrest', supported: true },
-    ],
+    providers: [{ name: 'paycrest', supported: true }],
   },
   KES: {
     currency: 'KES',
@@ -94,9 +94,7 @@ const CORRIDOR_CONFIG: Record<string, CorridorDefinition> = {
     kycDefaults: {
       verificationTier: 'tier2',
     },
-    providers: [
-      { name: 'paycrest', supported: true },
-    ],
+    providers: [{ name: 'paycrest', supported: true }],
   },
   GHS: {
     currency: 'GHS',
@@ -117,9 +115,7 @@ const CORRIDOR_CONFIG: Record<string, CorridorDefinition> = {
     kycDefaults: {
       verificationTier: 'tier2',
     },
-    providers: [
-      { name: 'paycrest', supported: true },
-    ],
+    providers: [{ name: 'paycrest', supported: true }],
   },
   ZAR: {
     currency: 'ZAR',
@@ -140,9 +136,7 @@ const CORRIDOR_CONFIG: Record<string, CorridorDefinition> = {
     kycDefaults: {
       verificationTier: 'tier2',
     },
-    providers: [
-      { name: 'paycrest', supported: true },
-    ],
+    providers: [{ name: 'paycrest', supported: true }],
   },
   UGX: {
     currency: 'UGX',
@@ -162,9 +156,7 @@ const CORRIDOR_CONFIG: Record<string, CorridorDefinition> = {
     kycDefaults: {
       verificationTier: 'tier2',
     },
-    providers: [
-      { name: 'paycrest', supported: true },
-    ],
+    providers: [{ name: 'paycrest', supported: true }],
   },
   TZS: {
     currency: 'TZS',
@@ -184,9 +176,7 @@ const CORRIDOR_CONFIG: Record<string, CorridorDefinition> = {
     kycDefaults: {
       verificationTier: 'tier2',
     },
-    providers: [
-      { name: 'paycrest', supported: true },
-    ],
+    providers: [{ name: 'paycrest', supported: true }],
   },
   XOF: {
     currency: 'XOF',
@@ -206,9 +196,7 @@ const CORRIDOR_CONFIG: Record<string, CorridorDefinition> = {
     kycDefaults: {
       verificationTier: 'tier2',
     },
-    providers: [
-      { name: 'paycrest', supported: true },
-    ],
+    providers: [{ name: 'paycrest', supported: true }],
   },
   MAD: {
     currency: 'MAD',
@@ -228,9 +216,7 @@ const CORRIDOR_CONFIG: Record<string, CorridorDefinition> = {
     kycDefaults: {
       verificationTier: 'tier2',
     },
-    providers: [
-      { name: 'paycrest', supported: true },
-    ],
+    providers: [{ name: 'paycrest', supported: true }],
   },
   EGP: {
     currency: 'EGP',
@@ -250,9 +236,7 @@ const CORRIDOR_CONFIG: Record<string, CorridorDefinition> = {
     kycDefaults: {
       verificationTier: 'tier2',
     },
-    providers: [
-      { name: 'paycrest', supported: true },
-    ],
+    providers: [{ name: 'paycrest', supported: true }],
   },
   BRL: {
     currency: 'BRL',
@@ -274,9 +258,7 @@ const CORRIDOR_CONFIG: Record<string, CorridorDefinition> = {
     kycDefaults: {
       verificationTier: 'tier2',
     },
-    providers: [
-      { name: 'paycrest', supported: true },
-    ],
+    providers: [{ name: 'paycrest', supported: true }],
   },
   MXN: {
     currency: 'MXN',
@@ -297,9 +279,7 @@ const CORRIDOR_CONFIG: Record<string, CorridorDefinition> = {
     kycDefaults: {
       verificationTier: 'tier2',
     },
-    providers: [
-      { name: 'paycrest', supported: true },
-    ],
+    providers: [{ name: 'paycrest', supported: true }],
   },
   AED: {
     currency: 'AED',
@@ -320,9 +300,7 @@ const CORRIDOR_CONFIG: Record<string, CorridorDefinition> = {
     kycDefaults: {
       verificationTier: 'tier2',
     },
-    providers: [
-      { name: 'paycrest', supported: true },
-    ],
+    providers: [{ name: 'paycrest', supported: true }],
   },
   SAR: {
     currency: 'SAR',
@@ -342,9 +320,7 @@ const CORRIDOR_CONFIG: Record<string, CorridorDefinition> = {
     kycDefaults: {
       verificationTier: 'tier2',
     },
-    providers: [
-      { name: 'paycrest', supported: true },
-    ],
+    providers: [{ name: 'paycrest', supported: true }],
   },
   INR: {
     currency: 'INR',
@@ -367,9 +343,7 @@ const CORRIDOR_CONFIG: Record<string, CorridorDefinition> = {
     kycDefaults: {
       verificationTier: 'tier2',
     },
-    providers: [
-      { name: 'paycrest', supported: true },
-    ],
+    providers: [{ name: 'paycrest', supported: true }],
   },
   PHP: {
     currency: 'PHP',
@@ -390,9 +364,7 @@ const CORRIDOR_CONFIG: Record<string, CorridorDefinition> = {
     kycDefaults: {
       verificationTier: 'tier2',
     },
-    providers: [
-      { name: 'paycrest', supported: true },
-    ],
+    providers: [{ name: 'paycrest', supported: true }],
   },
 };
 
@@ -460,7 +432,9 @@ export function validateCorridorConfig(currency: string): CorridorValidationResu
   if (config.validators.fields.account) {
     const a = config.validators.fields.account;
     if (a.minLength && a.maxLength && a.minLength > a.maxLength) {
-      result.errors.push(`Account validators: minLength (${a.minLength}) > maxLength (${a.maxLength})`);
+      result.errors.push(
+        `Account validators: minLength (${a.minLength}) > maxLength (${a.maxLength})`,
+      );
       result.valid = false;
     }
   }

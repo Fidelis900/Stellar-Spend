@@ -32,14 +32,16 @@ describe('loggingMiddleware', () => {
   it('normalizes IDs in route path for logging', () => {
     const recordApiTiming = vi.mocked(require('../performance').recordApiTiming);
     const loggingMiddleware = createLoggingMiddleware();
-    const req = new NextRequest('http://localhost/api/v1/users/12345678-1234-5678-abcd-123456789abc/transactions');
+    const req = new NextRequest(
+      'http://localhost/api/v1/users/12345678-1234-5678-abcd-123456789abc/transactions',
+    );
     const res = new NextResponse();
     loggingMiddleware(req, res, 50);
     expect(recordApiTiming).toHaveBeenCalledWith(
       expect.objectContaining({
         route: expect.stringContaining('/:id'),
         durationMs: 50,
-      })
+      }),
     );
   });
 });

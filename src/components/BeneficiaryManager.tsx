@@ -16,7 +16,11 @@ const META_KEY = 'stellar_spend_beneficiary_meta';
 
 function getMeta(): Record<string, BeneficiaryMeta> {
   if (typeof window === 'undefined') return {};
-  try { return JSON.parse(localStorage.getItem(META_KEY) ?? '{}'); } catch { return {}; }
+  try {
+    return JSON.parse(localStorage.getItem(META_KEY) ?? '{}');
+  } catch {
+    return {};
+  }
 }
 
 function saveMeta(meta: Record<string, BeneficiaryMeta>) {
@@ -72,12 +76,22 @@ export function BeneficiaryManager() {
     setBeneficiaries(all);
     const meta = getMeta();
     // Ensure meta exists for all beneficiaries
-    all.forEach((b) => { if (!meta[b.id]) meta[b.id] = { id: b.id, usageCount: 0, verificationStatus: 'unverified', group: 'Default' }; });
+    all.forEach((b) => {
+      if (!meta[b.id])
+        meta[b.id] = {
+          id: b.id,
+          usageCount: 0,
+          verificationStatus: 'unverified',
+          group: 'Default',
+        };
+    });
     saveMeta(meta);
     setMetaMap({ ...meta });
   };
 
-  useEffect(() => { reload(); }, []);
+  useEffect(() => {
+    reload();
+  }, []);
 
   const handleSave = () => {
     if (!formData.name || !formData.accountNumber || !formData.bankCode) return;
@@ -176,9 +190,10 @@ export function BeneficiaryManager() {
   };
 
   const allGroups = ['All', ...GROUPS];
-  const filtered = filterGroup === 'All'
-    ? beneficiaries
-    : beneficiaries.filter((b) => (metaMap[b.id]?.group ?? 'Default') === filterGroup);
+  const filtered =
+    filterGroup === 'All'
+      ? beneficiaries
+      : beneficiaries.filter((b) => (metaMap[b.id]?.group ?? 'Default') === filterGroup);
 
   const groupCounts = GROUPS.reduce<Record<string, number>>((acc, g) => {
     acc[g] = beneficiaries.filter((b) => (metaMap[b.id]?.group ?? 'Default') === g).length;
@@ -191,7 +206,11 @@ export function BeneficiaryManager() {
         <h2 className="text-sm font-semibold text-white tracking-wider uppercase">Beneficiaries</h2>
         {view === 'list' && (
           <button
-            onClick={() => { setFormData(emptyForm); setEditingId(null); setView('add'); }}
+            onClick={() => {
+              setFormData(emptyForm);
+              setEditingId(null);
+              setView('add');
+            }}
             className="text-[10px] uppercase tracking-widest px-3 py-1.5 border border-[#c9a962] text-[#c9a962] hover:bg-[#c9a962] hover:text-[#0a0a0a] transition-colors"
           >
             + Add
@@ -215,7 +234,8 @@ export function BeneficiaryManager() {
                     : 'border-[#333333] text-[#555555] hover:text-[#777777]',
                 )}
               >
-                {g}{g !== 'All' && groupCounts[g] > 0 ? ` (${groupCounts[g]})` : ''}
+                {g}
+                {g !== 'All' && groupCounts[g] > 0 ? ` (${groupCounts[g]})` : ''}
               </button>
             ))}
           </div>
@@ -225,7 +245,11 @@ export function BeneficiaryManager() {
           ) : (
             <div className="space-y-2">
               {filtered.map((b) => {
-                const meta = metaMap[b.id] ?? { usageCount: 0, verificationStatus: 'unverified', group: 'Default' };
+                const meta = metaMap[b.id] ?? {
+                  usageCount: 0,
+                  verificationStatus: 'unverified',
+                  group: 'Default',
+                };
                 const badge = verificationBadge(meta.verificationStatus);
                 return (
                   <div key={b.id} className="border border-[#222222] p-3 space-y-2">
@@ -233,7 +257,12 @@ export function BeneficiaryManager() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-xs text-white font-semibold">{b.name}</span>
-                          <span className={cn('text-[9px] uppercase tracking-widest border px-1.5 py-0.5', badge.cls)}>
+                          <span
+                            className={cn(
+                              'text-[9px] uppercase tracking-widest border px-1.5 py-0.5',
+                              badge.cls,
+                            )}
+                          >
                             {badge.label}
                           </span>
                           <span className="text-[9px] text-[#555555] border border-[#222222] px-1.5 py-0.5">
@@ -241,7 +270,9 @@ export function BeneficiaryManager() {
                           </span>
                         </div>
                         <div className="text-[10px] text-[#777777] mt-0.5">{b.currency}</div>
-                        <div className="text-[10px] text-[#555555] mt-0.5">Used {meta.usageCount} time{meta.usageCount !== 1 ? 's' : ''}</div>
+                        <div className="text-[10px] text-[#555555] mt-0.5">
+                          Used {meta.usageCount} time{meta.usageCount !== 1 ? 's' : ''}
+                        </div>
                       </div>
                       <div className="flex gap-1.5 flex-shrink-0">
                         {meta.verificationStatus === 'unverified' && (
@@ -342,7 +373,11 @@ export function BeneficiaryManager() {
             aria-label="Currency"
             className="w-full bg-[#0a0a0a] border border-[#333333] px-3 py-2 text-xs text-white focus:outline-none focus:border-[#c9a962]"
           >
-            {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            {CURRENCIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
           </select>
           <select
             value={formData.group}
@@ -350,7 +385,11 @@ export function BeneficiaryManager() {
             aria-label="Group"
             className="w-full bg-[#0a0a0a] border border-[#333333] px-3 py-2 text-xs text-white focus:outline-none focus:border-[#c9a962]"
           >
-            {GROUPS.map((g) => <option key={g} value={g}>{g}</option>)}
+            {GROUPS.map((g) => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
           </select>
           <div className="flex gap-2 pt-1">
             <button
@@ -366,7 +405,11 @@ export function BeneficiaryManager() {
               {view === 'edit' ? 'Update' : 'Save'}
             </button>
             <button
-              onClick={() => { setView('list'); setEditingId(null); setFormData(emptyForm); }}
+              onClick={() => {
+                setView('list');
+                setEditingId(null);
+                setFormData(emptyForm);
+              }}
               className="flex-1 text-[10px] uppercase tracking-widest px-4 py-2 border border-[#333333] text-[#777777] hover:border-[#555555] transition-colors"
             >
               Cancel

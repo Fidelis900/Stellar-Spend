@@ -1,34 +1,34 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from 'react';
 
-const STORAGE_KEY = "stellar-spend:tutorial-completed";
+const STORAGE_KEY = 'stellar-spend:tutorial-completed';
 
 const STEPS = [
   {
-    title: "Connect your wallet",
+    title: 'Connect your wallet',
     description:
       'Click "Connect Wallet" in the header to link your Freighter or Lobstr Stellar wallet.',
   },
   {
-    title: "Enter an amount",
+    title: 'Enter an amount',
     description:
-      "Type the USDC/USDT amount you want to convert, or enter the fiat amount you want to receive.",
+      'Type the USDC/USDT amount you want to convert, or enter the fiat amount you want to receive.',
   },
   {
-    title: "Choose currency & bank",
+    title: 'Choose currency & bank',
     description:
-      "Select your target fiat currency (NGN, KES, GHS…) and enter your bank account details.",
+      'Select your target fiat currency (NGN, KES, GHS…) and enter your bank account details.',
   },
   {
-    title: "Review the quote",
+    title: 'Review the quote',
     description:
-      "Check the live exchange rate and fees shown in the right panel before confirming.",
+      'Check the live exchange rate and fees shown in the right panel before confirming.',
   },
   {
-    title: "Confirm & sign",
+    title: 'Confirm & sign',
     description:
-      "Click Send and approve the transaction in your wallet. Funds arrive in your bank within minutes.",
+      'Click Send and approve the transaction in your wallet. Funds arrive in your bank within minutes.',
   },
 ];
 
@@ -61,7 +61,7 @@ export function Tutorial({ forceOpen = false, onClose }: TutorialProps) {
     (completed: boolean) => {
       if (completed) {
         try {
-          localStorage.setItem(STORAGE_KEY, "1");
+          localStorage.setItem(STORAGE_KEY, '1');
         } catch {
           // ignore
         }
@@ -69,7 +69,7 @@ export function Tutorial({ forceOpen = false, onClose }: TutorialProps) {
       setVisible(false);
       onClose?.();
     },
-    [onClose]
+    [onClose],
   );
 
   const handleNext = () => {
@@ -97,9 +97,7 @@ export function Tutorial({ forceOpen = false, onClose }: TutorialProps) {
       <div className="w-full max-w-md border border-[#333] bg-[#111] p-6 flex flex-col gap-5">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <span className="text-xs text-[#888] uppercase tracking-widest">
-            Getting started
-          </span>
+          <span className="text-xs text-[#888] uppercase tracking-widest">Getting started</span>
           <button
             onClick={handleSkip}
             aria-label="Skip tutorial"
@@ -123,9 +121,7 @@ export function Tutorial({ forceOpen = false, onClose }: TutorialProps) {
           {STEPS.map((_, i) => (
             <span
               key={i}
-              className={`h-1 flex-1 transition-colors ${
-                i <= step ? "bg-white" : "bg-[#333]"
-              }`}
+              className={`h-1 flex-1 transition-colors ${i <= step ? 'bg-white' : 'bg-[#333]'}`}
             />
           ))}
         </div>
@@ -144,7 +140,7 @@ export function Tutorial({ forceOpen = false, onClose }: TutorialProps) {
             onClick={handleNext}
             className="px-4 py-2 text-sm border border-white text-white hover:bg-white hover:text-black transition-colors"
           >
-            {isLast ? "Get started" : "Next"}
+            {isLast ? 'Get started' : 'Next'}
           </button>
         </div>
       </div>

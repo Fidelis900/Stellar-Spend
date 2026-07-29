@@ -1,6 +1,6 @@
 /**
  * OpenTelemetry Monitoring Configuration
- * 
+ *
  * Sets up distributed tracing across the application
  * Exports traces to configured backend (Tempo/Jaeger)
  */
@@ -25,7 +25,7 @@ if (process.env.NODE_ENV === 'development') {
  */
 function getExporter() {
   const endpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/traces';
-  
+
   return new OTLPTraceExporter({
     url: endpoint,
     headers: {
@@ -40,9 +40,7 @@ function getExporter() {
 export function createTracingSDK(): NodeSDK {
   // Configure sampling
   const sampleRate = parseFloat(process.env.OTEL_SAMPLE_RATE || '1.0');
-  const sampler = sampleRate < 1.0 
-    ? new TraceIdRatioBasedSampler(sampleRate)
-    : undefined;
+  const sampler = sampleRate < 1.0 ? new TraceIdRatioBasedSampler(sampleRate) : undefined;
 
   const resource = new Resource({
     [SemanticResourceAttributes.SERVICE_NAME]: process.env.OTEL_SERVICE_NAME || 'stellar-spend',
@@ -69,7 +67,7 @@ export function createTracingSDK(): NodeSDK {
           span.setAttribute('http.status_code', response.statusCode);
         },
       }),
-      
+
       // Express instrumentation for routes
       new ExpressInstrumentation({
         ignoreLayers: ['middleware', 'static'],
@@ -78,14 +76,14 @@ export function createTracingSDK(): NodeSDK {
           const route = request.route?.path || request.path;
           span.setAttribute('express.route', route);
           span.setAttribute('http.route', route);
-          
+
           // Add user ID if available
           if ((request as any).user?.id) {
             span.setAttribute('user.id', (request as any).user.id);
           }
         },
       }),
-      
+
       // PostgreSQL instrumentation for database queries
       new PgInstrumentation({
         requestHook: (span, queryInfo) => {
@@ -144,7 +142,14 @@ export async function shutdownTracing(sdk: NodeSDK): Promise<void> {
 // For now, we'll use a simple wrapper
 class TraceIdRatioBasedSampler {
   constructor(private ratio: number) {}
-  shouldSample(context: any, traceId: string, spanName: string, spanKind: any, attributes: any, links: any) {
+  shouldSample(
+    context: any,
+    traceId: string,
+    spanName: string,
+    spanKind: any,
+    attributes: any,
+    links: any,
+  ) {
     // Simple random sampling
     const random = Math.random();
     return {

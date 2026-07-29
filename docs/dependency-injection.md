@@ -7,33 +7,27 @@ The Stellar-Spend application uses a lightweight Dependency Injection (DI) conta
 ## Service Lifetimes
 
 ### Singleton
+
 A single instance is created and reused throughout the application lifetime.
 
 ```typescript
-container.registerSingleton<IQuoteService>(
-  SERVICE_KEYS.QUOTE_SERVICE,
-  () => new QuoteService()
-);
+container.registerSingleton<IQuoteService>(SERVICE_KEYS.QUOTE_SERVICE, () => new QuoteService());
 ```
 
 ### Transient
+
 A new instance is created each time the service is resolved.
 
 ```typescript
-container.registerTransient<IQuoteService>(
-  SERVICE_KEYS.QUOTE_SERVICE,
-  () => new QuoteService()
-);
+container.registerTransient<IQuoteService>(SERVICE_KEYS.QUOTE_SERVICE, () => new QuoteService());
 ```
 
 ### Scoped
+
 A single instance is created per scope (e.g., per request).
 
 ```typescript
-container.registerScoped<IQuoteService>(
-  SERVICE_KEYS.QUOTE_SERVICE,
-  () => new QuoteService()
-);
+container.registerScoped<IQuoteService>(SERVICE_KEYS.QUOTE_SERVICE, () => new QuoteService());
 ```
 
 ## Usage
@@ -41,19 +35,15 @@ container.registerScoped<IQuoteService>(
 ### Resolving Services
 
 **Asynchronously:**
+
 ```typescript
-const quoteService = await getService<IQuoteService>(
-  container,
-  SERVICE_KEYS.QUOTE_SERVICE
-);
+const quoteService = await getService<IQuoteService>(container, SERVICE_KEYS.QUOTE_SERVICE);
 ```
 
 **Synchronously:**
+
 ```typescript
-const quoteService = getServiceSync<IQuoteService>(
-  container,
-  SERVICE_KEYS.QUOTE_SERVICE
-);
+const quoteService = getServiceSync<IQuoteService>(container, SERVICE_KEYS.QUOTE_SERVICE);
 ```
 
 ### Scoped Resolution
@@ -66,7 +56,7 @@ container.createScope('request-123');
 const service = await getService<IQuoteService>(
   container,
   SERVICE_KEYS.QUOTE_SERVICE,
-  'request-123'
+  'request-123',
 );
 
 // Dispose scope

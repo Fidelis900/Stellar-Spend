@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getActiveStablecoins, getStablecoinConfig, calculateStablecoinBridgeFee } from '@/lib/stablecoins';
+import {
+  getActiveStablecoins,
+  getStablecoinConfig,
+  calculateStablecoinBridgeFee,
+} from '@/lib/stablecoins';
 import { ErrorHandler } from '@/lib/error-handler';
 
 /**
@@ -22,7 +26,9 @@ export async function GET(req: NextRequest) {
     const result: Record<string, unknown> = { token: config };
     if (amount) {
       result.bridgeFee = calculateStablecoinBridgeFee(symbol, amount);
-      result.amountAfterFee = (parseFloat(amount) - parseFloat(result.bridgeFee as string)).toFixed(6);
+      result.amountAfterFee = (parseFloat(amount) - parseFloat(result.bridgeFee as string)).toFixed(
+        6,
+      );
     }
     return NextResponse.json(result);
   }

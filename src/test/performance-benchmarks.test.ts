@@ -462,10 +462,7 @@ describe('Transaction list derived-state performance (#765)', () => {
       status: statuses[i % statuses.length],
       currency: currencies[i % currencies.length],
       note: i % 5 === 0 ? `note-${i}` : undefined,
-      insurance:
-        i % 10 === 0
-          ? { coverage: 100, status: 'active' }
-          : null,
+      insurance: i % 10 === 0 ? { coverage: 100, status: 'active' } : null,
     }));
   }
 
@@ -476,9 +473,7 @@ describe('Transaction list derived-state performance (#765)', () => {
 
     // Simulate what toServiceFilters + TransactionSearchService.search does:
     // a single .filter pass with multiple predicate checks.
-    const result = dataset.filter(
-      (tx) => tx.status === 'completed' && tx.currency === 'NGN',
-    );
+    const result = dataset.filter((tx) => tx.status === 'completed' && tx.currency === 'NGN');
 
     const duration = performance.now() - start;
     expect(result.length).toBeGreaterThanOrEqual(0);
@@ -498,9 +493,7 @@ describe('Transaction list derived-state performance (#765)', () => {
   it(`sorts ${LARGE_DATASET_SIZE} transactions by amount in < 50 ms`, () => {
     const start = performance.now();
 
-    const sorted = [...dataset].sort(
-      (a, b) => parseFloat(a.amount) - parseFloat(b.amount),
-    );
+    const sorted = [...dataset].sort((a, b) => parseFloat(a.amount) - parseFloat(b.amount));
 
     const duration = performance.now() - start;
     expect(parseFloat(sorted[0].amount)).toBeLessThanOrEqual(
@@ -512,9 +505,7 @@ describe('Transaction list derived-state performance (#765)', () => {
   it(`derives available currencies from ${LARGE_DATASET_SIZE} transactions in < 20 ms`, () => {
     const start = performance.now();
 
-    const currencies = Array.from(
-      new Set(dataset.map((tx) => tx.currency).filter(Boolean)),
-    ).sort();
+    const currencies = Array.from(new Set(dataset.map((tx) => tx.currency).filter(Boolean))).sort();
 
     const duration = performance.now() - start;
     expect(currencies.length).toBeGreaterThan(0);
@@ -527,7 +518,8 @@ describe('Transaction list derived-state performance (#765)', () => {
     const insured = dataset.filter((tx) => tx.insurance != null);
     const activeCoverage = insured.reduce(
       (sum, tx) =>
-        tx.insurance && ['pending', 'active', 'claimed', 'claim_approved'].includes(tx.insurance.status)
+        tx.insurance &&
+        ['pending', 'active', 'claimed', 'claim_approved'].includes(tx.insurance.status)
           ? sum + tx.insurance.coverage
           : sum,
       0,
@@ -588,9 +580,7 @@ describe('Transaction list derived-state performance (#765)', () => {
 
   it(`filters ${LARGE_DATASET_SIZE} transactions in < 50 ms`, () => {
     const start = performance.now();
-    const result = dataset.filter(
-      (tx) => tx.status === 'completed' && tx.currency === 'NGN',
-    );
+    const result = dataset.filter((tx) => tx.status === 'completed' && tx.currency === 'NGN');
     const duration = performance.now() - start;
     expect(result.length).toBeGreaterThanOrEqual(0);
     expect(duration).toBeLessThan(50);
@@ -606,9 +596,7 @@ describe('Transaction list derived-state performance (#765)', () => {
 
   it(`sorts ${LARGE_DATASET_SIZE} transactions by amount in < 50 ms`, () => {
     const start = performance.now();
-    const sorted = [...dataset].sort(
-      (a, b) => parseFloat(a.amount) - parseFloat(b.amount),
-    );
+    const sorted = [...dataset].sort((a, b) => parseFloat(a.amount) - parseFloat(b.amount));
     const duration = performance.now() - start;
     expect(parseFloat(sorted[0].amount)).toBeLessThanOrEqual(
       parseFloat(sorted[sorted.length - 1].amount),
@@ -618,9 +606,7 @@ describe('Transaction list derived-state performance (#765)', () => {
 
   it(`derives available currencies from ${LARGE_DATASET_SIZE} transactions in < 20 ms`, () => {
     const start = performance.now();
-    const currencies = Array.from(
-      new Set(dataset.map((tx) => tx.currency).filter(Boolean)),
-    ).sort();
+    const currencies = Array.from(new Set(dataset.map((tx) => tx.currency).filter(Boolean))).sort();
     const duration = performance.now() - start;
     expect(currencies.length).toBeGreaterThan(0);
     expect(duration).toBeLessThan(20);
@@ -632,9 +618,7 @@ describe('Transaction list derived-state performance (#765)', () => {
     const activeCoverage = insured.reduce(
       (sum, tx) =>
         tx.insurance &&
-        ['pending', 'active', 'claimed', 'claim_approved'].includes(
-          tx.insurance.status,
-        )
+        ['pending', 'active', 'claimed', 'claim_approved'].includes(tx.insurance.status)
           ? sum + tx.insurance.coverage
           : sum,
       0,
@@ -648,9 +632,7 @@ describe('Transaction list derived-state performance (#765)', () => {
     const start = performance.now();
     const filtered = dataset.filter((tx) => tx.status !== 'failed');
     filtered.sort((a, b) => b.timestamp - a.timestamp);
-    const currencies = Array.from(
-      new Set(filtered.map((tx) => tx.currency)),
-    ).sort();
+    const currencies = Array.from(new Set(filtered.map((tx) => tx.currency))).sort();
     const duration = performance.now() - start;
     expect(filtered.length).toBeGreaterThan(0);
     expect(currencies.length).toBeGreaterThan(0);

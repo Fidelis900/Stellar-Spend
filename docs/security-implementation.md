@@ -45,6 +45,7 @@ Comprehensive input sanitization prevents injection attacks.
 ### Available Sanitization Functions
 
 #### HTML Sanitization
+
 ```typescript
 import { sanitizeHtml } from '@/lib/security/sanitization';
 
@@ -53,6 +54,7 @@ const clean = sanitizeHtml('<script>alert("xss")</script>');
 ```
 
 #### SQL Injection Prevention
+
 ```typescript
 import { escapeSql } from '@/lib/security/sanitization';
 
@@ -61,6 +63,7 @@ const safe = escapeSql("'; DROP TABLE users; --");
 ```
 
 #### NoSQL Injection Prevention
+
 ```typescript
 import { escapeNoSql } from '@/lib/security/sanitization';
 
@@ -69,6 +72,7 @@ const safe = escapeNoSql({ $ne: null });
 ```
 
 #### Command Injection Prevention
+
 ```typescript
 import { escapeShell } from '@/lib/security/sanitization';
 
@@ -77,6 +81,7 @@ const safe = escapeShell('$(rm -rf /)');
 ```
 
 #### URL Sanitization
+
 ```typescript
 import { sanitizeUrl } from '@/lib/security/sanitization';
 
@@ -88,6 +93,7 @@ const unsafe = sanitizeUrl('javascript:alert("xss")');
 ```
 
 #### Email Sanitization
+
 ```typescript
 import { sanitizeEmail } from '@/lib/security/sanitization';
 
@@ -96,6 +102,7 @@ const safe = sanitizeEmail('  USER@EXAMPLE.COM  ');
 ```
 
 #### Blockchain Address Sanitization
+
 ```typescript
 import { sanitizeBlockchainAddress } from '@/lib/security/sanitization';
 
@@ -104,6 +111,7 @@ const safe = sanitizeBlockchainAddress('0xd8dA6BF26964aF9D7eEd9e03E53415D37AA960
 ```
 
 #### Stellar Address Sanitization
+
 ```typescript
 import { sanitizeStellarAddress } from '@/lib/security/sanitization';
 
@@ -112,6 +120,7 @@ const safe = sanitizeStellarAddress('GCFX...ABCD');
 ```
 
 #### Prototype Pollution Prevention
+
 ```typescript
 import { sanitizeObjectKeys } from '@/lib/security/sanitization';
 
@@ -136,7 +145,7 @@ import { performAutoRotation } from '@/lib/security/api-key-rotation';
 
 const config = {
   rotationIntervalMs: 90 * 24 * 60 * 60 * 1000, // 90 days
-  gracePeriodMs: 7 * 24 * 60 * 60 * 1000,       // 7 days
+  gracePeriodMs: 7 * 24 * 60 * 60 * 1000, // 7 days
   enableAutoRotation: true,
   notificationEmail: 'admin@example.com',
 };
@@ -145,6 +154,7 @@ const config = {
 ### Usage
 
 #### Get Keys Needing Rotation
+
 ```typescript
 import { getKeysNeedingRotation } from '@/lib/security/api-key-rotation';
 
@@ -152,6 +162,7 @@ const keys = await getKeysNeedingRotation(config);
 ```
 
 #### Perform Automatic Rotation
+
 ```typescript
 import { performAutoRotation } from '@/lib/security/api-key-rotation';
 
@@ -160,6 +171,7 @@ console.log(`Rotated: ${result.rotatedCount}, Failed: ${result.failedCount}`);
 ```
 
 #### Get Rotation Status
+
 ```typescript
 import { getRotationStatus } from '@/lib/security/api-key-rotation';
 
@@ -169,6 +181,7 @@ console.log(`In grace period: ${status.inGracePeriod}`);
 ```
 
 #### Revoke Expired Keys
+
 ```typescript
 import { revokeExpiredRotatedKeys } from '@/lib/security/api-key-rotation';
 
@@ -221,6 +234,7 @@ ENCRYPTION_KEY="your-secure-password"
 ### Data Encryption
 
 #### Encrypt/Decrypt Strings
+
 ```typescript
 import { encryptData, decryptData } from '@/lib/security/encryption';
 
@@ -230,6 +244,7 @@ const decrypted = decryptData(encrypted);
 ```
 
 #### Encrypt/Decrypt Objects
+
 ```typescript
 import { encryptObject, decryptObject } from '@/lib/security/encryption';
 
@@ -239,6 +254,7 @@ const decrypted = decryptObject(encrypted);
 ```
 
 #### Hash Data
+
 ```typescript
 import { hashData, verifyHash } from '@/lib/security/encryption';
 
@@ -313,18 +329,16 @@ const restored = decryptBackupData(backup);
 ### Database Encryption
 
 #### Encrypt Table Column
+
 ```typescript
 import { encryptTableColumn } from '@/lib/security/database-encryption';
 
-const result = await encryptTableColumn(
-  'users',
-  'email',
-  'email_encrypted'
-);
+const result = await encryptTableColumn('users', 'email', 'email_encrypted');
 console.log(`Encrypted: ${result.encrypted}, Failed: ${result.failed}`);
 ```
 
 #### Get Encryption Status
+
 ```typescript
 import { getTableEncryptionStatus } from '@/lib/security/database-encryption';
 
@@ -333,6 +347,7 @@ console.log(`Encryption: ${status.encryptionPercentage}%`);
 ```
 
 #### Rotate Encryption Keys
+
 ```typescript
 import { rotateTableColumnEncryption } from '@/lib/security/database-encryption';
 
@@ -341,6 +356,7 @@ console.log(`Rotated: ${result.rotated}, Failed: ${result.failed}`);
 ```
 
 #### Create Encrypted Backup
+
 ```typescript
 import { createEncryptedBackup } from '@/lib/security/database-encryption';
 
@@ -349,6 +365,7 @@ const backup = await createEncryptedBackup('users', ['id', 'name', 'email']);
 ```
 
 #### Restore Encrypted Backup
+
 ```typescript
 import { restoreEncryptedBackup } from '@/lib/security/database-encryption';
 
@@ -376,12 +393,14 @@ console.log(`Restored: ${result.restored}, Failed: ${result.failed}`);
 ### Migrating Existing Data to Encrypted Storage
 
 1. Add encrypted columns to your tables:
+
 ```sql
 ALTER TABLE users ADD COLUMN email_encrypted TEXT;
 ALTER TABLE users ADD COLUMN phone_encrypted TEXT;
 ```
 
 2. Encrypt existing data:
+
 ```typescript
 import { encryptTableColumn } from '@/lib/security/database-encryption';
 
@@ -392,6 +411,7 @@ await encryptTableColumn('users', 'phone', 'phone_encrypted');
 3. Update application code to use encrypted columns
 
 4. Verify encryption status:
+
 ```typescript
 import { getTableEncryptionStatus } from '@/lib/security/database-encryption';
 
@@ -402,6 +422,7 @@ if (status.encryptionPercentage === 100) {
 ```
 
 5. Remove old unencrypted columns (after verification):
+
 ```sql
 ALTER TABLE users DROP COLUMN email;
 ALTER TABLE users DROP COLUMN phone;
@@ -414,6 +435,7 @@ ALTER TABLE users DROP COLUMN phone;
 ### Decryption Failures
 
 If decryption fails, check:
+
 1. Encryption key is correct (ENCRYPTION_KEY env var)
 2. Data wasn't tampered with
 3. Backup of encrypted data exists
@@ -421,6 +443,7 @@ If decryption fails, check:
 ### Performance Issues
 
 If encryption/decryption is slow:
+
 1. Consider using database-level encryption instead
 2. Cache decrypted values when appropriate
 3. Use batch operations for large datasets
@@ -428,6 +451,7 @@ If encryption/decryption is slow:
 ### Key Rotation Issues
 
 If key rotation fails:
+
 1. Check database connectivity
 2. Verify old and new keys are available
 3. Review error logs for specific failures

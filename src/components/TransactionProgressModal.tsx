@@ -1,24 +1,24 @@
-"use client";
+'use client';
 
-import React, { useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/cn";
-import type { OfframpStep } from "@/types/stellaramp";
-import { CopyButton } from "./CopyButton";
-import { useKeyboardNavigation } from "@/hooks/useKeyboardNavigation";
-import { TransactionReceipt, type ReceiptData } from "./TransactionReceipt";
-import { useFocusTrap, useFocusRestore } from "@/hooks/useFocusTrap";
+import React, { useEffect, useRef, useState } from 'react';
+import { cn } from '@/lib/cn';
+import type { OfframpStep } from '@/types/stellaramp';
+import { CopyButton } from './CopyButton';
+import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation';
+import { TransactionReceipt, type ReceiptData } from './TransactionReceipt';
+import { useFocusTrap, useFocusRestore } from '@/hooks/useFocusTrap';
 
 // ---------------------------------------------------------------------------
 // Per-step metadata: label, sub-message, ETA seconds
 // ---------------------------------------------------------------------------
 
 const STEP_ORDER: OfframpStep[] = [
-  "initiating",
-  "awaiting-signature",
-  "submitting",
-  "processing",
-  "settling",
-  "success",
+  'initiating',
+  'awaiting-signature',
+  'submitting',
+  'processing',
+  'settling',
+  'success',
 ];
 
 interface StepMeta {
@@ -28,14 +28,42 @@ interface StepMeta {
 }
 
 const STEP_META: Record<OfframpStep, StepMeta> = {
-  idle:               { label: "Idle",                    message: "",                                                    etaSeconds: 0  },
-  initiating:         { label: "Initiating",              message: "Preparing your transaction details…",                 etaSeconds: 5  },
-  "awaiting-signature": { label: "Awaiting Signature",    message: "Please approve the transaction in your wallet.",      etaSeconds: 30 },
-  submitting:         { label: "Submitting to Network",   message: "Broadcasting to the Stellar network…",               etaSeconds: 10 },
-  processing:         { label: "Processing On-Chain",     message: "Waiting for on-chain confirmation…",                 etaSeconds: 20 },
-  settling:           { label: "Settling Fiat Payout",    message: "Transferring funds to your bank account…",           etaSeconds: 60 },
-  success:            { label: "Transaction Complete",    message: "Funds have been sent to your bank account.",         etaSeconds: 0  },
-  error:              { label: "Transaction Failed",      message: "Something went wrong. See details below.",           etaSeconds: 0  },
+  idle: { label: 'Idle', message: '', etaSeconds: 0 },
+  initiating: {
+    label: 'Initiating',
+    message: 'Preparing your transaction details…',
+    etaSeconds: 5,
+  },
+  'awaiting-signature': {
+    label: 'Awaiting Signature',
+    message: 'Please approve the transaction in your wallet.',
+    etaSeconds: 30,
+  },
+  submitting: {
+    label: 'Submitting to Network',
+    message: 'Broadcasting to the Stellar network…',
+    etaSeconds: 10,
+  },
+  processing: {
+    label: 'Processing On-Chain',
+    message: 'Waiting for on-chain confirmation…',
+    etaSeconds: 20,
+  },
+  settling: {
+    label: 'Settling Fiat Payout',
+    message: 'Transferring funds to your bank account…',
+    etaSeconds: 60,
+  },
+  success: {
+    label: 'Transaction Complete',
+    message: 'Funds have been sent to your bank account.',
+    etaSeconds: 0,
+  },
+  error: {
+    label: 'Transaction Failed',
+    message: 'Something went wrong. See details below.',
+    etaSeconds: 0,
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -58,7 +86,10 @@ function useEtaCountdown(step: OfframpStep): number {
 
     const id = setInterval(() => {
       setRemaining((prev) => {
-        if (prev <= 1) { clearInterval(id); return 0; }
+        if (prev <= 1) {
+          clearInterval(id);
+          return 0;
+        }
         return prev - 1;
       });
     }, 1000);
@@ -73,8 +104,8 @@ function useEtaCountdown(step: OfframpStep): number {
 // ---------------------------------------------------------------------------
 
 function progressPercent(step: OfframpStep): number {
-  if (step === "success") return 100;
-  if (step === "error" || step === "idle") return 0;
+  if (step === 'success') return 100;
+  if (step === 'error' || step === 'idle') return 0;
   const idx = STEP_ORDER.indexOf(step);
   return idx < 0 ? 0 : Math.round(((idx + 1) / (STEP_ORDER.length - 1)) * 100);
 }
@@ -100,34 +131,36 @@ export function TransactionProgressModal({
 }: TransactionProgressModalProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [shakeKey, setShakeKey] = useState(0);
-  const prevStep = useRef<OfframpStep>("idle");
+  const prevStep = useRef<OfframpStep>('idle');
   const eta = useEtaCountdown(step);
   const dialogRef = useRef<HTMLDivElement>(null);
   useFocusTrap(dialogRef, isVisible);
   useFocusRestore(isVisible);
 
   useEffect(() => {
-    if (step !== "idle") setIsVisible(true);
+    if (step !== 'idle') setIsVisible(true);
     else setIsVisible(false);
 
     // Trigger shake animation whenever we enter error state
-    if (step === "error" && prevStep.current !== "error") {
+    if (step === 'error' && prevStep.current !== 'error') {
       setShakeKey((k) => k + 1);
     }
     prevStep.current = step;
   }, [step]);
 
-  const isTerminal = step === "success" || step === "error";
-  const isError = step === "error";
+  const isTerminal = step === 'success' || step === 'error';
+  const isError = step === 'error';
   const pct = progressPercent(step);
   const meta = STEP_META[step];
 
   useKeyboardNavigation({
-    onEscape: () => { if (isTerminal) onClose(); },
+    onEscape: () => {
+      if (isTerminal) onClose();
+    },
     enabled: isVisible && isTerminal,
   });
 
-  if (!isVisible || step === "idle") return null;
+  if (!isVisible || step === 'idle') return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -147,9 +180,9 @@ export function TransactionProgressModal({
         aria-describedby="modal-description"
         aria-live="polite"
         className={cn(
-          "relative w-full max-w-md bg-[#0a0a0a] border border-[#333333] overflow-hidden",
-          "shadow-[0_0_50px_rgba(201,169,98,0.15)]",
-          isError && "modal-shake"
+          'relative w-full max-w-md bg-[#0a0a0a] border border-[#333333] overflow-hidden',
+          'shadow-[0_0_50px_rgba(201,169,98,0.15)]',
+          isError && 'modal-shake',
         )}
       >
         {/* Racing border — active steps only */}
@@ -162,28 +195,28 @@ export function TransactionProgressModal({
         <div className="relative p-4 sm:p-8 flex flex-col items-center">
           {/* Status Icon */}
           <div className="mb-8 relative h-20 w-20 flex items-center justify-center">
-             {step === "success" ? (
-               <div className="h-16 w-16 rounded-full bg-green-500/20 border border-green-500 flex items-center justify-center animate-[scale-in_0.5s_ease-out]">
-                 <CheckIcon className="w-8 h-8 text-green-500" />
-               </div>
-             ) : step === "error" ? (
-               <div className="h-16 w-16 rounded-full bg-red-500/20 border border-red-500 flex items-center justify-center animate-[shake_0.5s_ease-in-out]">
-                 <XIcon className="w-8 h-8 text-red-500" />
-               </div>
-             ) : (
-               <div className="h-16 w-16 border-2 border-[#c9a962]/30 border-t-[#c9a962] rounded-full animate-spin" />
-             )}
+            {step === 'success' ? (
+              <div className="h-16 w-16 rounded-full bg-green-500/20 border border-green-500 flex items-center justify-center animate-[scale-in_0.5s_ease-out]">
+                <CheckIcon className="w-8 h-8 text-green-500" />
+              </div>
+            ) : step === 'error' ? (
+              <div className="h-16 w-16 rounded-full bg-red-500/20 border border-red-500 flex items-center justify-center animate-[shake_0.5s_ease-in-out]">
+                <XIcon className="w-8 h-8 text-red-500" />
+              </div>
+            ) : (
+              <div className="h-16 w-16 border-2 border-[#c9a962]/30 border-t-[#c9a962] rounded-full animate-spin" />
+            )}
           </div>
 
           {/* Title */}
           <h2
             id="modal-title"
             className={cn(
-              "text-xl font-bold tracking-widest uppercase mb-1",
-              isError ? "text-red-400" : step === "success" ? "text-green-400" : "text-white"
+              'text-xl font-bold tracking-widest uppercase mb-1',
+              isError ? 'text-red-400' : step === 'success' ? 'text-green-400' : 'text-white',
             )}
           >
-            {isError ? "FAILED" : step === "success" ? "SUCCESS" : "IN PROGRESS"}
+            {isError ? 'FAILED' : step === 'success' ? 'SUCCESS' : 'IN PROGRESS'}
           </h2>
 
           {/* Current step label */}
@@ -211,7 +244,7 @@ export function TransactionProgressModal({
           {/* Step list */}
           {!isTerminal && (
             <div className="w-full flex flex-col gap-3 mb-2">
-              {STEP_ORDER.filter((s) => s !== "success").map((s, idx) => {
+              {STEP_ORDER.filter((s) => s !== 'success').map((s, idx) => {
                 const activeIdx = STEP_ORDER.indexOf(step);
                 const isCompleted = activeIdx > idx;
                 const isActive = activeIdx === idx;
@@ -220,9 +253,9 @@ export function TransactionProgressModal({
                   <div
                     key={s}
                     className={cn(
-                      "flex items-start gap-3 px-3 py-2 transition-all duration-300",
-                      isActive && "bg-[#c9a962]/5 border-l-2 border-[#c9a962]",
-                      !isActive && "border-l-2 border-transparent"
+                      'flex items-start gap-3 px-3 py-2 transition-all duration-300',
+                      isActive && 'bg-[#c9a962]/5 border-l-2 border-[#c9a962]',
+                      !isActive && 'border-l-2 border-transparent',
                     )}
                   >
                     {/* Dot */}
@@ -240,8 +273,12 @@ export function TransactionProgressModal({
                     <div className="flex flex-col gap-0.5">
                       <span
                         className={cn(
-                          "text-[10px] tracking-[0.1em] uppercase font-semibold",
-                          isCompleted ? "text-green-500/60" : isActive ? "text-white" : "text-[#444444]"
+                          'text-[10px] tracking-[0.1em] uppercase font-semibold',
+                          isCompleted
+                            ? 'text-green-500/60'
+                            : isActive
+                              ? 'text-white'
+                              : 'text-[#444444]',
                         )}
                       >
                         {STEP_META[s].label}
@@ -268,8 +305,8 @@ export function TransactionProgressModal({
           )}
 
           {/* Success details */}
-          {step === "success" && (
-            receipt ? (
+          {step === 'success' &&
+            (receipt ? (
               <div className="w-full mt-2">
                 <TransactionReceipt data={receipt} />
               </div>
@@ -291,8 +328,7 @@ export function TransactionProgressModal({
                   View on Stellar Explorer →
                 </a>
               </div>
-            ) : null
-          )}
+            ) : null)}
 
           {/* Dismiss */}
           {isTerminal && (
@@ -300,11 +336,11 @@ export function TransactionProgressModal({
               onClick={onClose}
               autoFocus
               className={cn(
-                "mt-6 w-full py-3 text-xs font-bold tracking-[0.2em] transition-colors",
-                "focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0a]",
+                'mt-6 w-full py-3 text-xs font-bold tracking-[0.2em] transition-colors',
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0a]',
                 isError
-                  ? "bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30"
-                  : "bg-[#c9a962] text-black hover:bg-[#d4b982]"
+                  ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30'
+                  : 'bg-[#c9a962] text-black hover:bg-[#d4b982]',
               )}
             >
               DISMISS
@@ -321,29 +357,61 @@ export function TransactionProgressModal({
         }
 
         @keyframes rotate-border {
-          to { --angle: 360deg; }
+          to {
+            --angle: 360deg;
+          }
         }
 
         @keyframes modal-shake {
-          0%, 100% { transform: translateX(0); }
-          15%       { transform: translateX(-6px); }
-          30%       { transform: translateX(6px); }
-          45%       { transform: translateX(-4px); }
-          60%       { transform: translateX(4px); }
-          75%       { transform: translateX(-2px); }
-          90%       { transform: translateX(2px); }
+          0%,
+          100% {
+            transform: translateX(0);
+          }
+          15% {
+            transform: translateX(-6px);
+          }
+          30% {
+            transform: translateX(6px);
+          }
+          45% {
+            transform: translateX(-4px);
+          }
+          60% {
+            transform: translateX(4px);
+          }
+          75% {
+            transform: translateX(-2px);
+          }
+          90% {
+            transform: translateX(2px);
+          }
         }
 
         @keyframes icon-shake {
-          0%, 100% { transform: scale(1) rotate(0deg); }
-          20%       { transform: scale(1.1) rotate(-8deg); }
-          40%       { transform: scale(1.1) rotate(8deg); }
-          60%       { transform: scale(1.05) rotate(-4deg); }
-          80%       { transform: scale(1.05) rotate(4deg); }
+          0%,
+          100% {
+            transform: scale(1) rotate(0deg);
+          }
+          20% {
+            transform: scale(1.1) rotate(-8deg);
+          }
+          40% {
+            transform: scale(1.1) rotate(8deg);
+          }
+          60% {
+            transform: scale(1.05) rotate(-4deg);
+          }
+          80% {
+            transform: scale(1.05) rotate(4deg);
+          }
         }
 
-        .modal-shake { animation: modal-shake 0.55s cubic-bezier(.36,.07,.19,.97) both; }
-        .icon-shake  { animation: icon-shake 0.6s ease-in-out both; }
+        .modal-shake {
+          animation: modal-shake 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+        .icon-shake {
+          animation: icon-shake 0.6s ease-in-out both;
+        }
       `}</style>
     </div>
   );

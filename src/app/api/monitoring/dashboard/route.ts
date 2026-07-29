@@ -13,7 +13,7 @@ export async function GET() {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3001'}/api/health`,
-      { signal: AbortSignal.timeout(5000) }
+      { signal: AbortSignal.timeout(5000) },
     );
     healthOk = res.ok;
   } catch {

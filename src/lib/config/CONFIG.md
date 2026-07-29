@@ -59,45 +59,54 @@ manager.reset();
 ## Configuration Sections
 
 ### API Configuration
+
 - `maxDuration`: Maximum request duration in seconds
 - `timeoutMs`: Request timeout in milliseconds
 - `retryAttempts`: Number of retry attempts
 - `retryDelayMs`: Initial retry delay in milliseconds
 
 ### Fee Configuration
+
 - `stablecoinFee`: Fee for stablecoin transactions
 - `bridgeFeePercentage`: Bridge fee percentage
 - `payoutFeePercentage`: Payout fee percentage
 
 ### Stellar Configuration
+
 - `mainnetPassphrase`: Stellar mainnet passphrase
 - `minXlmBalance`: Minimum XLM balance required
 - `reserveAmount`: Reserve amount for transactions
 
 ### Bridge Configuration
+
 - `pollingIntervalMs`: Polling interval in milliseconds
 - `maxPollingAttempts`: Maximum polling attempts
 - `timeoutMs`: Bridge operation timeout
 
 ### Payout Configuration
+
 - `pollingIntervalMs`: Polling interval in milliseconds
 - `maxPollingAttempts`: Maximum polling attempts
 - `timeoutMs`: Payout operation timeout
 
 ### Transaction Configuration
+
 - `estimatedTimeSeconds`: Estimated transaction time
 - `confirmationBlocks`: Required confirmation blocks
 
 ### Rate Limit Configuration
+
 - `requestsPerMinute`: Requests allowed per minute
 - `requestsPerHour`: Requests allowed per hour
 
 ### Cache Configuration
+
 - `currencyTtlMs`: Currency cache TTL
 - `rateTtlMs`: Rate cache TTL
 - `institutionTtlMs`: Institution cache TTL
 
 ### Validation Configuration
+
 - `minAmount`: Minimum transaction amount
 - `maxAmount`: Maximum transaction amount
 - `amountDecimals`: Decimal places for amounts

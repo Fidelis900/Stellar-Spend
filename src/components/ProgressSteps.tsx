@@ -18,7 +18,7 @@ export default function ProgressSteps({
   // Step 1 is active when wallet is not connected
   // Step 2 is active when wallet is connecting
   // Step 3 is active when wallet is connected and not connecting
-  const activeStep = isConnecting ? 2 : (!isConnected ? 1 : 3);
+  const activeStep = isConnecting ? 2 : !isConnected ? 1 : 3;
 
   // Fallback to internal steps if none provided (for safety/backward compatibility)
   const steps = providedSteps || [
@@ -53,35 +53,35 @@ export default function ProgressSteps({
             <div
               key={step.id || step.number}
               className={cn(
-                "flex flex-col justify-between p-6 transition-all duration-300 min-h-[160px] border",
+                'flex flex-col justify-between p-6 transition-all duration-300 min-h-[160px] border',
                 isActive
-                  ? "bg-[#c9a962] text-[#111111] shadow-lg scale-[1.02] border-transparent"
-                  : "bg-[#111111] text-[#777777] border-[#333333]"
+                  ? 'bg-[#c9a962] text-[#111111] shadow-lg scale-[1.02] border-transparent'
+                  : 'bg-[#111111] text-[#777777] border-[#333333]',
               )}
             >
               <div className="flex flex-col">
                 <span
                   className={cn(
-                    "text-4xl font-black tracking-tighter mb-4",
-                    isActive ? "text-[#111111]/40" : "text-[#444444]"
+                    'text-4xl font-black tracking-tighter mb-4',
+                    isActive ? 'text-[#111111]/40' : 'text-[#444444]',
                   )}
                 >
                   {step.number}
                 </span>
                 <h3
                   className={cn(
-                    "text-lg font-bold tracking-wide uppercase",
-                    isActive ? "text-[#111111]" : "text-white"
+                    'text-lg font-bold tracking-wide uppercase',
+                    isActive ? 'text-[#111111]' : 'text-white',
                   )}
                 >
                   {step.title}
                 </h3>
               </div>
-              
+
               <p
                 className={cn(
-                  "text-sm mt-3 font-medium leading-relaxed",
-                  isActive ? "text-[#111111]/80" : "text-[#777777]"
+                  'text-sm mt-3 font-medium leading-relaxed',
+                  isActive ? 'text-[#111111]/80' : 'text-[#777777]',
                 )}
               >
                 {step.description}

@@ -16,7 +16,7 @@ export interface SnapshotTestOptions {
  */
 export function createComponentSnapshot(
   Component: React.ComponentType<any>,
-  options?: SnapshotTestOptions
+  options?: SnapshotTestOptions,
 ) {
   const { props = {}, children, errorBoundary = false } = options || {};
 
@@ -35,7 +35,7 @@ export function createComponentSnapshot(
  */
 export function testComponentVariations(
   Component: React.ComponentType<any>,
-  variations: Array<{ name: string; props: Record<string, unknown> }>
+  variations: Array<{ name: string; props: Record<string, unknown> }>,
 ) {
   return variations.map(({ name, props }) => ({
     name,
@@ -48,7 +48,7 @@ export function testComponentVariations(
  */
 export function testComponentErrorStates(
   Component: React.ComponentType<any>,
-  errorProps: Record<string, unknown>[]
+  errorProps: Record<string, unknown>[],
 ) {
   return errorProps.map((props, index) => ({
     name: `error-state-${index}`,
@@ -74,7 +74,7 @@ export function normalizeSnapshot(snapshot: unknown): string {
  */
 export function compareSnapshots(
   current: string,
-  previous: string
+  previous: string,
 ): { matches: boolean; diff?: string } {
   if (current === previous) {
     return { matches: true };
@@ -103,7 +103,7 @@ export function compareSnapshots(
 export function updateSnapshot(
   snapshotName: string,
   newValue: string,
-  snapshotMap: Map<string, string>
+  snapshotMap: Map<string, string>,
 ): void {
   snapshotMap.set(snapshotName, newValue);
 }
@@ -113,7 +113,7 @@ export function updateSnapshot(
  */
 export function getSnapshot(
   snapshotName: string,
-  snapshotMap: Map<string, string>
+  snapshotMap: Map<string, string>,
 ): string | undefined {
   return snapshotMap.get(snapshotName);
 }

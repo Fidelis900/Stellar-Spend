@@ -49,10 +49,10 @@ export interface MultiSigTransactionStatus {
 }
 
 export type MultiSigStatusCode =
-  | 'pending'       // waiting for more signatures
-  | 'ready'         // threshold met, ready to submit
-  | 'expired'       // signature collection window closed
-  | 'submitted';    // submitted to Stellar network
+  | 'pending' // waiting for more signatures
+  | 'ready' // threshold met, ready to submit
+  | 'expired' // signature collection window closed
+  | 'submitted'; // submitted to Stellar network
 
 /** Default window for collecting signatures: 24 hours */
 const DEFAULT_SIGNATURE_EXPIRY_MS = 24 * 60 * 60 * 1000;
@@ -109,7 +109,9 @@ export function addPartialSignature(
 
   const alreadySigned = entry.partialSignatures.some((p) => p.signerPublicKey === signerPublicKey);
   if (alreadySigned) {
-    throw new Error(`Signer ${signerPublicKey} has already submitted a signature for transaction ${transactionId}`);
+    throw new Error(
+      `Signer ${signerPublicKey} has already submitted a signature for transaction ${transactionId}`,
+    );
   }
 
   const now = Date.now();
@@ -181,9 +183,13 @@ export function getPendingSigners(transactionId: string): MultiSigSigner[] {
  * Validates a multi-sig configuration: checks that the threshold can
  * theoretically be reached by the listed signers.
  */
-export function validateMultiSigConfig(config: MultiSigConfig): { valid: boolean; reason?: string } {
+export function validateMultiSigConfig(config: MultiSigConfig): {
+  valid: boolean;
+  reason?: string;
+} {
   if (config.threshold <= 0) return { valid: false, reason: 'Threshold must be greater than 0' };
-  if (config.signers.length === 0) return { valid: false, reason: 'At least one signer is required' };
+  if (config.signers.length === 0)
+    return { valid: false, reason: 'At least one signer is required' };
 
   const maxWeight = config.signers.reduce((sum, s) => sum + s.weight, 0);
   if (maxWeight < config.threshold) {
@@ -195,7 +201,10 @@ export function validateMultiSigConfig(config: MultiSigConfig): { valid: boolean
 
   const invalidSigner = config.signers.find((s) => s.weight <= 0);
   if (invalidSigner) {
-    return { valid: false, reason: `Signer ${invalidSigner.publicKey} has an invalid weight (${invalidSigner.weight})` };
+    return {
+      valid: false,
+      reason: `Signer ${invalidSigner.publicKey} has an invalid weight (${invalidSigner.weight})`,
+    };
   }
 
   return { valid: true };

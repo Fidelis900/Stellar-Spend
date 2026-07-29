@@ -6,11 +6,7 @@
  * subscription.
  */
 
-import {
-  getRecordsByStatus,
-  getRecord,
-  updateRecord,
-} from '../../webhook/delivery-store';
+import { getRecordsByStatus, getRecord, updateRecord } from '../../webhook/delivery-store';
 import { list as listDLQ, replay as replayDLQ } from '../../webhook/dlq';
 import type { GraphQLContext } from '../context';
 import { requireAuth, requireRole } from '../auth-guards';
@@ -18,27 +14,18 @@ import { requireAuth, requireRole } from '../auth-guards';
 // ─── Query Resolvers ──────────────────────────────────────────────────────────
 
 export const webhookQueries = {
-  async webhookDelivery(
-    _: unknown,
-    { id }: { id: string },
-    ctx: GraphQLContext,
-  ) {
+  async webhookDelivery(_: unknown, { id }: { id: string }, ctx: GraphQLContext) {
     requireAuth(ctx);
     return getRecord(id);
   },
 
   async webhookDeliveries(
     _: unknown,
-    {
-      status = 'pending',
-      limit = 50,
-    }: { status?: string; limit?: number },
+    { status = 'pending', limit = 50 }: { status?: string; limit?: number },
     ctx: GraphQLContext,
   ) {
     requireAuth(ctx);
-    const records = await getRecordsByStatus(
-      status as 'pending' | 'delivered' | 'failed',
-    );
+    const records = await getRecordsByStatus(status as 'pending' | 'delivered' | 'failed');
     return records.slice(0, limit);
   },
 
@@ -58,11 +45,7 @@ export const webhookQueries = {
     };
   },
 
-  async dlqEntries(
-    _: unknown,
-    { limit = 50 }: { limit?: number },
-    ctx: GraphQLContext,
-  ) {
+  async dlqEntries(_: unknown, { limit = 50 }: { limit?: number }, ctx: GraphQLContext) {
     requireAuth(ctx);
     const entries = await listDLQ();
     return entries.slice(0, limit);
@@ -88,11 +71,7 @@ export const webhookQueries = {
 // ─── Mutation Resolvers ───────────────────────────────────────────────────────
 
 export const webhookMutations = {
-  async replayWebhook(
-    _: unknown,
-    { dlqEntryId }: { dlqEntryId: string },
-    ctx: GraphQLContext,
-  ) {
+  async replayWebhook(_: unknown, { dlqEntryId }: { dlqEntryId: string }, ctx: GraphQLContext) {
     requireRole(ctx, 'admin');
     return replayDLQ(dlqEntryId);
   },
@@ -104,8 +83,7 @@ export const webhookMutations = {
   ) {
     requireRole(ctx, 'admin');
     const record = await getRecord(deliveryId);
-    if (!record)
-      throw new Error(`Delivery ${deliveryId} not found`);
+    if (!record) throw new Error(`Delivery ${deliveryId} not found`);
     return updateRecord(deliveryId, {
       status: 'pending',
       nextAttemptAt: new Date().toISOString(),
@@ -155,9 +133,7 @@ export const webhookSubscriptions = {
       while (true) {
         await new Promise((r) => setTimeout(r, 5000));
         try {
-          const { getDisputeById } = await import(
-            '../../repositories/dispute'
-          );
+          const { getDisputeById } = await import('../../repositories/dispute');
           const dispute = await getDisputeById(id);
           if (dispute && dispute.status !== lastStatus) {
             lastStatus = dispute.status;

@@ -33,7 +33,7 @@ class PaycrestAdapter {
           'API-Key': this.apiKey,
         },
       }),
-      'get_currencies'
+      'get_currencies',
     );
 
     if (!response.ok) {
@@ -44,15 +44,15 @@ class PaycrestAdapter {
 
     const currencies = Array.isArray(data)
       ? data.map((c: any) => ({
-        code: c.code || c.currency || '',
-        name: c.name || '',
-        symbol: c.symbol || '',
-      }))
+          code: c.code || c.currency || '',
+          name: c.name || '',
+          symbol: c.symbol || '',
+        }))
       : data.currencies?.map((c: any) => ({
-        code: c.code || c.currency || '',
-        name: c.name || '',
-        symbol: c.symbol || '',
-      })) || [];
+          code: c.code || c.currency || '',
+          name: c.name || '',
+          symbol: c.symbol || '',
+        })) || [];
 
     return currencies;
   }
@@ -139,7 +139,7 @@ export async function GET(request: Request) {
     if (cachedCurrencies && now - cacheTimestamp < CACHE_DURATION) {
       return NextResponse.json(
         { data: cachedCurrencies },
-        { headers: { 'Cache-Control': CACHE_CONTROL_HEADER } }
+        { headers: { 'Cache-Control': CACHE_CONTROL_HEADER } },
       );
     }
 
@@ -165,7 +165,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(
       { data: currencies },
-      { headers: { 'Cache-Control': CACHE_CONTROL_HEADER } }
+      { headers: { 'Cache-Control': CACHE_CONTROL_HEADER } },
     );
   } catch (error) {
     logger.error('offramp.currencies.error', {}, error);

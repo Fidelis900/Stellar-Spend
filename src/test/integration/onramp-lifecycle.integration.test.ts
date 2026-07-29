@@ -60,11 +60,11 @@ class MockOnrampDatabase {
   }
 
   listOrdersByState(state: OnrampState): TestOnrampOrder[] {
-    return Array.from(this.orders.values()).filter(o => o.state === state);
+    return Array.from(this.orders.values()).filter((o) => o.state === state);
   }
 
   listOrdersByProvider(provider: string): TestOnrampOrder[] {
-    return Array.from(this.orders.values()).filter(o => o.provider === provider);
+    return Array.from(this.orders.values()).filter((o) => o.provider === provider);
   }
 
   clear(): void {
@@ -164,7 +164,10 @@ describe('Onramp Transaction Lifecycle - Integration Tests', () => {
       expect(stored!.state).toBe('deposit_pending');
 
       // 6. Simulate webhook: deposit confirmed
-      const webhookPayload = await webhookHandler.simulateWebhookDelivery(orderId, 'deposit_confirmed');
+      const webhookPayload = await webhookHandler.simulateWebhookDelivery(
+        orderId,
+        'deposit_confirmed',
+      );
       db.updateOrder(orderId, {
         state: 'deposit_confirmed',
         bridgeTxHash: webhookPayload.data.txHash,
@@ -255,11 +258,11 @@ describe('Onramp Transaction Lifecycle - Integration Tests', () => {
       expect(initial!.createdAt).toBe(createdAt);
 
       // Add delays to ensure updatedAt changes
-      await new Promise(r => setTimeout(r, 5));
+      await new Promise((r) => setTimeout(r, 5));
       db.updateOrder(orderId, { state: 'quoted' });
-      await new Promise(r => setTimeout(r, 5));
+      await new Promise((r) => setTimeout(r, 5));
       db.updateOrder(orderId, { state: 'order_created' });
-      await new Promise(r => setTimeout(r, 5));
+      await new Promise((r) => setTimeout(r, 5));
       db.updateOrder(orderId, { state: 'deposit_pending' });
 
       const current = db.getOrder(orderId);
@@ -504,11 +507,11 @@ describe('Onramp Transaction Lifecycle - Integration Tests', () => {
         },
       ];
 
-      orders.forEach(order => db.createOrder(order));
+      orders.forEach((order) => db.createOrder(order));
 
       const drafts = db.listOrdersByState('draft');
       expect(drafts).toHaveLength(2);
-      expect(drafts.every(o => o.state === 'draft')).toBe(true);
+      expect(drafts.every((o) => o.state === 'draft')).toBe(true);
 
       const completed = db.listOrdersByState('completed');
       expect(completed).toHaveLength(1);
@@ -558,11 +561,11 @@ describe('Onramp Transaction Lifecycle - Integration Tests', () => {
         },
       ];
 
-      orders.forEach(order => db.createOrder(order));
+      orders.forEach((order) => db.createOrder(order));
 
       const moonpayOrders = db.listOrdersByProvider('moonpay');
       expect(moonpayOrders).toHaveLength(2);
-      expect(moonpayOrders.every(o => o.provider === 'moonpay')).toBe(true);
+      expect(moonpayOrders.every((o) => o.provider === 'moonpay')).toBe(true);
 
       const rampOrders = db.listOrdersByProvider('ramp');
       expect(rampOrders).toHaveLength(1);
@@ -638,7 +641,7 @@ describe('Onramp Transaction Lifecycle - Integration Tests', () => {
       ];
 
       for (const update of updates) {
-        await new Promise(r => setTimeout(r, 2));
+        await new Promise((r) => setTimeout(r, 2));
         db.updateOrder(orderId, update);
       }
 

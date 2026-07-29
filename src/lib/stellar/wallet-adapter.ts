@@ -9,24 +9,24 @@ export interface StellarWallet {
 }
 
 // Mainnet passphrase — never changes.
-const MAINNET_PASSPHRASE = "Public Global Stellar Network ; September 2015";
+const MAINNET_PASSPHRASE = 'Public Global Stellar Network ; September 2015';
 
 // ── Error helpers ──────────────────────────────────────────────────────────────
 
 function friendlyError(raw: unknown, fallback: string): Error {
   if (!raw) return new Error(fallback);
-  if (typeof raw === "object" && "message" in raw) {
-    const msg = String((raw as { message: unknown }).message ?? "");
+  if (typeof raw === 'object' && 'message' in raw) {
+    const msg = String((raw as { message: unknown }).message ?? '');
     if (/user declined|rejected|denied/i.test(msg))
       return new Error(
-        "Connection request was declined. Please approve it in your wallet and try again."
+        'Connection request was declined. Please approve it in your wallet and try again.',
       );
     if (/not connected|not installed/i.test(msg))
       return new Error(
-        "Wallet extension is not installed or unavailable. Please install it and try again."
+        'Wallet extension is not installed or unavailable. Please install it and try again.',
       );
     if (/timeout/i.test(msg))
-      return new Error("The wallet did not respond in time. Please try again.");
+      return new Error('The wallet did not respond in time. Please try again.');
   }
   return new Error(fallback);
 }
@@ -35,20 +35,17 @@ function friendlyError(raw: unknown, fallback: string): Error {
 
 interface LobstrProvider {
   connect(): Promise<{ publicKey: string }>;
-  signTransaction(
-    xdr: string,
-    opts: { networkPassphrase: string }
-  ): Promise<{ signedXdr: string }>;
+  signTransaction(xdr: string, opts: { networkPassphrase: string }): Promise<{ signedXdr: string }>;
 }
 
 function resolveLobstrProvider(): LobstrProvider | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === 'undefined') return null;
   const w = window as any;
   const candidate: unknown = w.lobstr ?? (w.stellar?.isLobstr ? w.stellar : null);
-  if (!candidate || typeof candidate !== "object") return null;
+  if (!candidate || typeof candidate !== 'object') return null;
   if (
-    typeof (candidate as any).connect !== "function" ||
-    typeof (candidate as any).signTransaction !== "function"
+    typeof (candidate as any).connect !== 'function' ||
+    typeof (candidate as any).signTransaction !== 'function'
   ) {
     return null;
   }
@@ -71,7 +68,7 @@ export class StellarWalletAdapter {
    */
   async isFreighterAvailable(): Promise<boolean> {
     try {
-      if (typeof window !== "undefined" && (window as any).freighter) return true;
+      if (typeof window !== 'undefined' && (window as any).freighter) return true;
       const result = await freighterApi.isConnected();
       return !!result.isConnected;
     } catch {
@@ -89,9 +86,9 @@ export class StellarWalletAdapter {
   // ── Connection methods ─────────────────────────────────────────────────────
 
   connectFreighter(): Promise<StellarWallet> {
-    if (this._walletType === "freighter" && this._publicKey) {
+    if (this._walletType === 'freighter' && this._publicKey) {
       return Promise.resolve({
-        type: "freighter",
+        type: 'freighter',
         publicKey: this._publicKey,
         isConnected: true,
       });
@@ -107,25 +104,25 @@ export class StellarWalletAdapter {
     // Step 1 — extension presence check.
     const available = await this.isFreighterAvailable();
     if (!available) {
-      throw new Error("Freighter extension is not installed. Visit https://freighter.app to install it.");
+      throw new Error(
+        'Freighter extension is not installed. Visit https://freighter.app to install it.',
+      );
     }
 
     // Step 2 — network mismatch check.
     const networkDetails = await freighterApi.getNetworkDetails();
     if (!networkDetails.error) {
-      const passphrase = networkDetails.networkPassphrase ?? "";
+      const passphrase = networkDetails.networkPassphrase ?? '';
       if (passphrase && passphrase !== MAINNET_PASSPHRASE) {
         const networkName = networkDetails.network ?? passphrase;
-        throw new Error(
-          `Freighter is set to ${networkName}. Please switch to Mainnet.`
-        );
+        throw new Error(`Freighter is set to ${networkName}. Please switch to Mainnet.`);
       }
     }
 
     // Step 3 — check whether this origin is already connected/allowed.
     const connectedResult = await freighterApi.isConnected();
     if (connectedResult.error) {
-      throw friendlyError(connectedResult.error, "Could not reach Freighter. Please try again.");
+      throw friendlyError(connectedResult.error, 'Could not reach Freighter. Please try again.');
     }
 
     const alreadyConnected = connectedResult.isConnected === true;
@@ -134,18 +131,18 @@ export class StellarWalletAdapter {
     if (alreadyConnected) {
       const addressResult = await freighterApi.getAddress();
       if (!addressResult.error && addressResult.address) {
-        return this._store("freighter", addressResult.address);
+        return this._store('freighter', addressResult.address);
       }
     }
 
     // Step 5 — request permission / unlock prompt.
     const accessResult = await freighterApi.requestAccess();
     if (accessResult.error) {
-      throw friendlyError(accessResult.error, "Freighter access was denied.");
+      throw friendlyError(accessResult.error, 'Freighter access was denied.');
     }
 
     if (accessResult.address) {
-      return this._store("freighter", accessResult.address);
+      return this._store('freighter', accessResult.address);
     }
 
     // If initial access didn't yield an address, try fetching it explicitly.
@@ -153,25 +150,25 @@ export class StellarWalletAdapter {
     if (retryResult.error) {
       throw friendlyError(
         retryResult.error,
-        "Connected to Freighter but could not retrieve your public key. Please try again."
+        'Connected to Freighter but could not retrieve your public key. Please try again.',
       );
     }
     if (!retryResult.address) {
       throw new Error(
-        "Connected to Freighter but no public key was returned. " +
-          "Ensure your wallet is unlocked and try again."
+        'Connected to Freighter but no public key was returned. ' +
+          'Ensure your wallet is unlocked and try again.',
       );
     }
 
-    return this._store("freighter", retryResult.address);
+    return this._store('freighter', retryResult.address);
   }
 
   // ── Lobstr connection ──────────────────────────────────────────────────────
 
   connectLobstr(): Promise<StellarWallet> {
-    if (this._walletType === "lobstr" && this._publicKey) {
+    if (this._walletType === 'lobstr' && this._publicKey) {
       return Promise.resolve({
-        type: "lobstr",
+        type: 'lobstr',
         publicKey: this._publicKey,
         isConnected: true,
       });
@@ -187,8 +184,8 @@ export class StellarWalletAdapter {
     const provider = resolveLobstrProvider();
     if (!provider) {
       throw new Error(
-        "Lobstr wallet is not installed or unavailable. " +
-          "Visit https://lobstr.co to install it."
+        'Lobstr wallet is not installed or unavailable. ' +
+          'Visit https://lobstr.co to install it.',
       );
     }
 
@@ -196,22 +193,22 @@ export class StellarWalletAdapter {
     try {
       result = await provider.connect();
     } catch (err: unknown) {
-      throw friendlyError(err, "Failed to connect to Lobstr. Please try again.");
+      throw friendlyError(err, 'Failed to connect to Lobstr. Please try again.');
     }
 
-    if (!result || typeof result !== "object") {
-      throw new Error("Lobstr returned an unexpected response. Please try again.");
+    if (!result || typeof result !== 'object') {
+      throw new Error('Lobstr returned an unexpected response. Please try again.');
     }
 
     const publicKey = (result as any).publicKey;
-    if (typeof publicKey !== "string" || publicKey.trim() === "") {
+    if (typeof publicKey !== 'string' || publicKey.trim() === '') {
       throw new Error(
-        "Lobstr did not return a valid public key. " +
-          "Ensure your wallet is unlocked and try again."
+        'Lobstr did not return a valid public key. ' +
+          'Ensure your wallet is unlocked and try again.',
       );
     }
 
-    return this._store("lobstr", publicKey.trim());
+    return this._store('lobstr', publicKey.trim());
   }
 
   // ── connectAuto ────────────────────────────────────────────────────────────
@@ -249,8 +246,8 @@ export class StellarWalletAdapter {
     }
 
     throw new Error(
-      "No Stellar wallet found. Please install Freighter (https://freighter.app) " +
-        "or Lobstr (https://lobstr.co)."
+      'No Stellar wallet found. Please install Freighter (https://freighter.app) ' +
+        'or Lobstr (https://lobstr.co).',
     );
   }
 
@@ -258,10 +255,10 @@ export class StellarWalletAdapter {
 
   async signTransaction(xdr: string): Promise<string> {
     if (!this._walletType || !this._publicKey) {
-      throw new Error("No wallet connected. Please connect your wallet first.");
+      throw new Error('No wallet connected. Please connect your wallet first.');
     }
 
-    if (this._walletType === "freighter") {
+    if (this._walletType === 'freighter') {
       return this._signWithFreighter(xdr);
     }
 
@@ -274,11 +271,11 @@ export class StellarWalletAdapter {
     });
 
     if (error) {
-      throw friendlyError(error, "Freighter signing failed. Please try again.");
+      throw friendlyError(error, 'Freighter signing failed. Please try again.');
     }
 
     if (!signedTxXdr) {
-      throw new Error("Freighter returned an empty signed transaction.");
+      throw new Error('Freighter returned an empty signed transaction.');
     }
 
     return signedTxXdr;
@@ -287,7 +284,7 @@ export class StellarWalletAdapter {
   private async _signWithLobstr(xdr: string): Promise<string> {
     const provider = resolveLobstrProvider();
     if (!provider) {
-      throw new Error("Lobstr is no longer available. Please reconnect your wallet.");
+      throw new Error('Lobstr is no longer available. Please reconnect your wallet.');
     }
 
     let signResult: { signedXdr: string };
@@ -296,11 +293,11 @@ export class StellarWalletAdapter {
         networkPassphrase: MAINNET_PASSPHRASE,
       });
     } catch (err: unknown) {
-      throw friendlyError(err, "Lobstr signing failed. Please try again.");
+      throw friendlyError(err, 'Lobstr signing failed. Please try again.');
     }
 
     if (!signResult?.signedXdr) {
-      throw new Error("Lobstr returned an empty signed transaction. Please try again.");
+      throw new Error('Lobstr returned an empty signed transaction. Please try again.');
     }
     return signResult.signedXdr;
   }

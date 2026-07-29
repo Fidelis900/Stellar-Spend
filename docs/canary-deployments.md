@@ -26,13 +26,13 @@ Stellar-Spend supports canary releases that build on [blue-green deployment](blu
 
 ## Files
 
-| File | Purpose |
-|------|---------|
-| `docker-compose.canary.yml` | Override exposing a second `app` container on `CANARY_PORT` |
-| `scripts/canary-deploy.sh` | Orchestrates build → canary → bake → promote/rollback |
-| `scripts/canary-metrics-check.sh` | Single pass of metric analysis, used during the bake loop |
-| `src/app/api/slo/status/route.ts` | Exposes the SLO dashboard for promotion gating |
-| `.github/workflows/canary-deploy.yml` | Manual workflow to trigger a canary deploy |
+| File                                  | Purpose                                                     |
+| ------------------------------------- | ----------------------------------------------------------- |
+| `docker-compose.canary.yml`           | Override exposing a second `app` container on `CANARY_PORT` |
+| `scripts/canary-deploy.sh`            | Orchestrates build → canary → bake → promote/rollback       |
+| `scripts/canary-metrics-check.sh`     | Single pass of metric analysis, used during the bake loop   |
+| `src/app/api/slo/status/route.ts`     | Exposes the SLO dashboard for promotion gating              |
+| `.github/workflows/canary-deploy.yml` | Manual workflow to trigger a canary deploy                  |
 
 ## Running a Canary Deploy
 
@@ -52,11 +52,11 @@ Or trigger the `Canary Deploy` GitHub Action manually with an `image_tag` and `c
 
 `scripts/canary-metrics-check.sh` reads:
 
-| Env var | Default | Meaning |
-|---|---|---|
-| `PROBE_COUNT` | 10 | Requests sampled per check |
-| `MAX_ERROR_RATE` | 0.05 | Max acceptable error rate (5%) |
-| `MAX_LATENCY_REGRESSION_MS` | 500 | Max acceptable avg latency increase vs. baseline |
+| Env var                     | Default | Meaning                                          |
+| --------------------------- | ------- | ------------------------------------------------ |
+| `PROBE_COUNT`               | 10      | Requests sampled per check                       |
+| `MAX_ERROR_RATE`            | 0.05    | Max acceptable error rate (5%)                   |
+| `MAX_LATENCY_REGRESSION_MS` | 500     | Max acceptable avg latency increase vs. baseline |
 
 ## Notifications
 

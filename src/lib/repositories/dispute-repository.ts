@@ -84,9 +84,7 @@ export class DisputeRepository {
   }
 
   async getDisputesByTransaction(transactionId: string): Promise<Dispute[]> {
-    return Array.from(disputes.values()).filter(
-      (d) => d.transactionId === transactionId,
-    );
+    return Array.from(disputes.values()).filter((d) => d.transactionId === transactionId);
   }
 
   async getDisputesByUser(userAddress: string): Promise<Dispute[]> {
@@ -101,9 +99,7 @@ export class DisputeRepository {
 
     if (update.status && update.status !== existing.status) {
       if (!isValidTransition(existing.status, update.status)) {
-        throw new Error(
-          `Invalid status transition: ${existing.status} → ${update.status}`,
-        );
+        throw new Error(`Invalid status transition: ${existing.status} → ${update.status}`);
       }
     }
 
@@ -113,9 +109,7 @@ export class DisputeRepository {
       ...update,
       updatedAt: now,
       resolvedAt:
-        update.status === 'resolved' || update.status === 'rejected'
-          ? now
-          : existing.resolvedAt,
+        update.status === 'resolved' || update.status === 'rejected' ? now : existing.resolvedAt,
     };
 
     disputes.set(id, updated);
@@ -127,18 +121,12 @@ export class DisputeRepository {
     return { ...updated, notes: notes.get(id) ?? [] };
   }
 
-  async listDisputes(
-    status?: DisputeStatus,
-    limit = 50,
-    offset = 0,
-  ): Promise<Dispute[]> {
+  async listDisputes(status?: DisputeStatus, limit = 50, offset = 0): Promise<Dispute[]> {
     let result = Array.from(disputes.values());
     if (status) {
       result = result.filter((d) => d.status === status);
     }
-    return result
-      .sort((a, b) => b.createdAt - a.createdAt)
-      .slice(offset, offset + limit);
+    return result.sort((a, b) => b.createdAt - a.createdAt).slice(offset, offset + limit);
   }
 
   // ---------------------------------------------------------------------------

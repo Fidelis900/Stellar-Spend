@@ -7,7 +7,10 @@ vi.mock('@/lib/db/client', () => ({
 }));
 
 import { pool } from '@/lib/db/client';
-import { buildTransactionAnalyticsReport, getTransactionAnalytics } from '@/lib/transaction-analytics';
+import {
+  buildTransactionAnalyticsReport,
+  getTransactionAnalytics,
+} from '@/lib/transaction-analytics';
 
 describe('buildTransactionAnalyticsReport', () => {
   it('calculates transaction rates, timing, fee trends, and daily reports', () => {
@@ -51,7 +54,7 @@ describe('buildTransactionAnalyticsReport', () => {
         },
       ],
       7,
-      new Date('2026-04-25T00:00:00.000Z')
+      new Date('2026-04-25T00:00:00.000Z'),
     );
 
     expect(report.totals).toEqual({
@@ -117,7 +120,9 @@ describe('getTransactionAnalytics', () => {
 
     const report = await getTransactionAnalytics(14);
 
-    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('FROM transactions'), [expect.any(Number)]);
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('FROM transactions'), [
+      expect.any(Number),
+    ]);
     expect(report.periodDays).toBe(14);
     expect(report.totals.transactionCount).toBe(1);
     expect(report.rates.successRate).toBe(100);

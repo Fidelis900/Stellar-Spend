@@ -99,6 +99,74 @@ export const offrampRequestSchema = z.object({
   toAddress: baseAddressSchema,
 });
 
+// Verify-account schema
+export const verifyAccountSchema = z.object({
+  institution: z.string().min(1, 'institution is required'),
+  accountIdentifier: z.string().min(1, 'accountIdentifier is required'),
+});
+
+// Quote request schema (extended for route use — feeMethod accepts both UI and API values)
+export const quoteRouteSchema = z.object({
+  amount: amountSchema,
+  currency: z.string().min(1, 'currency is required'),
+  feeMethod: z.enum(['USDC', 'XLM', 'stablecoin', 'native'], {
+    errorMap: () => ({ message: 'feeMethod must be "USDC", "XLM", "stablecoin", or "native"' }),
+  }),
+  sourceAddress: z.string().optional(),
+});
+
+// Paycrest order request schema
+export const paycrestOrderRouteSchema = z.object({
+  amount: z.number({ invalid_type_error: 'amount must be a number' }).positive('amount must be a positive number'),
+  rate: z.number({ invalid_type_error: 'rate must be a number' }).positive('rate must be a positive number'),
+  token: z.string().min(1, 'token is required'),
+  network: z.string().min(1, 'network is required'),
+  reference: z.string().min(1, 'reference is required'),
+  returnAddress: z.string().min(1, 'returnAddress is required'),
+  recipient: z.object({
+    institution: z.string().min(1, 'recipient.institution is required'),
+    accountIdentifier: z.string().min(1, 'recipient.accountIdentifier is required'),
+    accountName: z.string().min(1, 'recipient.accountName is required'),
+    currency: z.string().min(1, 'recipient.currency is required'),
+  }),
+});
+
+// Merchant account creation schema
+export const createMerchantSchema = z.object({
+  userId: z.string().min(1, 'userId is required'),
+  businessName: z.string().min(1, 'businessName is required'),
+  businessEmail: z.string().email('businessEmail must be a valid email'),
+});
+
+// Merchant bulk payout item schema
+export const bulkPayoutItemSchema = z.object({
+  beneficiaryInstitution: z.string().min(1, 'beneficiaryInstitution is required'),
+  beneficiaryAccount: z.string().min(1, 'beneficiaryAccount is required'),
+  beneficiaryName: z.string().min(1, 'beneficiaryName is required'),
+  amount: z.number({ invalid_type_error: 'amount must be a number' }).positive('amount must be positive'),
+  currency: z.string().min(1, 'currency is required'),
+});
+
+// Merchant bulk payout schema
+export const createBulkPayoutSchema = z.object({
+  merchantId: z.string().min(1, 'merchantId is required'),
+  idempotencyKey: z.string().min(1, 'idempotencyKey is required'),
+  items: z.array(bulkPayoutItemSchema).min(1, 'items must be a non-empty array'),
+});
+
+// Queue manage action schema
+export const queueManageSchema = z.discriminatedUnion('action', [
+  z.object({
+    action: z.literal('remove'),
+    id: z.string().min(1, 'id is required'),
+  }),
+  z.object({
+    action: z.literal('override'),
+    id: z.string().min(1, 'id is required'),
+    priority: z.number().int().min(1).max(4),
+  }),
+]);
+
 // Validation error formatting
 export interface FormattedValidationError {
   field: string;
@@ -107,14 +175,14 @@ export interface FormattedValidationError {
 
 export function formatZodErrors(error: z.ZodError): FormattedValidationError[] {
   return error.errors.map((err) => ({
-    field: err.path.join('.'),
+    field: err.path.join('.') || 'root',
     message: err.message,
   }));
 }
 
 export function validateWithSchema<T>(
   schema: z.ZodSchema<T>,
-  data: unknown
+  data: unknown,
 ): { valid: boolean; data?: T; errors?: FormattedValidationError[] } {
   try {
     const validated = schema.parse(data);
@@ -125,4 +193,19 @@ export function validateWithSchema<T>(
     }
     return { valid: false, errors: [{ field: 'unknown', message: 'Validation failed' }] };
   }
+}
+
+/**
+ * Parse a request body with a zod schema. Returns { data } on success or
+ * throws a NextResponse with a 400 validation error.
+ */
+export function parseBody<T>(
+  schema: z.ZodSchema<T>,
+  rawBody: unknown,
+): { ok: true; data: T } | { ok: false; errors: FormattedValidationError[] } {
+  const result = validateWithSchema(schema, rawBody);
+  if (result.valid && result.data !== undefined) {
+    return { ok: true, data: result.data };
+  }
+  return { ok: false, errors: result.errors ?? [{ field: 'unknown', message: 'Validation failed' }] };
 }

@@ -1,9 +1,9 @@
-import type { NextConfig } from "next";
-import { withSentryConfig } from "@sentry/nextjs";
-import bundleAnalyzer from "@next/bundle-analyzer";
-import { env } from "./src/lib/env";
+import type { NextConfig } from 'next';
+import { withSentryConfig } from '@sentry/nextjs';
+import bundleAnalyzer from '@next/bundle-analyzer';
+import { env } from './src/lib/env';
 
-const withBundleAnalyzer = bundleAnalyzer({ enabled: process.env.ANALYZE === "true" });
+const withBundleAnalyzer = bundleAnalyzer({ enabled: process.env.ANALYZE === 'true' });
 
 void env;
 
@@ -13,32 +13,28 @@ const bundleOptimization = {
   compress: true,
   productionBrowserSourceMaps: false,
   optimizeFonts: true,
-  optimizePackageImports: [
-    "@stellar/stellar-sdk",
-    "@allbridge/bridge-core-sdk",
-    "viem",
-  ],
+  optimizePackageImports: ['@stellar/stellar-sdk', '@allbridge/bridge-core-sdk', 'viem'],
 } as const;
 
 const securityHeaders = [
   {
-    key: "X-Frame-Options",
-    value: "DENY",
+    key: 'X-Frame-Options',
+    value: 'DENY',
   },
   {
-    key: "X-Content-Type-Options",
-    value: "nosniff",
+    key: 'X-Content-Type-Options',
+    value: 'nosniff',
   },
   {
-    key: "Referrer-Policy",
-    value: "strict-origin-when-cross-origin",
+    key: 'Referrer-Policy',
+    value: 'strict-origin-when-cross-origin',
   },
   {
-    key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+    key: 'Permissions-Policy',
+    value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
   },
   {
-    key: "Content-Security-Policy",
+    key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdn.sentry.io",
@@ -49,11 +45,11 @@ const securityHeaders = [
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
-      "upgrade-insecure-requests",
-    ].join("; "),
+      'upgrade-insecure-requests',
+    ].join('; '),
   },
   {
-    key: "Content-Security-Policy-Report-Only",
+    key: 'Content-Security-Policy-Report-Only',
     value: [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdn.sentry.io",
@@ -64,31 +60,31 @@ const securityHeaders = [
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
-      "report-uri /api/csp-report",
-    ].join("; "),
+      'report-uri /api/csp-report',
+    ].join('; '),
   },
 ] as const;
 
 const externalServerPackages = [
-  "@allbridge/bridge-core-sdk",
-  "@stellar/stellar-sdk",
-  "pg",
+  '@allbridge/bridge-core-sdk',
+  '@stellar/stellar-sdk',
+  'pg',
 ] as const;
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  output: "standalone",
+  output: 'standalone',
   outputFileTracingRoot: __dirname,
   ...bundleOptimization,
   images: {
     remotePatterns: [],
-    formats: ["image/avif", "image/webp"],
+    formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60 * 60 * 24 * 365, // 1 year
   },
   serverExternalPackages: [...externalServerPackages],
-  assetPrefix: process.env.NEXT_PUBLIC_CDN_URL || "",
+  assetPrefix: process.env.NEXT_PUBLIC_CDN_URL || '',
   webpack: (config, { isServer }) => {
     // Tree shaking and code splitting optimization
     if (!isServer) {
@@ -97,19 +93,21 @@ const nextConfig: NextConfig = {
         usedExports: true,
         sideEffects: false,
         splitChunks: {
-          chunks: "all",
+          chunks: 'all',
           cacheGroups: {
             default: false,
             vendors: false,
             // Vendor chunk
             vendor: {
-              filename: "chunks/vendor.js",
+              filename: 'chunks/vendor.js',
               test: /node_modules/,
               priority: 10,
               reuseExistingChunk: true,
               name(module: any) {
-                const packageName = module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/)?.[1];
-                return `vendor.${packageName?.replace("@", "")}`;
+                const packageName = module.context.match(
+                  /[\\/]node_modules[\\/](.*?)([\\/]|$)/,
+                )?.[1];
+                return `vendor.${packageName?.replace('@', '')}`;
               },
             },
             // Common chunk
@@ -117,7 +115,7 @@ const nextConfig: NextConfig = {
               minChunks: 2,
               priority: 5,
               reuseExistingChunk: true,
-              name: "common",
+              name: 'common',
             },
           },
         },
@@ -128,33 +126,33 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/:path*",
+        source: '/:path*',
         headers: [...securityHeaders],
       },
       {
-        source: "/static/:path*",
+        source: '/static/:path*',
         headers: [
           {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
           },
         ],
       },
       {
-        source: "/_next/static/:path*",
+        source: '/_next/static/:path*',
         headers: [
           {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
           },
         ],
       },
       {
-        source: "/public/:path*",
+        source: '/public/:path*',
         headers: [
           {
-            key: "Cache-Control",
-            value: "public, max-age=86400",
+            key: 'Cache-Control',
+            value: 'public, max-age=86400',
           },
         ],
       },

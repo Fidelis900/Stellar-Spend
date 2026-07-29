@@ -36,11 +36,11 @@ Unit tests use **Vitest** + **React Testing Library** and live alongside the cod
 
 ### File conventions
 
-| Target | Location |
-|---|---|
-| Library / utility | `src/lib/**/*.test.ts` |
-| React component | `src/test/*.test.tsx` or `src/app/__tests__/*.test.tsx` |
-| API route handler | `src/test/*.test.ts` |
+| Target            | Location                                                |
+| ----------------- | ------------------------------------------------------- |
+| Library / utility | `src/lib/**/*.test.ts`                                  |
+| React component   | `src/test/*.test.tsx` or `src/app/__tests__/*.test.tsx` |
+| API route handler | `src/test/*.test.ts`                                    |
 
 ### Setup
 
@@ -98,7 +98,9 @@ import { NextRequest } from 'next/server';
 vi.mock('@/lib/env', () => ({
   env: {
     server: { PAYCREST_API_KEY: 'test-key' /* ... */ },
-    public: { /* ... */ },
+    public: {
+      /* ... */
+    },
   },
 }));
 
@@ -166,12 +168,12 @@ Freighter and Lobstr are browser extensions and cannot be installed in Playwrigh
 
 Coverage is not enforced by a hard threshold today, but the following targets are expected:
 
-| Layer | Target |
-|---|---|
-| `src/lib/` utilities | ≥ 80% line coverage |
-| API route handlers | All happy-path + primary error branches covered |
-| React components | Key render states and user interactions covered |
-| E2E | Critical user journey (load → connect → submit) covered |
+| Layer                | Target                                                  |
+| -------------------- | ------------------------------------------------------- |
+| `src/lib/` utilities | ≥ 80% line coverage                                     |
+| API route handlers   | All happy-path + primary error branches covered         |
+| React components     | Key render states and user interactions covered         |
+| E2E                  | Critical user journey (load → connect → submit) covered |
 
 To generate a coverage report locally:
 
@@ -315,24 +317,24 @@ This invokes `stryker run` using `stryker.conf.json`. The HTML report is written
 
 ### Mutation score targets
 
-| Threshold | Value |
-|---|---|
-| High (green) | ≥ 80 % |
-| Medium (yellow) | ≥ 70 % |
-| Low (orange) | ≥ 60 % |
+| Threshold        | Value  |
+| ---------------- | ------ |
+| High (green)     | ≥ 80 % |
+| Medium (yellow)  | ≥ 70 % |
+| Low (orange)     | ≥ 60 % |
 | Break (CI fails) | < 55 % |
 
 ### Files mutated by Stryker
 
 Stryker mutates `src/lib/**/*.ts` and `src/app/api/**/*.ts` (see `stryker.conf.json`). The following test files provide coverage that kills mutants:
 
-| Test file | Target lib modules |
-|---|---|
-| `src/test/mutation.test.ts` | `fee-calculation`, `error-types`, `paycrest-adapter`, `kyc-limits` |
-| `src/test/mutation-critical-paths.test.ts` | `http-client`, `cache/keys` |
-| `src/test/fee-calculation.test.ts` | `fee-calculation` (full coverage) |
-| `src/test/error-types.test.ts` | `error-types` |
-| `src/test/mapPaycrestStatus.test.ts` | `paycrest-adapter` |
+| Test file                                  | Target lib modules                                                 |
+| ------------------------------------------ | ------------------------------------------------------------------ |
+| `src/test/mutation.test.ts`                | `fee-calculation`, `error-types`, `paycrest-adapter`, `kyc-limits` |
+| `src/test/mutation-critical-paths.test.ts` | `http-client`, `cache/keys`                                        |
+| `src/test/fee-calculation.test.ts`         | `fee-calculation` (full coverage)                                  |
+| `src/test/error-types.test.ts`             | `error-types`                                                      |
+| `src/test/mapPaycrestStatus.test.ts`       | `paycrest-adapter`                                                 |
 
 ### Improving the mutation score
 
@@ -349,13 +351,13 @@ When Stryker reports a surviving mutant:
 
 ### Overview of E2E specs
 
-| Spec file | Issue | Coverage |
-|---|---|---|
-| `e2e/payment-flow.spec.ts` | #831 (P0) | Connect wallet → amount → quote → recipient → confirm → history |
-| `e2e/kyc-rejection-resubmission.spec.ts` | #832 | Unverified → submit → rejected → resubmit → approved lifecycle |
-| `e2e/smoke.spec.ts` | — | Production smoke: health, currencies, rate, UI load |
-| `e2e/critical-journeys.spec.ts` | — | Full offramp with axe accessibility checks |
-| `e2e/transaction-history.spec.ts` | — | History display, filter, search, export |
+| Spec file                                | Issue     | Coverage                                                        |
+| ---------------------------------------- | --------- | --------------------------------------------------------------- |
+| `e2e/payment-flow.spec.ts`               | #831 (P0) | Connect wallet → amount → quote → recipient → confirm → history |
+| `e2e/kyc-rejection-resubmission.spec.ts` | #832      | Unverified → submit → rejected → resubmit → approved lifecycle  |
+| `e2e/smoke.spec.ts`                      | —         | Production smoke: health, currencies, rate, UI load             |
+| `e2e/critical-journeys.spec.ts`          | —         | Full offramp with axe accessibility checks                      |
+| `e2e/transaction-history.spec.ts`        | —         | History display, filter, search, export                         |
 
 ### Running E2E tests locally
 
@@ -387,6 +389,7 @@ npx playwright show-report
 ### Running in CI
 
 CI sets `CI=true` which enables:
+
 - 2 retries on flaky tests
 - Single worker (serial execution)
 - `forbidOnly` (test.only fails the run)

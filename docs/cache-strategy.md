@@ -13,14 +13,14 @@ Intelligent caching with observability for hot paths (quotes, currencies, instit
 
 ## Cache Keys & TTL Strategy
 
-| Key Type | TTL | Stale-While-Revalidate | Warming | Rationale |
-|----------|-----|------------------------|---------|-----------|
-| **Quotes** | 30s | ✅ Yes | ✅ Yes | Hot path, balance freshness vs UX |
-| **Currencies** | 1h | ❌ No | ✅ Yes | Rarely changes, long cache OK |
-| **Institutions** | 30m | ❌ No | ✅ Yes | Moderate change rate |
-| **Account Verify** | 5m | ❌ No | ❌ No | Temporary, user-specific |
-| **Bridge Status** | 10s | ✅ Yes | ❌ No | Actively polled, stale OK briefly |
-| **Payout Status** | 10s | ✅ Yes | ❌ No | Actively polled, stale OK briefly |
+| Key Type           | TTL | Stale-While-Revalidate | Warming | Rationale                         |
+| ------------------ | --- | ---------------------- | ------- | --------------------------------- |
+| **Quotes**         | 30s | ✅ Yes                 | ✅ Yes  | Hot path, balance freshness vs UX |
+| **Currencies**     | 1h  | ❌ No                  | ✅ Yes  | Rarely changes, long cache OK     |
+| **Institutions**   | 30m | ❌ No                  | ✅ Yes  | Moderate change rate              |
+| **Account Verify** | 5m  | ❌ No                  | ❌ No   | Temporary, user-specific          |
+| **Bridge Status**  | 10s | ✅ Yes                 | ❌ No   | Actively polled, stale OK briefly |
+| **Payout Status**  | 10s | ✅ Yes                 | ❌ No   | Actively polled, stale OK briefly |
 
 ## Stale-While-Revalidate
 
@@ -31,6 +31,7 @@ Improves perceived performance for hot paths:
 3. **Cache miss**: Fetch fresh data, cache for next request
 
 Example for quotes:
+
 - TTL: 30s
 - Stale threshold: 24s (80% of TTL)
 - User gets instant response even with slightly stale data
@@ -135,12 +136,12 @@ import { CACHE_KEYS, generateCacheKey } from '@/lib/cache/keys';
 
 export async function GET() {
   const key = generateCacheKey(CACHE_KEYS.CURRENCIES);
-  
+
   const currencies = await getCached(key, CACHE_KEYS.CURRENCIES, async () => {
     // Fallback: fetch from external API
     return fetchCurrencies();
   });
-  
+
   return NextResponse.json(currencies);
 }
 ```
@@ -195,13 +196,13 @@ Verify cache is invalidated correctly after updates:
 ```typescript
 test('invalidate quote cache after update', async () => {
   const key = generateCacheKey(CACHE_KEYS.QUOTE, '100', 'NGN', 'USDC');
-  
+
   // Cache a quote
   await cache.set(key, mockQuote, CACHE_KEYS.QUOTE);
-  
+
   // Invalidate
   await cache.del(key);
-  
+
   // Verify cache miss
   const result = await cache.get(key, CACHE_KEYS.QUOTE);
   expect(result.value).toBeNull();
@@ -225,6 +226,7 @@ test('invalidate quote cache after update', async () => {
 ### Cold Start
 
 On server startup:
+
 1. Cache warming completes in ~500ms
 2. Popular corridors immediately available
 3. First user requests see cache hits
@@ -246,7 +248,7 @@ class RedisCacheClient {
     const value = await redis.get(key);
     return value ? JSON.parse(value) : null;
   }
-  
+
   async set<T>(key: string, value: T, config: CacheKeyConfig) {
     await redis.setEx(key, config.ttl, JSON.stringify(value));
   }
@@ -256,6 +258,7 @@ class RedisCacheClient {
 ### Monitoring Alerts
 
 Set up alerts for:
+
 - Cache hit rate < 60%
 - Cache errors > 5/min
 - Cache unavailable for > 1 minute

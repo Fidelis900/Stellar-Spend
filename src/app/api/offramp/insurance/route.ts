@@ -34,37 +34,60 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  return withIdempotency(req, async () => {
-    try {
-      const { action, transactionId, insuranceId, amount, currency, includeInsurance, reason, evidence } = await req.json();
+  return withIdempotency(
+    req,
+    async () => {
+      try {
+        const {
+          action,
+          transactionId,
+          insuranceId,
+          amount,
+          currency,
+          includeInsurance,
+          reason,
+          evidence,
+        } = await req.json();
 
-      if (action === 'claim') {
-        if (!insuranceId || !reason) {
-          return ErrorHandler.validation('Missing required fields: insuranceId, reason');
+        if (action === 'claim') {
+          if (!insuranceId || !reason) {
+            return ErrorHandler.validation('Missing required fields: insuranceId, reason');
+          }
+          const result = await fileClaim(insuranceId, reason, evidence);
+          return NextResponse.json({
+            success: true,
+            claim: (result as { rows: unknown[] }).rows[0],
+          });
         }
-        const result = await fileClaim(insuranceId, reason, evidence);
-        return NextResponse.json({ success: true, claim: (result as { rows: unknown[] }).rows[0] });
+
+        if (!includeInsurance) {
+          return NextResponse.json({ insurance: null });
+        }
+
+        if (!transactionId || !amount || !currency) {
+          return ErrorHandler.validation(
+            'Missing required fields: transactionId, amount, currency',
+          );
+        }
+
+        const quote = await calculateInsurancePremium(parseFloat(amount), currency);
+        const insurance = await createInsurance(
+          transactionId,
+          quote.premium,
+          quote.coverage,
+          quote.provider,
+        );
+
+        return NextResponse.json({
+          insurance: (insurance as { rows: unknown[] }).rows[0],
+          quote,
+        });
+      } catch (error) {
+        return ErrorHandler.serverError(error);
       }
-
-      if (!includeInsurance) {
-        return NextResponse.json({ insurance: null });
-      }
-
-      if (!transactionId || !amount || !currency) {
-        return ErrorHandler.validation('Missing required fields: transactionId, amount, currency');
-      }
-
-      const quote = await calculateInsurancePremium(parseFloat(amount), currency);
-      const insurance = await createInsurance(transactionId, quote.premium, quote.coverage, quote.provider);
-
-      return NextResponse.json({
-        insurance: (insurance as { rows: unknown[] }).rows[0],
-        quote,
-      });
-    } catch (error) {
-      return ErrorHandler.serverError(error);
-    }
-  }, { required: true });
+    },
+    { required: true },
+  );
 }
 
 export async function PATCH(req: NextRequest) {
@@ -77,7 +100,10 @@ export async function PATCH(req: NextRequest) {
 
     if (action === 'approve') {
       const result = await approveClaim(insuranceId);
-      return NextResponse.json({ success: true, insurance: (result as { rows: unknown[] }).rows[0] });
+      return NextResponse.json({
+        success: true,
+        insurance: (result as { rows: unknown[] }).rows[0],
+      });
     }
 
     if (action === 'reject') {
@@ -85,12 +111,18 @@ export async function PATCH(req: NextRequest) {
         return ErrorHandler.validation('rejectionReason is required to reject a claim');
       }
       const result = await rejectClaim(insuranceId, rejectionReason);
-      return NextResponse.json({ success: true, insurance: (result as { rows: unknown[] }).rows[0] });
+      return NextResponse.json({
+        success: true,
+        insurance: (result as { rows: unknown[] }).rows[0],
+      });
     }
 
     if (action === 'payout') {
       const result = await processInsurancePayout(insuranceId);
-      return NextResponse.json({ success: true, insurance: (result as { rows: unknown[] }).rows[0] });
+      return NextResponse.json({
+        success: true,
+        insurance: (result as { rows: unknown[] }).rows[0],
+      });
     }
 
     return ErrorHandler.validation('action must be "approve", "reject", or "payout"');

@@ -9,6 +9,7 @@ This document outlines security considerations and best practices for deploying 
 Stellar-Spend uses a server-side Base wallet (`BASE_PRIVATE_KEY`) to execute payout transactions. This key must be treated as a critical secret.
 
 **Rules:**
+
 - Never prefix it with `NEXT_PUBLIC_` — doing so exposes it to the browser bundle.
 - Store it in `.env.local` (never commit this file).
 - In production, inject it via your hosting provider's secret/environment management (e.g., Vercel Environment Variables, AWS Secrets Manager).
@@ -16,6 +17,7 @@ Stellar-Spend uses a server-side Base wallet (`BASE_PRIVATE_KEY`) to execute pay
 - Grant the wallet only the minimum on-chain balance needed for operations; do not use it as a treasury wallet.
 
 **What the app does:**
+
 - The app validates at startup that `BASE_PRIVATE_KEY` is present and not accidentally exposed as a public variable, throwing a clear error if misconfigured.
 
 ---
@@ -25,10 +27,12 @@ Stellar-Spend uses a server-side Base wallet (`BASE_PRIVATE_KEY`) to execute pay
 Paycrest sends signed webhook events to `/api/webhooks/paycrest`. Every incoming request must be verified before processing.
 
 **How it works:**
+
 - Paycrest signs each request using `PAYCREST_WEBHOOK_SECRET` (HMAC-SHA512).
 - The handler computes the expected signature from the raw request body and compares it to the `X-Paycrest-Signature` header using a constant-time comparison to prevent timing attacks.
 
 **Best practices:**
+
 - Always verify the signature before acting on any webhook payload.
 - Reject requests with missing or invalid signatures with `401 Unauthorized`.
 - Use the raw (unparsed) request body for signature computation — parsing first can alter the byte sequence.
@@ -43,14 +47,15 @@ API routes that trigger external calls or financial operations should be rate-li
 
 **Recommended limits:**
 
-| Route | Suggested Limit |
-|---|---|
-| `POST /api/offramp/quote` | 30 req / min per IP |
-| `POST /api/offramp/execute-payout` | 10 req / min per IP |
-| `POST /api/offramp/verify-account` | 20 req / min per IP |
-| `POST /api/webhooks/paycrest` | 60 req / min (Paycrest IPs only) |
+| Route                              | Suggested Limit                  |
+| ---------------------------------- | -------------------------------- |
+| `POST /api/offramp/quote`          | 30 req / min per IP              |
+| `POST /api/offramp/execute-payout` | 10 req / min per IP              |
+| `POST /api/offramp/verify-account` | 20 req / min per IP              |
+| `POST /api/webhooks/paycrest`      | 60 req / min (Paycrest IPs only) |
 
 **Implementation options:**
+
 - Use [Vercel's built-in rate limiting](https://vercel.com/docs/security/rate-limiting) for edge-level protection.
 - Use an `upstash/ratelimit` + Redis middleware for fine-grained per-route control.
 - For the webhook endpoint, additionally allowlist Paycrest's published IP ranges.
@@ -62,9 +67,11 @@ API routes that trigger external calls or financial operations should be rate-li
 Stellar-Spend is a Next.js app — API routes are same-origin by default. If you ever expose routes to external consumers, configure CORS explicitly.
 
 **Defaults (no action needed for standard deployment):**
+
 - Next.js API routes do not set CORS headers by default, meaning only same-origin requests are accepted by browsers.
 
 **If cross-origin access is required:**
+
 - Allowlist only trusted origins — never use `Access-Control-Allow-Origin: *` for authenticated or financial endpoints.
 - Set `Access-Control-Allow-Methods` to only the HTTP methods each route needs.
 - Set `Access-Control-Allow-Headers` to only the headers your client sends.
@@ -94,26 +101,31 @@ export function middleware(req: NextRequest) {
 Use this checklist before every production deployment.
 
 ### Secrets & Environment
+
 - [ ] `.env.local` is in `.gitignore` and has never been committed
 - [ ] No `NEXT_PUBLIC_` prefix on `PAYCREST_API_KEY`, `PAYCREST_WEBHOOK_SECRET`, or `BASE_PRIVATE_KEY`
 - [ ] Production secrets are injected via the hosting provider's secret store, not hardcoded
 - [ ] `BASE_PRIVATE_KEY` wallet holds only the minimum required balance
 
 ### API & Webhooks
+
 - [ ] Paycrest webhook signature verification is active and tested
 - [ ] All financial API routes return `401` for unauthenticated/invalid requests
 - [ ] Rate limiting is configured on quote, execute-payout, and verify-account routes
 - [ ] Webhook endpoint rejects requests from unexpected IPs
 
 ### CORS & Headers
+
 - [ ] CORS is not set to wildcard (`*`) on any API route
 - [ ] Security headers are set (CSP, X-Frame-Options, X-Content-Type-Options) — consider [next-secure-headers](https://github.com/jagaapple/next-secure-headers)
 
 ### Dependencies
+
 - [ ] `npm audit` returns no high/critical vulnerabilities
 - [ ] Dependencies are pinned or regularly updated via Dependabot/Renovate
 
 ### Operational
+
 - [ ] Error responses never leak stack traces or internal details to the client
 - [ ] Transaction history in `localStorage` does not store raw private keys or full account credentials
 - [ ] Monitoring/alerting is in place for failed payout attempts and webhook rejections
@@ -150,6 +162,7 @@ Before mainnet deployment, engage an external auditor. After triage:
 If you discover a security vulnerability, please do **not** open a public GitHub issue. Contact the maintainer directly via Telegram: [t.me/Xoulomon](https://t.me/Xoulomon).
 
 Please include:
+
 - A description of the vulnerability
 - Steps to reproduce
 - Potential impact

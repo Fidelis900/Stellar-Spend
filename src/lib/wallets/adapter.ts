@@ -33,7 +33,10 @@ export interface WalletError extends Error {
 export class WalletConnectionError extends Error implements WalletError {
   code = 'WALLET_CONNECTION_ERROR';
 
-  constructor(message: string, public originalError?: unknown) {
+  constructor(
+    message: string,
+    public originalError?: unknown,
+  ) {
     super(message);
     this.name = 'WalletConnectionError';
   }
@@ -42,7 +45,10 @@ export class WalletConnectionError extends Error implements WalletError {
 export class WalletSigningError extends Error implements WalletError {
   code = 'WALLET_SIGNING_ERROR';
 
-  constructor(message: string, public originalError?: unknown) {
+  constructor(
+    message: string,
+    public originalError?: unknown,
+  ) {
     super(message);
     this.name = 'WalletSigningError';
   }

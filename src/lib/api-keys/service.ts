@@ -1,11 +1,21 @@
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'crypto';
 import { pool } from '@/lib/db/client';
-import type { ApiKeyAnalytics, ApiKeyRecord, ApiKeyScope, ApiKeyUsageEvent, ApiKeyWithSecret } from '@/lib/api-keys/types';
+import type {
+  ApiKeyAnalytics,
+  ApiKeyRecord,
+  ApiKeyScope,
+  ApiKeyUsageEvent,
+  ApiKeyWithSecret,
+} from '@/lib/api-keys/types';
 
 class PerKeyRateLimiter {
   private readonly store = new Map<string, { count: number; resetTime: number }>();
 
-  check(key: string, maxRequests: number, windowMs: number): { allowed: boolean; retryAfter?: number } {
+  check(
+    key: string,
+    maxRequests: number,
+    windowMs: number,
+  ): { allowed: boolean; retryAfter?: number } {
     const now = Date.now();
     const record = this.store.get(key);
 
@@ -140,7 +150,7 @@ export async function createApiKey(input: {
       input.expiresAt ?? null,
       input.rotatedFromKeyId ?? null,
       now,
-    ]
+    ],
   );
 
   return {
@@ -155,7 +165,7 @@ export async function listApiKeys(): Promise<ApiKeyRecord[]> {
       SELECT *
       FROM api_keys
       ORDER BY created_at DESC
-    `
+    `,
   );
 
   return result.rows.map((row) => mapApiKey(row));
@@ -178,7 +188,7 @@ export async function revokeApiKey(id: string, reason?: string): Promise<ApiKeyR
       WHERE id = $1
       RETURNING *
     `,
-    [id, now, reason ?? null]
+    [id, now, reason ?? null],
   );
 
   return result.rows[0] ? mapApiKey(result.rows[0]) : null;
@@ -205,7 +215,7 @@ export async function rotateApiKey(id: string): Promise<ApiKeyWithSecret | null>
           updated_at = $2
       WHERE id = $1
     `,
-    [id, Date.now()]
+    [id, Date.now()],
   );
 
   return rotated;
@@ -220,7 +230,7 @@ export async function authenticateApiKey(rawKey: string): Promise<ApiKeyRecord |
       WHERE key_hash = $1
       LIMIT 1
     `,
-    [keyHash]
+    [keyHash],
   );
 
   if (!result.rows[0]) return null;
@@ -231,7 +241,10 @@ export async function authenticateApiKey(rawKey: string): Promise<ApiKeyRecord |
   return apiKey;
 }
 
-export function checkApiKeyRateLimit(apiKey: ApiKeyRecord): { allowed: boolean; retryAfter?: number } {
+export function checkApiKeyRateLimit(apiKey: ApiKeyRecord): {
+  allowed: boolean;
+  retryAfter?: number;
+} {
   return perKeyRateLimiter.check(apiKey.id, apiKey.rateLimitMaxRequests, apiKey.rateLimitWindowMs);
 }
 
@@ -261,7 +274,7 @@ export async function recordApiKeyUsage(input: {
       input.ipAddress ?? null,
       now,
       JSON.stringify(input.metadata ?? {}),
-    ]
+    ],
   );
 
   await pool.query(
@@ -272,7 +285,7 @@ export async function recordApiKeyUsage(input: {
           updated_at = $2
       WHERE id = $1
     `,
-    [input.apiKeyId, now]
+    [input.apiKeyId, now],
   );
 }
 
@@ -285,7 +298,7 @@ export async function listApiKeyUsage(apiKeyId: string): Promise<ApiKeyUsageEven
       ORDER BY used_at DESC
       LIMIT 100
     `,
-    [apiKeyId]
+    [apiKeyId],
   );
 
   return result.rows.map((row) => mapUsageEvent(row));
@@ -307,7 +320,7 @@ export async function getApiKeyAnalytics(apiKeyId: string): Promise<ApiKeyAnalyt
         FROM api_key_usage_events
         WHERE api_key_id = $1
       `,
-      [apiKeyId]
+      [apiKeyId],
     ),
     pool.query(
       `
@@ -318,7 +331,7 @@ export async function getApiKeyAnalytics(apiKeyId: string): Promise<ApiKeyAnalyt
         ORDER BY count DESC
         LIMIT 10
       `,
-      [apiKeyId]
+      [apiKeyId],
     ),
     pool.query(
       `
@@ -331,7 +344,7 @@ export async function getApiKeyAnalytics(apiKeyId: string): Promise<ApiKeyAnalyt
         ORDER BY date DESC
         LIMIT 30
       `,
-      [apiKeyId]
+      [apiKeyId],
     ),
   ]);
 
@@ -354,7 +367,10 @@ export async function getApiKeyAnalytics(apiKeyId: string): Promise<ApiKeyAnalyt
     rateLimitedRequests,
     successRate: totalRequests > 0 ? successRequests / totalRequests : 0,
     topPaths: topPathsResult.rows.map((r) => ({ path: r.path as string, count: Number(r.count) })),
-    requestsByDay: byDayResult.rows.map((r) => ({ date: r.date as string, count: Number(r.count) })),
+    requestsByDay: byDayResult.rows.map((r) => ({
+      date: r.date as string,
+      count: Number(r.count),
+    })),
     averageRequestsPerHour,
   };
 }
