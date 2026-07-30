@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
-import { SorobanEventIndexer } from '@/lib/stellar/event-indexer';
+import { SorobanEventIndexer } from '@/lib/stellar';
 import { db } from '@/lib/db';
 import { verifyAuth } from '@/lib/auth';
 

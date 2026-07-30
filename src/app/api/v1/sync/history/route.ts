@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { dal, DatabaseError } from '@/lib/db/dal';
+import { dal, DatabaseError } from '@/lib/db';
 import { ErrorHandler } from '@/lib/error-handler';
 import type { Transaction } from '@/lib/transaction-storage';
 import { withIdempotency } from '@/lib/idempotency';

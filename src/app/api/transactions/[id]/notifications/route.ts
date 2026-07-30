@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ErrorHandler } from '@/lib/error-handler';
-import { getTransactionNotificationDeliveries } from '@/lib/notifications/service';
+import { getTransactionNotificationDeliveries } from '@/lib/notifications';
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

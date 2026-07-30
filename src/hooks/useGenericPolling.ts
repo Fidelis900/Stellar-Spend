@@ -5,9 +5,9 @@ import {
   usePollingManager,
   DurationExceededError,
   ConsecutiveErrorsExceededError,
-} from '@/lib/polling/polling-manager';
-import type { StatusResponse } from '@/lib/polling/polling-manager';
-import type { PollingConfig } from '@/lib/polling/backoff';
+} from '@/lib/polling';
+import type { StatusResponse } from '@/lib/polling';
+import type { PollingConfig } from '@/lib/polling';
 
 export interface UsePollingOptions<T> {
   config: PollingConfig;

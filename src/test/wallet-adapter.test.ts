@@ -3,7 +3,7 @@ import {
   StellarWalletAdapter,
   _resetAdapterSingleton,
   getStellarWalletAdapter,
-} from '@/lib/stellar/wallet-adapter';
+} from '@/lib/stellar';
 
 // ── Mock @stellar/freighter-api ────────────────────────────────────────────────
 vi.mock('@stellar/freighter-api', () => ({

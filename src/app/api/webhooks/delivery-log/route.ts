@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ErrorHandler } from '@/lib/error-handler';
-import { getDeliveryLogs, getDeliveryLogById } from '@/lib/webhook/delivery-log';
+import { getDeliveryLogs, getDeliveryLogById } from '@/lib/webhook';
 import { requireApiKeyAdmin } from '@/app/api/api-keys/_utils';
 
 export async function GET(request: NextRequest) {

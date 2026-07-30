@@ -14,7 +14,7 @@ vi.mock('@/lib/notifications/service', () => ({
   notifyTransactionStatusUpdate: vi.fn().mockResolvedValue(undefined),
 }));
 
-import { dal } from '@/lib/db/dal';
+import { dal } from '@/lib/db';
 
 const baseTx: Transaction = {
   id: 'tx_1',

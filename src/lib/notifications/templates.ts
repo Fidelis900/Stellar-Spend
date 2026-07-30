@@ -2,7 +2,7 @@ import type {
   NotificationContext,
   NotificationTemplate,
   TransactionNotificationEvent,
-} from '@/lib/notifications/types';
+} from '@/lib/notifications';
 
 interface TemplateStrings {
   completedSubject: string;

@@ -1,16 +1,16 @@
 'use client';
 
 import { useCallback } from 'react';
-import type { PayoutStatus } from '@/lib/offramp/types';
+import type { PayoutStatus } from '@/lib/offramp';
 import { TransactionStorage } from '@/lib/transaction-storage';
 import type { OfframpStep } from '@/types/stellaramp';
 import {
   usePollingManager,
   DurationExceededError,
   ConsecutiveErrorsExceededError,
-} from '@/lib/polling/polling-manager';
-import type { StatusResponse } from '@/lib/polling/polling-manager';
-import { PAYOUT_CONFIG } from '@/lib/polling/backoff';
+} from '@/lib/polling';
+import type { StatusResponse } from '@/lib/polling';
+import { PAYOUT_CONFIG } from '@/lib/polling';
 
 const TERMINAL_STATES: PayoutStatus[] = ['validated', 'settled', 'refunded', 'expired'];
 

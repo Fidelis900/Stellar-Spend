@@ -1,6 +1,6 @@
-import { mapPaycrestStatus } from '@/lib/offramp/utils/mapPaycrestStatus';
-import { dal, DatabaseError } from '@/lib/db/dal';
-import { notifyTransactionStatusUpdate } from '@/lib/notifications/service';
+import { mapPaycrestStatus } from '@/lib/offramp';
+import { dal, DatabaseError } from '@/lib/db';
+import { notifyTransactionStatusUpdate } from '@/lib/notifications';
 
 export interface WebhookPayload {
   event: string;

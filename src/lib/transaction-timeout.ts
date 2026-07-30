@@ -1,7 +1,7 @@
-import { dal } from '@/lib/db/dal';
+import { dal } from '@/lib/db';
 import type { Transaction } from '@/lib/transaction-storage';
-import { processRefund } from '@/lib/refund/refund-service';
-import { notifyTransactionStatusUpdate } from '@/lib/notifications/service';
+import { processRefund } from '@/lib/refund';
+import { notifyTransactionStatusUpdate } from '@/lib/notifications';
 import { logger } from '@/lib/logger';
 
 export const TRANSACTION_TIMEOUT_MS = 30 * 60 * 1000;

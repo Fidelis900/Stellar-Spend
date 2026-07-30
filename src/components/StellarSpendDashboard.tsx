@@ -9,7 +9,7 @@ import ProgressSteps from '@/components/ProgressSteps';
 import { TransactionProgressModal } from '@/components/TransactionProgressModal';
 import { Header } from '@/components/Header';
 import { TransactionStorage } from '@/lib/transaction-storage';
-import { pollBridgeStatus, pollPayoutStatus } from '@/lib/offramp/utils/polling';
+import { pollBridgeStatus, pollPayoutStatus } from '@/lib/offramp';
 import type { OfframpStep } from '@/types/stellaramp';
 import { useFunnelTracking } from '@/hooks/useFunnelTracking';
 import { useStellarBalances } from '@/hooks/useStellarBalances';

@@ -1,7 +1,7 @@
 import { logger } from '@/lib/logger';
 import { NextResponse, type NextRequest } from 'next/server';
 import { globalContainer } from '@/lib/di';
-import { SERVICE_KEYS } from '@/lib/di/registry';
+import { SERVICE_KEYS } from '@/lib/di';
 import { isSupportedCurrency } from '@/lib/currencies';
 import { getCachedQuote } from '@/lib/cache';
 import { ErrorHandler } from '@/lib/error-handler';

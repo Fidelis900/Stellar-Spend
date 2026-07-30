@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getTransactionQueue, TransactionPriority } from '@/lib/priority-queue';
 import { ErrorHandler } from '@/lib/error-handler';
-import { queueManageSchema, formatZodErrors } from '@/lib/validators/schemas';
+import { queueManageSchema, formatZodErrors } from '@/lib/validators';
 import { ApiError, ErrorType } from '@/lib/error-types';
 
 /**

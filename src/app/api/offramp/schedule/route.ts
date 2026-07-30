@@ -6,7 +6,7 @@ import {
   getScheduledTransactions,
   cancelScheduledTransaction,
   updateScheduledTransaction,
-} from '@/lib/services/scheduling.service';
+} from '@/lib/services';
 import { withIdempotency } from '@/lib/idempotency';
 
 export async function POST(req: NextRequest) {

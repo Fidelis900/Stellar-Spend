@@ -30,7 +30,7 @@ import { BridgeService } from '@/lib/services/bridge.service';
 import { PayoutService } from '@/lib/services/payout.service';
 import { WebhookService } from '@/lib/services/webhook.service';
 import { TransactionService } from '@/lib/services/transaction.service';
-import { SharingService } from '@/lib/services/sharing-service';
+import { SharingService } from '@/lib/services';
 import { AnalyticsService } from '@/lib/services/analytics-service';
 import { QRCodeService } from '@/lib/services/qrcode-service';
 import { OnrampService } from '@/lib/services/onramp.service';

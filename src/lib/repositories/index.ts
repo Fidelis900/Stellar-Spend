@@ -11,3 +11,4 @@ export { InMemoryCurrencyRepository } from './implementations/in-memory-currency
 export { InMemoryUserRepository } from './implementations/in-memory-user';
 export { InMemoryApiKeyRepository } from './implementations/in-memory-api-key';
 export { InMemoryAuditLogRepository } from './implementations/in-memory-audit-log';
+export { DisputeRepository, disputeRepository } from './dispute-repository';

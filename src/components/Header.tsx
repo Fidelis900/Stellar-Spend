@@ -9,7 +9,7 @@ import { LanguageSelector } from '@/lib/i18n/LanguageSelector';
 import { NotificationCenter } from './NotificationCenter';
 import { useFxRate } from '@/hooks/useFxRate';
 import { useNotificationCenter } from '@/hooks/useNotificationCenter';
-import type { WalletType } from '@/lib/stellar/wallet-adapter';
+import type { WalletType } from '@/lib/stellar';
 
 export interface HeaderProps {
   subtitle: string;

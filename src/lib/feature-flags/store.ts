@@ -1,4 +1,4 @@
-import { getCacheClient } from '@/lib/cache/client';
+import { getCacheClient } from '@/lib/cache';
 import {
   FeatureFlags,
   DEFAULT_FLAGS,

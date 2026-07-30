@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ErrorHandler } from '@/lib/error-handler';
-import { getRevenueSummary } from '@/lib/ledger/revenue';
+import { getRevenueSummary } from '@/lib/ledger';
 import { requireApiKeyAdmin } from '@/app/api/api-keys/_utils';
 
 export async function GET(request: NextRequest) {

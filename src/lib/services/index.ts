@@ -22,3 +22,5 @@ export * from './batch.service';
 export * from './referral.service';
 export * from './insurance.service';
 export * from './scheduling.service';
+export { StellarSwapService, stellarSwapService } from './stellar-swap.service';
+export type { StellarSwapQuote } from './stellar-swap.service';

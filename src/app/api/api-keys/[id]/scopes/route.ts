@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ErrorHandler } from '@/lib/error-handler';
-import { getApiKeyById } from '@/lib/api-keys/service';
+import { getApiKeyById } from '@/lib/api-keys';
 import { requireApiKeyAdmin } from '@/app/api/api-keys/_utils';
-import { pool } from '@/lib/db/client';
-import { SCOPE_CATALOG } from '@/lib/api-keys/scopes';
+import { pool } from '@/lib/db';
+import { SCOPE_CATALOG } from '@/lib/api-keys';
 import { auditLoggingService } from '@/lib/audit-logging';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {

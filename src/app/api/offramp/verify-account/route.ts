@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { env } from '@/lib/env';
 import { ErrorHandler } from '@/lib/error-handler';
 import { ApiError, ErrorType } from '@/lib/error-types';
-import { verifyAccountSchema, formatZodErrors } from '@/lib/validators/schemas';
+import { verifyAccountSchema, formatZodErrors } from '@/lib/validators';
 
 export const maxDuration = 10;
 

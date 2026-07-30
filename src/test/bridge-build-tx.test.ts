@@ -56,7 +56,7 @@ vi.mock('@allbridge/bridge-core-sdk', () => ({
 }));
 
 import { POST } from '@/app/api/offramp/bridge/build-tx/route';
-import * as validation from '@/lib/offramp/utils/validation';
+import * as validation from '@/lib/offramp';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

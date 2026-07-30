@@ -2,7 +2,7 @@
  * Barrel for the domain-split GraphQL resolver modules.
  *
  * Usage:
- *   import { resolvers, subscriptions } from '@/lib/graphql/resolvers';
+ *   import { resolvers, subscriptions } from '@/lib/graphql';
  *
  * Domains:
  *   - transactions  → queries/subscriptions for transactions, quotes, currencies, rates

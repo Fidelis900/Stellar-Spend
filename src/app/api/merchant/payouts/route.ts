@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ErrorHandler } from '@/lib/error-handler';
-import { merchantService, type BulkPayoutItem } from '@/lib/services/merchant.service';
-import { createBulkPayoutSchema, formatZodErrors } from '@/lib/validators/schemas';
+import { merchantService, type BulkPayoutItem } from '@/lib/services';
+import { createBulkPayoutSchema, formatZodErrors } from '@/lib/validators';
 import { ApiError, ErrorType } from '@/lib/error-types';
 
 // GET /api/merchant/payouts?merchantId=&page=&limit=

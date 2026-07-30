@@ -1,6 +1,6 @@
 import { isValidQuote } from './validation';
 import { withPaycrestTimeout } from './timeout';
-import { fxRateService } from '@/lib/services/fx-rate.service';
+import { fxRateService } from '@/lib/services';
 
 export interface QuoteParams {
   amount: string;

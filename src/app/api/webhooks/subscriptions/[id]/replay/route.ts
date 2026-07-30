@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ErrorHandler } from '@/lib/error-handler';
-import { getDeliveryLogById } from '@/lib/webhook/delivery-log';
-import { enqueue } from '@/lib/webhook/dispatcher';
-import { getSubscription } from '@/lib/webhook/subscription-store';
+import { getDeliveryLogById } from '@/lib/webhook';
+import { enqueue } from '@/lib/webhook';
+import { getSubscription } from '@/lib/webhook';
 import { requireApiKeyAdmin } from '@/app/api/api-keys/_utils';
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {

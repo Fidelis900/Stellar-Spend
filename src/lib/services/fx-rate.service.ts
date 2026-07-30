@@ -9,7 +9,7 @@
  *  - Multi-currency batch fetch
  *
  * Usage:
- *   import { fxRateService } from '@/lib/services/fx-rate.service';
+ *   import { fxRateService } from '@/lib/services';
  *
  *   const rate = await fxRateService.getRate('NGN');
  *   const rates = await fxRateService.getRates(['NGN', 'KES', 'GHS']);

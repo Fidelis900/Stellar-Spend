@@ -6,7 +6,7 @@ vi.mock('@/lib/db/client', () => ({
   },
 }));
 
-import { pool } from '@/lib/db/client';
+import { pool } from '@/lib/db';
 import {
   buildTransactionAnalyticsReport,
   getTransactionAnalytics,

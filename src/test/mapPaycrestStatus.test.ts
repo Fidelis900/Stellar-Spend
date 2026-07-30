@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { mapPaycrestStatus } from '@/lib/offramp/utils/mapPaycrestStatus';
+import { mapPaycrestStatus } from '@/lib/offramp';
 
 describe('mapPaycrestStatus', () => {
   it('maps payment_order.pending to pending', () => {

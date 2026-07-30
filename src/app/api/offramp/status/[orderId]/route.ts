@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { env } from '@/lib/env';
-import { get, set, isFresh } from '@/lib/polling/status-cache';
+import { get, set, isFresh } from '@/lib/polling';
 import { ErrorHandler } from '@/lib/error-handler';
 
 export const maxDuration = 10;

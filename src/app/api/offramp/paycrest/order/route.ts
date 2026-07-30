@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { env } from '@/lib/env';
-import { paycrestOrderLimiter, getClientIp } from '@/lib/offramp/utils/rate-limiter';
-import { generateRequestId, createRequestLogger } from '@/lib/offramp/utils/logger';
+import { paycrestOrderLimiter, getClientIp } from '@/lib/offramp';
+import { generateRequestId, createRequestLogger } from '@/lib/offramp';
 import { withIdempotency } from '@/lib/idempotency';
 import { ErrorHandler } from '@/lib/error-handler';
 import { ApiError, ErrorType } from '@/lib/error-types';
-import { paycrestOrderRouteSchema, formatZodErrors } from '@/lib/validators/schemas';
+import { paycrestOrderRouteSchema, formatZodErrors } from '@/lib/validators';
 
 export const maxDuration = 20;
 
-import { PayoutOrderRequest } from '@/lib/offramp/types';
+import { PayoutOrderRequest } from '@/lib/offramp';
 
-import { PaycrestAdapter, PaycrestHttpError } from '@/lib/offramp/adapters/paycrest-adapter';
+import { PaycrestAdapter, PaycrestHttpError } from '@/lib/offramp';
 
 function withRequestId<T>(response: NextResponse<T>, requestId: string): NextResponse<T> {
   response.headers.set('X-Request-Id', requestId);

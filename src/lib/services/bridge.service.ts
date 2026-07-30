@@ -1,5 +1,5 @@
-import { validateAmount, validateAddress } from '@/lib/offramp/utils/validation';
-import { extractErrorMessage } from '@/lib/offramp/utils/errors';
+import { validateAmount, validateAddress } from '@/lib/offramp';
+import { extractErrorMessage } from '@/lib/offramp';
 
 export interface BuildTxRequest {
   amount: string;

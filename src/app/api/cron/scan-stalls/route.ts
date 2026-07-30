@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { scanStalledTransactions, getTimeoutMetrics } from '@/lib/transaction-timeout';
-import { dal } from '@/lib/db/dal';
+import { dal } from '@/lib/db';
 import { logger } from '@/lib/logger';
 import { ErrorHandler } from '@/lib/error-handler';
 import { ApiError, ErrorType } from '@/lib/error-types';

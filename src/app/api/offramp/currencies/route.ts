@@ -2,7 +2,7 @@ import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { env } from '@/lib/env';
 import { ErrorHandler } from '@/lib/error-handler';
-import { withPaycrestTimeout } from '@/lib/offramp/utils/timeout';
+import { withPaycrestTimeout } from '@/lib/offramp';
 import { getActiveCurrencies, isSupportedCurrency, validateCurrencyAmount } from '@/lib/currencies';
 import { getCurrencyFlag } from '@/lib/currency-flags';
 

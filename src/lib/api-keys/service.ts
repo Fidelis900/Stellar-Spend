@@ -1,5 +1,5 @@
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'crypto';
-import { pool } from '@/lib/db/client';
+import { pool } from '@/lib/db';
 import type {
   ApiKeyAnalytics,
   ApiKeyRecord,

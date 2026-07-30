@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   getPendingScheduledTransactions,
   executeScheduledTransaction,
-} from '@/lib/services/scheduling.service';
+} from '@/lib/services';
 import { logger } from '@/lib/logger';
 import { ErrorHandler } from '@/lib/error-handler';
 import { ApiError, ErrorType } from '@/lib/error-types';

@@ -22,7 +22,7 @@ vi.mock('@/lib/idempotency', () => ({
 }));
 
 import { POST } from '@/app/api/offramp/execute-payout/route';
-import { dal } from '@/lib/db/dal';
+import { dal } from '@/lib/db';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

@@ -1,4 +1,4 @@
-import { eventBus } from '@/lib/events/bus';
+import { eventBus } from '@/lib/events';
 import { recordFeeCapture, seedStandardAccounts } from './entries';
 import { logger } from '@/lib/logger';
 

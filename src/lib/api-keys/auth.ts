@@ -4,10 +4,10 @@ import {
   authenticateApiKey,
   checkApiKeyRateLimit,
   recordApiKeyUsage,
-} from '@/lib/api-keys/service';
+} from '@/lib/api-keys';
 import type { ApiKeyRecord } from '@/lib/api-keys/types';
-import { getClientIp } from '@/lib/offramp/utils/rate-limiter';
-import { enforceScope } from '@/lib/middleware/scope-enforcement.middleware';
+import { getClientIp } from '@/lib/offramp';
+import { enforceScope } from '@/lib/middleware';
 
 function extractApiKey(request: NextRequest): string | null {
   const xApiKey = request.headers.get('x-api-key');

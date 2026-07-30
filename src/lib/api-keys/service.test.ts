@@ -13,7 +13,7 @@ import {
   checkApiKeyRateLimit,
   createApiKey,
   isValidAdminToken,
-} from '@/lib/api-keys/service';
+} from '@/lib/api-keys';
 
 describe('api key service', () => {
   beforeEach(() => {

@@ -43,7 +43,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { LedgerEntry } from '@/lib/ledger/types';
+import type { LedgerEntry } from '@/lib/ledger';
 
 // ── Lightweight in-memory ledger ──────────────────────────────────────────────
 
@@ -282,9 +282,9 @@ import {
   getEntriesByTransaction,
   seedStandardAccounts,
   LedgerError,
-} from '@/lib/ledger/entries';
+} from '@/lib/ledger';
 
-import { reconcileAccount, getReconciliationByReport } from '@/lib/ledger/reconciliation';
+import { reconcileAccount, getReconciliationByReport } from '@/lib/ledger';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

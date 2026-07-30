@@ -26,7 +26,7 @@ import {
 
 import { ErrorType, ERROR_STATUS_CODES, ApiError } from '@/lib/error-types';
 
-import { mapPaycrestStatus } from '@/lib/offramp/adapters/paycrest-adapter';
+import { mapPaycrestStatus } from '@/lib/offramp';
 
 import { KYCLimitService } from '@/lib/kyc-limits';
 

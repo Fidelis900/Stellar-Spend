@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { FeatureFlags } from '@/lib/feature-flags/schema';
+import type { FeatureFlags } from '@/lib/feature-flags';
 
 interface UseFeatureFlagResult {
   flags: FeatureFlags | null;

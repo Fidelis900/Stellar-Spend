@@ -19,10 +19,10 @@ import {
   isEncrypted,
   maskPiiForLog,
   rotateFieldEncryption,
-} from '@/lib/security/field-encryption';
-import { EncryptedTransactionRepository } from '@/lib/repositories/implementations/encrypted-transaction';
-import { InMemoryTransactionRepository } from '@/lib/repositories/implementations/in-memory-transaction';
-import type { Transaction } from '@/lib/repositories/transaction';
+} from '@/lib/security';
+import { EncryptedTransactionRepository } from '@/lib/repositories';
+import { InMemoryTransactionRepository } from '@/lib/repositories';
+import type { Transaction } from '@/lib/repositories';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

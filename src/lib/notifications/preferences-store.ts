@@ -1,5 +1,5 @@
-import { pool } from '@/lib/db/client';
-import type { ChannelEventRouting, NotificationPreferences } from '@/lib/notifications/types';
+import { pool } from '@/lib/db';
+import type { ChannelEventRouting, NotificationPreferences } from '@/lib/notifications';
 
 export class NotificationPreferenceStoreError extends Error {
   constructor(

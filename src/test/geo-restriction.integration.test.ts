@@ -6,7 +6,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
-import { resolveGeo, getCountryOverride, hasDeniedGeoConsent } from '@/lib/geo/geoip';
+import { resolveGeo, getCountryOverride, hasDeniedGeoConsent } from '@/lib/geo';
 
 // Mock function helpers
 function makeRequest(opts: {

@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { WalletManager } from '@/lib/wallets/manager';
-import { WalletType, WalletConnection, WalletError } from '@/lib/wallets/adapter';
+import { WalletManager } from '@/lib/wallets';
+import { WalletType, WalletConnection, WalletError } from '@/lib/wallets';
 
 interface FreighterWindow extends Window {
   freighter?: {

@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { pool } from '@/lib/db/client';
+import { pool } from '@/lib/db';
 import type { LedgerReconciliation, ReconciliationStatus } from './types';
 
 export class ReconciliationError extends Error {

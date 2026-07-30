@@ -30,7 +30,7 @@ vi.mock('@/lib/db/client', () => ({
 
 // ── Import SUT after mock registration ───────────────────────────────────────
 
-import { MerchantService } from '@/lib/services/merchant.service';
+import { MerchantService } from '@/lib/services';
 
 // ── Test data factories ────────────────────────────────────────────────────────
 

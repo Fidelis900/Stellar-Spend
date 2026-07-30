@@ -6,7 +6,7 @@ import {
   validateAmount,
   validateAccountNumber,
   isValidQuote,
-} from '@/lib/offramp/utils/validation';
+} from '@/lib/offramp';
 import { getCurrencyFlag } from '@/lib/currency-flags';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Label } from '@/components/ui/Label';
@@ -16,7 +16,7 @@ import { QuoteComparison, type ProviderQuote } from '@/components/QuoteCompariso
 import { Tooltip } from '@/components/Tooltip';
 import { InsuranceOption, type InsuranceQuote } from '@/components/InsuranceOption';
 import { useFxRate } from '@/hooks/useFxRate';
-import type { QuoteResult as QuoteFetcherResult } from '@/lib/offramp/utils/quote-fetcher';
+import type { QuoteResult as QuoteFetcherResult } from '@/lib/offramp';
 
 // ---------------------------------------------------------------------------
 // Types

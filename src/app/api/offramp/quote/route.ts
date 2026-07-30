@@ -1,12 +1,12 @@
 import { logger } from '@/lib/logger';
 import { NextResponse, type NextRequest } from 'next/server';
 import { env } from '@/lib/env';
-import { fetchPaycrestQuote, buildQuote, calculateBridgeAmount } from '@/lib/offramp/utils/quote-fetcher';
+import { fetchPaycrestQuote, buildQuote, calculateBridgeAmount } from '@/lib/offramp';
 import { ErrorHandler } from '@/lib/error-handler';
-import { withAllbridgeTimeout } from '@/lib/offramp/utils/timeout';
+import { withAllbridgeTimeout } from '@/lib/offramp';
 import { isSupportedCurrency } from '@/lib/currencies';
 import { screenAddress } from '@/lib/compliance-screening';
-import { quoteRouteSchema, formatZodErrors } from '@/lib/validators/schemas';
+import { quoteRouteSchema, formatZodErrors } from '@/lib/validators';
 import { ApiError, ErrorType } from '@/lib/error-types';
 
 export const maxDuration = 20;

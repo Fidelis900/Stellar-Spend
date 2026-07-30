@@ -15,7 +15,7 @@ vi.mock('@/lib/offramp/utils/rate-limiter', () => ({
   getClientIp: () => '127.0.0.1',
 }));
 
-import { withApiKeyAuth } from '@/lib/api-keys/auth';
+import { withApiKeyAuth } from '@/lib/api-keys';
 
 function makeRequest(headers: Record<string, string> = {}) {
   return new NextRequest('http://localhost/api/v1/offramp/quote', {

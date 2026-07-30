@@ -47,9 +47,9 @@ vi.mock('@/lib/env', () => ({
 }));
 
 import { POST } from '@/app/api/webhooks/paycrest/route';
-import { dal } from '@/lib/db/dal';
-import { notifyTransactionStatusUpdate } from '@/lib/notifications/service';
-import { enqueue } from '@/lib/webhook/dispatcher';
+import { dal } from '@/lib/db';
+import { notifyTransactionStatusUpdate } from '@/lib/notifications';
+import { enqueue } from '@/lib/webhook';
 
 async function hmacHex(body: string, secret: string): Promise<string> {
   const enc = new TextEncoder();

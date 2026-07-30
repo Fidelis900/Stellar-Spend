@@ -3,7 +3,7 @@ import { ErrorHandler } from '@/lib/error-handler';
 import {
   getNotificationPreferences,
   upsertNotificationPreferences,
-} from '@/lib/notifications/preferences-store';
+} from '@/lib/notifications';
 
 export async function GET(request: NextRequest) {
   const userAddress = request.nextUrl.searchParams.get('userAddress');

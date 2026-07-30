@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useGenericPolling } from '../useGenericPolling';
-import type { PollingConfig } from '@/lib/polling/backoff';
+import type { PollingConfig } from '@/lib/polling';
 
 const TEST_CONFIG: PollingConfig = {
   baseDelay: 100,

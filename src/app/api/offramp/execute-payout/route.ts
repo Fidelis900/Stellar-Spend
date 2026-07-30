@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
-import { dal } from '@/lib/db/dal';
+import { dal } from '@/lib/db';
 import type { Transaction } from '@/lib/transaction-storage';
 import { calculateAllFees } from '@/lib/fee-calculation';
 import { withIdempotency } from '@/lib/idempotency';

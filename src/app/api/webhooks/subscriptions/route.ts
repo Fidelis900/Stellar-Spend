@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ErrorHandler } from '@/lib/error-handler';
-import { createSubscription, listSubscriptions } from '@/lib/webhook/subscription-store';
-import { WebhookEvent } from '@/lib/webhook/subscription-types';
+import { createSubscription, listSubscriptions } from '@/lib/webhook';
+import { WebhookEvent } from '@/lib/webhook';
 import {
   isSupportedSchemaVersion,
   SUPPORTED_SCHEMA_VERSIONS,
   type SchemaVersion,
-} from '@/lib/webhook/schema-versions';
+} from '@/lib/webhook';
 import { requireApiKeyAdmin } from '@/app/api/api-keys/_utils';
 
 const VALID_EVENTS: WebhookEvent[] = [

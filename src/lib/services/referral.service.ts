@@ -1,4 +1,4 @@
-import { pool } from '@/lib/db/client';
+import { pool } from '@/lib/db';
 import crypto from 'crypto';
 
 export interface ReferralCode {

@@ -4,7 +4,7 @@ import { useMemo, useState, useCallback } from 'react';
 import { cn } from '@/lib/cn';
 import { useCurrencyConverter } from '@/hooks/useCurrencyConverter';
 import { isSupportedStablecoin } from '@/lib/stablecoins';
-import { stellarSwapService, type StellarSwapQuote } from '@/lib/services/stellar-swap.service';
+import { stellarSwapService, type StellarSwapQuote } from '@/lib/services';
 import SwapPreview from '@/components/SwapPreview';
 
 export default function CurrencyConverter({ className }: { className?: string }) {

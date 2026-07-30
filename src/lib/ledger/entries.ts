@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'crypto';
-import { pool } from '@/lib/db/client';
+import { pool } from '@/lib/db';
 import type { LedgerEntry, EntryType } from './types';
 
 export class LedgerError extends Error {

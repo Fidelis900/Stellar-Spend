@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { graphql, parse, validate } from 'graphql';
-import { schema } from '@/lib/graphql/schema';
-import { resolvers, subscriptions } from '@/lib/graphql/resolvers';
-import { buildContext } from '@/lib/graphql/context';
+import { schema } from '@/lib/graphql';
+import { resolvers, subscriptions } from '@/lib/graphql';
+import { buildContext } from '@/lib/graphql';
 
 function createContext(overrides?: Partial<ReturnType<typeof buildContext>>) {
   return {

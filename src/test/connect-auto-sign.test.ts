@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { StellarWalletAdapter, _resetAdapterSingleton } from '@/lib/stellar/wallet-adapter';
+import { StellarWalletAdapter, _resetAdapterSingleton } from '@/lib/stellar';
 
 // ── Mock @stellar/freighter-api ────────────────────────────────────────────────
 vi.mock('@stellar/freighter-api', () => ({

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ErrorHandler } from '@/lib/error-handler';
-import { merchantService } from '@/lib/services/merchant.service';
+import { merchantService } from '@/lib/services';
 
 // GET /api/merchant/stats?merchantId=
 export async function GET(request: NextRequest) {

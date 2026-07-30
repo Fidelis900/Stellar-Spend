@@ -2,9 +2,9 @@ import { logger } from '@/lib/logger';
 /**
  * Automated refund service for failed/expired transactions.
  */
-import { dal, DatabaseError } from '@/lib/db/dal';
+import { dal, DatabaseError } from '@/lib/db';
 import type { Transaction } from '@/lib/transaction-storage';
-import { notifyTransactionStatusUpdate } from '@/lib/notifications/service';
+import { notifyTransactionStatusUpdate } from '@/lib/notifications';
 
 export type RefundReason = 'payment_failed' | 'timeout' | 'expired' | 'manual';
 
