@@ -1,13 +1,13 @@
-import { defaultAdapters } from '@/lib/notifications/adapters';
+import { defaultAdapters } from '@/lib/notifications';
 import {
   createNotificationDelivery,
   getNotificationDeliveriesForTransaction,
   retryNotificationDelivery,
-} from '@/lib/notifications/delivery-store';
+} from '@/lib/notifications';
 import {
   getNotificationPreferences,
   upsertNotificationPreferences,
-} from '@/lib/notifications/preferences-store';
+} from '@/lib/notifications';
 import { buildNotificationTemplate, deriveNotificationEvent } from '@/lib/notifications/templates';
 import type {
   ChannelAdapter,
@@ -16,7 +16,7 @@ import type {
   NotificationContext,
   NotificationPreferences,
   TransactionNotificationEvent,
-} from '@/lib/notifications/types';
+} from '@/lib/notifications';
 
 const MAX_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 1_000;
@@ -188,4 +188,4 @@ export async function getTransactionNotificationDeliveries(transactionId: string
   return getNotificationDeliveriesForTransaction(transactionId);
 }
 
-export type { NotificationPreferences } from '@/lib/notifications/types';
+export type { NotificationPreferences } from '@/lib/notifications';

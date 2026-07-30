@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRequiredScope, hasRequiredScope, type Scope } from '@/lib/api-keys/scopes';
+import { getRequiredScope, hasRequiredScope, type Scope } from '@/lib/api-keys';
 import type { ApiKeyRecord } from '@/lib/api-keys/types';
 import { auditLoggingService } from '@/lib/audit-logging';
 import { ErrorHandler } from '@/lib/error-handler';

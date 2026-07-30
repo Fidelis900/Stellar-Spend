@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, Badge, Button } from '@/components/design-system';
-import type { MerchantStats, MerchantPayout } from '@/lib/services/merchant.service';
+import type { MerchantStats, MerchantPayout } from '@/lib/services';
 
 interface MerchantDashboardProps {
   merchantId: string;

@@ -16,8 +16,8 @@ import {
   hasRequiredScope,
   SCOPE_CATALOG,
   type Scope,
-} from '@/lib/api-keys/scopes';
-import { enforceScope } from '@/lib/middleware/scope-enforcement.middleware';
+} from '@/lib/api-keys';
+import { enforceScope } from '@/lib/middleware';
 import type { ApiKeyRecord } from '@/lib/api-keys/types';
 import { NextRequest } from 'next/server';
 

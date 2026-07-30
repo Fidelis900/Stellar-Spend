@@ -6,7 +6,7 @@ import {
   isTransactionTimedOut,
   TRANSACTION_TIMEOUT_MS,
 } from '@/lib/transaction-timeout';
-import { dal } from '@/lib/db/dal';
+import { dal } from '@/lib/db';
 
 export const maxDuration = 30;
 

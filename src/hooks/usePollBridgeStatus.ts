@@ -1,15 +1,15 @@
 'use client';
 
 import { useCallback } from 'react';
-import type { BridgeStatus } from '@/lib/offramp/types';
+import type { BridgeStatus } from '@/lib/offramp';
 import { TransactionStorage } from '@/lib/transaction-storage';
 import {
   usePollingManager,
   DurationExceededError,
   ConsecutiveErrorsExceededError,
-} from '@/lib/polling/polling-manager';
-import type { StatusResponse } from '@/lib/polling/polling-manager';
-import { BRIDGE_CONFIG } from '@/lib/polling/backoff';
+} from '@/lib/polling';
+import type { StatusResponse } from '@/lib/polling';
+import { BRIDGE_CONFIG } from '@/lib/polling';
 
 const BRIDGE_TERMINAL_STATES: BridgeStatus[] = ['completed', 'failed', 'expired'];
 

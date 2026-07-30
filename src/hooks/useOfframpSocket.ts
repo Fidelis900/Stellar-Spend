@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { connectWebSocket } from '@/lib/polling/websocket-client';
-import type { StatusPush } from '@/lib/polling/ws-server';
+import { connectWebSocket } from '@/lib/polling';
+import type { StatusPush } from '@/lib/polling';
 
 export type SocketState = 'connecting' | 'connected' | 'disconnected';
 

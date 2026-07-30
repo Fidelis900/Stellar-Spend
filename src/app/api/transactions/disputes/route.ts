@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
-import { disputeRepository } from '@/lib/repositories/dispute-repository';
+import { disputeRepository } from '@/lib/repositories';
 import { CreateDisputeRequest } from '@/types/disputes';
 import { withIdempotency } from '@/lib/idempotency';
 import { ErrorHandler } from '@/lib/error-handler';

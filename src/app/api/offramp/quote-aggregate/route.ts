@@ -1,7 +1,7 @@
 import { logger } from '@/lib/logger';
 import { NextResponse, type NextRequest } from 'next/server';
-import { validateAmount } from '@/lib/offramp/utils/validation';
-import { calculateBridgeAmount } from '@/lib/offramp/utils/quote-fetcher';
+import { validateAmount } from '@/lib/offramp';
+import { calculateBridgeAmount } from '@/lib/offramp';
 import { aggregateQuotes, type QuoteProvider } from '@/lib/quote-aggregator';
 import { ErrorHandler } from '@/lib/error-handler';
 import { ApiError, ErrorType } from '@/lib/error-types';

@@ -61,7 +61,7 @@ vi.mock('@/lib/error-handler', () => ({
 }));
 
 import { POST } from '@/app/api/offramp/quote/route';
-import * as quoteFetcher from '@/lib/offramp/utils/quote-fetcher';
+import * as quoteFetcher from '@/lib/offramp';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

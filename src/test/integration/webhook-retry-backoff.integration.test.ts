@@ -57,11 +57,11 @@ vi.mock('@/lib/webhook/security', () => ({
 // Imports after mocks
 // ---------------------------------------------------------------------------
 
-import { pool } from '@/lib/db/client';
-import { calculateBackoff, hasRemainingAttempts } from '@/lib/webhook/retry-scheduler';
-import { attempt, markFailed } from '@/lib/webhook/dispatcher';
-import { updateRecord } from '@/lib/webhook/delivery-store';
-import type { DeliveryRecord, WebhookPayload } from '@/lib/webhook/types';
+import { pool } from '@/lib/db';
+import { calculateBackoff, hasRemainingAttempts } from '@/lib/webhook';
+import { attempt, markFailed } from '@/lib/webhook';
+import { updateRecord } from '@/lib/webhook';
+import type { DeliveryRecord, WebhookPayload } from '@/lib/webhook';
 
 // ---------------------------------------------------------------------------
 // Environment setup

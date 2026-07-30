@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { successResponse } from '@/lib/api-utils';
-import { AppError, createErrorResponse } from '@/lib/middleware/error-handler.middleware';
-import { ERROR_CODES } from '@/lib/middleware/error-codes';
+import { AppError, createErrorResponse } from '@/lib/middleware';
+import { ERROR_CODES } from '@/lib/middleware';
 
 // ---------------------------------------------------------------------------
 // successResponse
@@ -57,7 +57,7 @@ describe('createErrorResponse', () => {
 // ---------------------------------------------------------------------------
 // getStatusCode — error range mapping
 // ---------------------------------------------------------------------------
-import { getStatusCode } from '@/lib/middleware/error-codes';
+import { getStatusCode } from '@/lib/middleware';
 
 describe('getStatusCode', () => {
   it('returns 400 for validation errors (4001-4009)', () => {

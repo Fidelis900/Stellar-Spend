@@ -12,16 +12,16 @@ vi.mock('@/lib/notifications/delivery-store', () => ({
   getNotificationDeliveriesForTransaction: vi.fn(),
 }));
 
-import { notifyTransactionStatusUpdate } from '@/lib/notifications/service';
-import type { ChannelAdapter } from '@/lib/notifications/types';
+import { notifyTransactionStatusUpdate } from '@/lib/notifications';
+import type { ChannelAdapter } from '@/lib/notifications';
 import {
   getNotificationPreferences,
   upsertNotificationPreferences,
-} from '@/lib/notifications/preferences-store';
+} from '@/lib/notifications';
 import {
   createNotificationDelivery,
   retryNotificationDelivery,
-} from '@/lib/notifications/delivery-store';
+} from '@/lib/notifications';
 
 const getPrefsMock = vi.mocked(getNotificationPreferences);
 const createDeliveryMock = vi.mocked(createNotificationDelivery);

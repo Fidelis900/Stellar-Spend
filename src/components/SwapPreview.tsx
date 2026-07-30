@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/cn';
-import type { StellarSwapQuote } from '@/lib/services/stellar-swap.service';
+import type { StellarSwapQuote } from '@/lib/services';
 
 interface SwapPreviewProps {
   quote: StellarSwapQuote | null;

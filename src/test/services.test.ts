@@ -5,7 +5,7 @@ import { PayoutService } from '@/lib/services/payout.service';
 import { WebhookService } from '@/lib/services/webhook.service';
 import { TransactionService } from '@/lib/services/transaction.service';
 import { DIContainer } from '@/lib/di/container';
-import { configureServices, SERVICE_KEYS, overrideService } from '@/lib/di/registry';
+import { configureServices, SERVICE_KEYS, overrideService } from '@/lib/di';
 
 describe('QuoteService', () => {
   let service: QuoteService;

@@ -5,7 +5,7 @@ import {
   createInsurance,
   getInsuranceStatus,
   fileClaim,
-} from '@/lib/services/insurance.service';
+} from '@/lib/services';
 import { withIdempotency } from '@/lib/idempotency';
 
 type RouteContext = { params: Promise<{ id: string }> };

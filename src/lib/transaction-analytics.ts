@@ -1,4 +1,4 @@
-import { pool } from '@/lib/db/client';
+import { pool } from '@/lib/db';
 import type { Transaction } from '@/lib/transaction-storage';
 
 export interface DailyTransactionReport {

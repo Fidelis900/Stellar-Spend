@@ -10,7 +10,7 @@ import {
   getReferralAnalytics,
   getReferralLeaderboard,
   detectReferralFraud,
-} from '@/lib/services/referral.service';
+} from '@/lib/services';
 import { withIdempotency } from '@/lib/idempotency';
 
 export async function POST(req: NextRequest) {

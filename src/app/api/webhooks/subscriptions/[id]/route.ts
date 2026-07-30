@@ -4,9 +4,9 @@ import {
   getSubscription,
   updateSubscription,
   deleteSubscription,
-} from '@/lib/webhook/subscription-store';
+} from '@/lib/webhook';
 import { requireApiKeyAdmin } from '@/app/api/api-keys/_utils';
-import { isSupportedSchemaVersion, SUPPORTED_SCHEMA_VERSIONS } from '@/lib/webhook/schema-versions';
+import { isSupportedSchemaVersion, SUPPORTED_SCHEMA_VERSIONS } from '@/lib/webhook';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const unauthorized = requireApiKeyAdmin(request);

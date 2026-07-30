@@ -1,4 +1,4 @@
-import { dal } from '@/lib/db/dal';
+import { dal } from '@/lib/db';
 import type { Transaction } from '@/lib/transaction-storage';
 
 export interface TransactionFilter {

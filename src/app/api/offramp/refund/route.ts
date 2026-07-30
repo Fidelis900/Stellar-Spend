@@ -4,8 +4,8 @@ import {
   processRefund,
   processEligibleRefunds,
   isRefundEligible,
-} from '@/lib/refund/refund-service';
-import { dal } from '@/lib/db/dal';
+} from '@/lib/refund';
+import { dal } from '@/lib/db';
 import { withIdempotency } from '@/lib/idempotency';
 import type { NextRequest } from 'next/server';
 

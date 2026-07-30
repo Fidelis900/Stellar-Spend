@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/cn';
-import { PayrollTemplateStorage } from '@/lib/payroll/storage';
-import type { PayrollTemplate, PayrollRecipient } from '@/lib/payroll/types';
+import { PayrollTemplateStorage } from '@/lib/payroll';
+import type { PayrollTemplate, PayrollRecipient } from '@/lib/payroll';
 import type { RecurringFrequency } from '@/lib/recurring-transactions';
 
 interface Props {

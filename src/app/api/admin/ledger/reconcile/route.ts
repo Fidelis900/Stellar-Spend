@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ErrorHandler } from '@/lib/error-handler';
-import { reconcileAccount, getReconciliationByReport } from '@/lib/ledger/reconciliation';
-import { verifyBalances } from '@/lib/ledger/entries';
+import { reconcileAccount, getReconciliationByReport } from '@/lib/ledger';
+import { verifyBalances } from '@/lib/ledger';
 import { requireApiKeyAdmin } from '@/app/api/api-keys/_utils';
 
 export async function POST(request: NextRequest) {

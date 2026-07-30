@@ -1,8 +1,8 @@
 import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { globalContainer } from '@/lib/di';
-import { SERVICE_KEYS } from '@/lib/di/registry';
-import { onrampProviderRegistry } from '@/lib/onramp/adapters/provider-registry';
+import { SERVICE_KEYS } from '@/lib/di';
+import { onrampProviderRegistry } from '@/lib/onramp';
 import { verifyHmacSignature } from '@/lib/webhookVerify';
 import { ErrorHandler } from '@/lib/error-handler';
 import { ApiError, ErrorType } from '@/lib/error-types';

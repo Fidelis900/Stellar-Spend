@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import { formatDate, formatNumber } from '@/lib/i18n/format';
-import { qrCodeService } from '@/lib/services/qrcode-service';
+import { qrCodeService } from '@/lib/services';
 import { QRCodeDisplay } from './QRCodeDisplay';
 
 export interface ReceiptData {

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { TransactionService } from './transaction.service';
-import * as dalModule from '@/lib/db/dal';
+import * as dalModule from '@/lib/db';
 import type { Transaction } from '@/lib/transaction-storage';
 
 vi.mock('@/lib/db/dal');

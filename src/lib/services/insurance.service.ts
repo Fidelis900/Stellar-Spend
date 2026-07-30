@@ -1,4 +1,4 @@
-import { db } from '@/lib/db/client';
+import { db } from '@/lib/db';
 
 export interface InsuranceQuote {
   premium: number;

@@ -5,7 +5,7 @@ import { ErrorHandler } from '@/lib/error-handler';
 
 export const maxDuration = 10;
 
-import { PaycrestAdapter, PaycrestHttpError } from '@/lib/offramp/adapters/paycrest-adapter';
+import { PaycrestAdapter, PaycrestHttpError } from '@/lib/offramp';
 
 /**
  * GET /api/offramp/paycrest/order/[orderId]

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { registry } from '@/lib/api-versioning/registry';
+import { registry } from '@/lib/api-versioning';
 
 export async function GET() {
   const versions = registry.getAll().map((entry) => {

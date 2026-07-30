@@ -10,7 +10,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { EmailAdapter, SmsAdapter, PushAdapter } from '@/lib/notifications/adapters';
+import { EmailAdapter, SmsAdapter, PushAdapter } from '@/lib/notifications';
 
 // ── test helpers ──────────────────────────────────────────────────────────────
 

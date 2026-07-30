@@ -18,3 +18,4 @@ export {
   validateEvmAddressLegacy,
   sanitizeInputLegacy,
 } from './custom-rules';
+export * from './schemas';

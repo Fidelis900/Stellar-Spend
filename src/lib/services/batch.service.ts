@@ -1,4 +1,4 @@
-import { pool as db } from '@/lib/db/client';
+import { pool as db } from '@/lib/db';
 
 export interface BatchTransaction {
   id: string;

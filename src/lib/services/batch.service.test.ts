@@ -7,7 +7,7 @@ vi.mock('@/lib/db/client', () => ({
   },
 }));
 
-import { pool as db } from '@/lib/db/client';
+import { pool as db } from '@/lib/db';
 import {
   createBatch,
   addTransactionToBatch,

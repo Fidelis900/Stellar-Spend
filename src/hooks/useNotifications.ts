@@ -5,12 +5,12 @@ import type {
   NotificationPreferences,
   NotificationDeliveryRecord,
   NotificationChannel,
-} from '@/lib/notifications/types';
+} from '@/lib/notifications';
 import {
   getOrCreateNotificationPreferences,
   upsertNotificationPreferences,
   getTransactionNotificationDeliveries,
-} from '@/lib/notifications/service';
+} from '@/lib/notifications';
 
 interface NotificationState {
   preferences: NotificationPreferences | null;

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { queryOptimizer } from '@/lib/db/query-optimizer';
+import { queryOptimizer } from '@/lib/db';
 import { logger } from '@/lib/logger';
 import { ErrorHandler } from '@/lib/error-handler';
 

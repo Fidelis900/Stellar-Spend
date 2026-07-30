@@ -50,8 +50,8 @@ vi.mock('@/lib/offramp/adapters/paycrest-adapter', () => ({
 }));
 
 import { POST } from '@/app/api/offramp/paycrest/order/route';
-import { PaycrestHttpError } from '@/lib/offramp/adapters/paycrest-adapter';
-import * as rateLimiter from '@/lib/offramp/utils/rate-limiter';
+import { PaycrestHttpError } from '@/lib/offramp';
+import * as rateLimiter from '@/lib/offramp';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

@@ -8,7 +8,7 @@ import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { ErrorHandler } from '@/lib/error-handler';
 import { ApiError, ErrorType } from '@/lib/error-types';
-import { fxRateService } from '@/lib/services/fx-rate.service';
+import { fxRateService } from '@/lib/services';
 
 export const maxDuration = 10;
 // Edge CDN revalidation: 30 s

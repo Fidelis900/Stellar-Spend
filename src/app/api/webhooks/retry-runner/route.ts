@@ -1,10 +1,16 @@
 import { NextResponse } from 'next/server';
-import { getDueRecords, updateRecord } from '@/lib/webhook/delivery-store';
-import * as dispatcher from '@/lib/webhook/dispatcher';
-import * as dlq from '@/lib/webhook/dlq';
-import * as alertService from '@/lib/webhook/alert-service';
-import { scheduleNext, hasRemainingAttempts } from '@/lib/webhook/retry-scheduler';
-import type { DeliveryRecord } from '@/lib/webhook/types';
+import {
+  getDueRecords,
+  updateRecord,
+  attempt,
+  markDelivered,
+  markFailed,
+  writeDlq,
+  scheduleNext,
+  hasRemainingAttempts,
+} from '@/lib/webhook';
+import { notify as alertNotify } from '@/lib/webhook';
+import type { DeliveryRecord } from '@/lib/webhook';
 import { ErrorHandler } from '@/lib/error-handler';
 
 interface RecordResult {
@@ -20,14 +26,13 @@ interface RecordResult {
  * processing records one at a time in a sequential loop.
  */
 async function processRecord(record: DeliveryRecord): Promise<RecordResult> {
-  const result = await dispatcher.attempt(record);
+  const result = await attempt(record);
 
   if (result.success) {
-    await dispatcher.markDelivered(record.id, record.attemptCount + 1);
+    await markDelivered(record.id, record.attemptCount + 1);
     return { id: record.id, outcome: 'delivered', attemptCount: record.attemptCount + 1 };
   }
 
-  // Failure path: check if retryable and has remaining attempts
   const updatedRecord: DeliveryRecord = {
     ...record,
     attemptCount: record.attemptCount + 1,
@@ -42,10 +47,9 @@ async function processRecord(record: DeliveryRecord): Promise<RecordResult> {
     return { id: record.id, outcome: 'retryScheduled', attemptCount: updatedRecord.attemptCount };
   }
 
-  // Non-retryable or max attempts reached
-  await dispatcher.markFailed(updatedRecord);
-  const dlqEntry = await dlq.write(updatedRecord);
-  await alertService.notify(dlqEntry);
+  await markFailed(updatedRecord);
+  const dlqEntry = await writeDlq(updatedRecord);
+  await alertNotify(dlqEntry);
 
   return {
     id: record.id,

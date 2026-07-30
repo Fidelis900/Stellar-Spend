@@ -5,7 +5,7 @@ import {
   withPaycrestTimeout,
   withSorobanTimeout,
   TIMEOUT_CONFIG,
-} from '@/lib/offramp/utils/timeout';
+} from '@/lib/offramp';
 
 describe('Timeout Utilities', () => {
   beforeEach(() => {

@@ -56,8 +56,8 @@ vi.mock('@allbridge/bridge-core-sdk', () => ({
 }));
 
 import { POST } from '@/app/api/offramp/bridge/build-tx/route';
-import * as validation from '@/lib/offramp/utils/validation';
-import * as rateLimiter from '@/lib/offramp/utils/rate-limiter';
+import * as validation from '@/lib/offramp';
+import * as rateLimiter from '@/lib/offramp';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { pool } from '@/lib/db/client';
-import { queryOptimizer } from '@/lib/db/query-optimizer';
+import { pool } from '@/lib/db';
+import { queryOptimizer } from '@/lib/db';
 import { logger } from '@/lib/logger';
 import { ErrorHandler } from '@/lib/error-handler';
 import { ApiError, ErrorType } from '@/lib/error-types';

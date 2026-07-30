@@ -1,4 +1,4 @@
-import type { ChannelAdapter, DeliveryResult } from '@/lib/notifications/types';
+import type { ChannelAdapter, DeliveryResult } from '@/lib/notifications';
 
 function getProviderMessageId(payload: unknown): string | undefined {
   if (payload && typeof payload === 'object') {

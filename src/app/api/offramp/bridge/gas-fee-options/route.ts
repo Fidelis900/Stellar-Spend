@@ -1,7 +1,7 @@
 import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { env } from '@/lib/env';
-import { withAllbridgeTimeout } from '@/lib/offramp/utils/timeout';
+import { withAllbridgeTimeout } from '@/lib/offramp';
 import { ErrorHandler } from '@/lib/error-handler';
 
 export const maxDuration = 20;

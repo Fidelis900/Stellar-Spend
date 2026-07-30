@@ -7,7 +7,7 @@ vi.mock('@/lib/db/client', () => ({
   },
 }));
 
-import { db } from '@/lib/db/client';
+import { db } from '@/lib/db';
 import {
   scheduleTransaction,
   getScheduledTransactions,

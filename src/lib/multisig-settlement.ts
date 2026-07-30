@@ -7,7 +7,7 @@
 
 import crypto from 'crypto';
 import { logger } from '@/lib/logger';
-import { pool } from '@/lib/db/client';
+import { pool } from '@/lib/db';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

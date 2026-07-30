@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { resolveGeo, hasDeniedGeoConsent } from '@/lib/geo/geoip';
+import { resolveGeo, hasDeniedGeoConsent } from '@/lib/geo';
 import { getJurisdictionStatus } from '@/lib/kyc-limits';
 import { getDefaultCurrencyForCountry } from '@/lib/currencies';
 

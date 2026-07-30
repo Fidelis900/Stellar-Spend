@@ -3,7 +3,7 @@ import { logger } from '@/lib/logger';
 
 import { useState, useRef } from 'react';
 import { QRCodeData } from '@/types/qrcode';
-import { qrCodeService } from '@/lib/services/qrcode-service';
+import { qrCodeService } from '@/lib/services';
 
 interface QRCodeDisplayProps {
   data: QRCodeData;

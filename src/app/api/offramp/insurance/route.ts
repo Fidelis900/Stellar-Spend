@@ -9,7 +9,7 @@ import {
   rejectClaim,
   processInsurancePayout,
   getInsuranceAnalytics,
-} from '@/lib/services/insurance.service';
+} from '@/lib/services';
 import { withIdempotency } from '@/lib/idempotency';
 
 export async function GET(req: NextRequest) {

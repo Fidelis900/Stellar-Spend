@@ -1,9 +1,9 @@
 import { randomUUID } from 'crypto';
-import { pool } from '@/lib/db/client';
+import { pool } from '@/lib/db';
 import type {
   NotificationDeliveryRecord,
   NotificationDeliveryStatus,
-} from '@/lib/notifications/types';
+} from '@/lib/notifications';
 
 export class NotificationDeliveryStoreError extends Error {
   constructor(

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { HttpClient, HttpClientError, CircuitOpenError } from '@/lib/clients/http-client';
-import { TTL, CacheKey } from '@/lib/cache/keys';
+import { HttpClient, HttpClientError, CircuitOpenError } from '@/lib/clients';
+import { TTL, CacheKey } from '@/lib/cache';
 
 // ─── HttpClient: circuit breaker mutations ────────────────────────────────────
 

@@ -62,7 +62,7 @@ import {
   getReferralStats,
   trackReferral,
   createReferralCode,
-} from '@/lib/services/referral.service';
+} from '@/lib/services';
 
 // ---------------------------------------------------------------------------
 // Helpers

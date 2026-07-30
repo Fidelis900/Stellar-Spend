@@ -19,7 +19,7 @@ import type {
   OnrampOrderStatus,
   OnrampState,
   OnrampWebhookPayload,
-} from '@/lib/onramp/types';
+} from '@/lib/onramp';
 
 // Mock implementation of onramp service for testing
 interface TestOnrampOrder {

@@ -7,8 +7,8 @@ import {
   webhookQueries,
   webhookMutations,
   webhookSubscriptions,
-} from '@/lib/graphql/resolvers/webhooks';
-import type { GraphQLContext } from '@/lib/graphql/context';
+} from '@/lib/graphql';
+import type { GraphQLContext } from '@/lib/graphql';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

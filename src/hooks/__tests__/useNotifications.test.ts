@@ -33,11 +33,11 @@ import {
   getOrCreateNotificationPreferences,
   upsertNotificationPreferences,
   getTransactionNotificationDeliveries,
-} from '@/lib/notifications/service';
+} from '@/lib/notifications';
 import type {
   NotificationPreferences,
   NotificationDeliveryRecord,
-} from '@/lib/notifications/types';
+} from '@/lib/notifications';
 
 // Cast to mocked function type for easy mock setup
 const mockGetOrCreate = getOrCreateNotificationPreferences as ReturnType<typeof vi.fn>;

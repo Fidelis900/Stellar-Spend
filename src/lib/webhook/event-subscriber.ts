@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { eventBus } from '@/lib/events/bus';
+import { eventBus } from '@/lib/events';
 import { getSubscriptionsByEvent } from './subscription-store';
 import { enqueue, attempt, markDelivered, markFailed } from './dispatcher';
 import { logDelivery } from './delivery-log';

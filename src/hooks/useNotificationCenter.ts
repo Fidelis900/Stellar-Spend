@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { PriceAlertStorage, type PriceAlert } from '@/lib/price-alerts';
-import type { NotificationDeliveryRecord } from '@/lib/notifications/types';
+import type { NotificationDeliveryRecord } from '@/lib/notifications';
 
 export type NotificationCenterEventType =
   | 'price_alert'

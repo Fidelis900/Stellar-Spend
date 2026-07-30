@@ -3,8 +3,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { accountQueries, accountMutations } from '@/lib/graphql/resolvers/accounts';
-import type { GraphQLContext } from '@/lib/graphql/context';
+import { accountQueries, accountMutations } from '@/lib/graphql';
+import type { GraphQLContext } from '@/lib/graphql';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

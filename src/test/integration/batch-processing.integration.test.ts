@@ -26,7 +26,7 @@ import {
   getBatchStatus,
   cancelBatch,
   getBatchAnalytics,
-} from '@/lib/services/batch.service';
+} from '@/lib/services';
 
 // ── Batch size limit (mirrors what the API / validation layer enforces) ────────
 // The service `executeBatch` delegates to a handler per item; size limits live

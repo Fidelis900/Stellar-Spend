@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runReconciliationJob, getReconciliationHistory } from '@/lib/reconciliation';
-import { dal } from '@/lib/db/dal';
+import { dal } from '@/lib/db';
 import { logger } from '@/lib/logger';
 import type { ReconciliationRecord } from '@/lib/reconciliation';
 import { ErrorHandler } from '@/lib/error-handler';

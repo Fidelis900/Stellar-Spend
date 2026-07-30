@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/cn';
-import type { WalletType } from '@/lib/stellar/wallet-adapter';
+import type { WalletType } from '@/lib/stellar';
 import { useFocusTrap, useFocusRestore } from '@/hooks/useFocusTrap';
 
 export interface WalletModalProps {

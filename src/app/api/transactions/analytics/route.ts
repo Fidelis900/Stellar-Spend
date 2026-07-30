@@ -1,7 +1,7 @@
 import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { globalContainer } from '@/lib/di';
-import { SERVICE_KEYS } from '@/lib/di/registry';
+import { SERVICE_KEYS } from '@/lib/di';
 import { getFunnelCounts } from '@/lib/performance';
 import { buildFunnelData } from '@/lib/funnel';
 import type { FunnelStep } from '@/lib/funnel';

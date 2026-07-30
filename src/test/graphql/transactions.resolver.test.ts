@@ -3,8 +3,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { transactionQueries, transactionSubscriptions } from '@/lib/graphql/resolvers/transactions';
-import type { GraphQLContext } from '@/lib/graphql/context';
+import { transactionQueries, transactionSubscriptions } from '@/lib/graphql';
+import type { GraphQLContext } from '@/lib/graphql';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

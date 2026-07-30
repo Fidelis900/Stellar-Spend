@@ -1,8 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { dal, DatabaseError } from '@/lib/db/dal';
+import { dal, DatabaseError } from '@/lib/db';
 import { ErrorHandler } from '@/lib/error-handler';
 import { withIdempotency } from '@/lib/idempotency';
-import { notifyTransactionStatusUpdate } from '@/lib/notifications/service';
+import { notifyTransactionStatusUpdate } from '@/lib/notifications';
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   return withIdempotency(

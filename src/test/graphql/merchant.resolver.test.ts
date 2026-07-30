@@ -7,8 +7,8 @@ import {
   merchantQueries,
   merchantMutations,
   merchantSubscriptions,
-} from '@/lib/graphql/resolvers/merchant';
-import type { GraphQLContext } from '@/lib/graphql/context';
+} from '@/lib/graphql';
+import type { GraphQLContext } from '@/lib/graphql';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

@@ -1,9 +1,9 @@
-import { validateAmount } from '@/lib/offramp/utils/validation';
+import { validateAmount } from '@/lib/offramp';
 import {
   fetchPaycrestQuote,
   buildQuote,
   calculateBridgeAmount,
-} from '@/lib/offramp/utils/quote-fetcher';
+} from '@/lib/offramp';
 import { isSupportedCurrency } from '@/lib/currencies';
 
 export interface QuoteRequest {
