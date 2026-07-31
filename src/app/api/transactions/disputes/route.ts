@@ -1,7 +1,7 @@
 import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { disputeRepository } from '@/lib/repositories';
-import { CreateDisputeRequest } from '@/types/disputes';
+import { CreateDisputeRequest } from '@shared/types/disputes';
 import { withIdempotency } from '@/lib/idempotency';
 import { ErrorHandler } from '@/lib/error-handler';
 import { ApiError, ErrorType } from '@/lib/error-types';

@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/cn';
-import type { RecentOfframpRow } from '@/types/stellaramp';
+import type { RecentOfframpRow } from '@shared/types/stellaramp';
 import { CopyButton } from './CopyButton';
 import { getCurrencyFlag } from '@/lib/currency-flags';
 import { TransactionTableSkeleton } from './skeletons';

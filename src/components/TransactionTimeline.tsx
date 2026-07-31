@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/cn';
-import type { OfframpStep } from '@/types/stellaramp';
+import type { OfframpStep } from '@shared/types/stellaramp';
 
 export interface TimelineStage {
   id: OfframpStep;

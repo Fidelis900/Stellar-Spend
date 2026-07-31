@@ -1,7 +1,7 @@
 import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { disputeRepository } from '@/lib/repositories';
-import { DisputeStatus, DisputeUpdate } from '@/types/disputes';
+import { DisputeStatus, DisputeUpdate } from '@shared/types/disputes';
 import { ErrorHandler } from '@/lib/error-handler';
 import { ApiError, ErrorType } from '@/lib/error-types';
 

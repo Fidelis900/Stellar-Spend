@@ -1,6 +1,6 @@
 'use client';
 
-import { Dispute } from '@/types/disputes';
+import { Dispute } from '@shared/types/disputes';
 import { useI18n } from '@/lib/i18n';
 import { cn } from '@/lib/cn';
 

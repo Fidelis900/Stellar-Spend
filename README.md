@@ -408,6 +408,39 @@ The CI build fails if `.next/` exceeds **150 MB**. Run `npm run build:analyze` t
 
 Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for branch naming conventions, commit message format, and the pull request process.
 
+### Secret Scanning
+
+This project uses [Gitleaks](https://github.com/gitleaks/gitleaks) to detect secrets before they are committed or pushed.
+
+**Run gitleaks locally before pushing:**
+
+```bash
+# Install gitleaks (macOS)
+brew install gitleaks
+
+# Or download the binary from https://github.com/gitleaks/gitleaks/releases
+
+# Scan the current directory for secrets
+gitleaks detect --source .
+
+# Scan a specific file or directory
+gitleaks detect --source src/test/fixtures/secret-scan/ --no-git
+
+# Use a custom config
+gitleaks detect --source . -c .gitleaks.toml
+
+# Run as part of CI
+gitleaks detect --source . -c .gitleaks.toml
+```
+
+**Running the secret scanning verification test:**
+
+```bash
+npm test -- --testPathPattern="gitleaks"
+```
+
+This test verifies that gitleaks correctly detects Stellar secret keys in test fixtures.
+
 ---
 
 ## Contact
@@ -434,3 +467,6 @@ npm run verify:tsconfig
 
 # Or directly
 bash scripts/verify-tsconfig.sh
+
+
+.

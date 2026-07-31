@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { SharePlatform } from '@/types/sharing';
+import { SharePlatform } from '@shared/types/sharing';
 
 interface ShareButtonsProps {
   shareUrl: string;

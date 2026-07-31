@@ -1,5 +1,5 @@
 import { disputeRepository } from './dispute-repository';
-import type { DisputeStatus } from '@/types/disputes';
+import type { DisputeStatus } from '@shared/types/disputes';
 
 export interface DisputeRecord {
   id: string;

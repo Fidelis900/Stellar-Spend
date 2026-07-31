@@ -28,7 +28,7 @@
 
 import { beforeEach, describe, expect, it } from 'vitest';
 import { DisputeRepository } from '@/lib/repositories';
-import type { DisputeStatus } from '@/types/disputes';
+import type { DisputeStatus } from '@shared/types/disputes';
 
 // ---------------------------------------------------------------------------
 // Helpers

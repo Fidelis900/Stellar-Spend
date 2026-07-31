@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/cn';
-import type { OfframpStep } from '@/types/stellaramp';
+import type { OfframpStep } from '@shared/types/stellaramp';
 import { CopyButton } from './CopyButton';
 import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation';
 import { TransactionReceipt, type ReceiptData } from './TransactionReceipt';

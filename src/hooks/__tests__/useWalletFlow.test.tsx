@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useWalletFlow } from '../useWalletFlow';
-import type { WalletFlowState } from '@/types/stellaramp';
+import type { WalletFlowState } from '@shared/types/stellaramp';
 
 describe('useWalletFlow', () => {
   it('should initialise to "pre_connect" by default', () => {

@@ -6,7 +6,7 @@ import {
   DisputeNote,
   DisputeEscalation,
   DisputeAnalytics,
-} from '@/types/disputes';
+} from '@shared/types/disputes';
 
 // ---------------------------------------------------------------------------
 // In-memory store (replace with DB persistence when ready)

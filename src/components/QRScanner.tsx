@@ -2,7 +2,7 @@ import { logger } from '@/lib/logger';
 ('use client');
 
 import { useState, useRef, useEffect } from 'react';
-import { QRCodeData } from '@/types/qrcode';
+import { QRCodeData } from '@shared/types/qrcode';
 import { qrCodeService } from '@/lib/services';
 import { BrowserQRCodeReader } from '@zxing/browser';
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ShareSettings } from '@/types/sharing';
+import { ShareSettings } from '@shared/types/sharing';
 
 interface ShareSettingsProps {
   onSave: (settings: ShareSettings) => Promise<void>;

@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { cn } from '@/lib/cn';
-import type { RecentOfframpRow } from '@/types/stellaramp';
-import type { OfframpStep } from '@/types/stellaramp';
+import type { RecentOfframpRow } from '@shared/types/stellaramp';
+import type { OfframpStep } from '@shared/types/stellaramp';
 
 // ---------------------------------------------------------------------------
 // Config

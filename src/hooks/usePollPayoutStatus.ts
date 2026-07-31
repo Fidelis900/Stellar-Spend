@@ -3,7 +3,7 @@
 import { useCallback } from 'react';
 import type { PayoutStatus } from '@/lib/offramp';
 import { TransactionStorage } from '@/lib/transaction-storage';
-import type { OfframpStep } from '@/types/stellaramp';
+import type { OfframpStep } from '@shared/types/stellaramp';
 import {
   usePollingManager,
   DurationExceededError,
