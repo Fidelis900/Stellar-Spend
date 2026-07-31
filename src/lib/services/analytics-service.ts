@@ -4,7 +4,7 @@ import {
   FeeAnalysis,
   SpendingPattern,
   AnalyticsPeriod,
-} from '@/types/analytics';
+} from '@shared/types/analytics';
 
 export class AnalyticsService {
   async getAnalytics(

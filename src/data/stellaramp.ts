@@ -3,7 +3,7 @@ import type {
   RecentOfframpRow,
   StateVariant,
   WalletFlowState,
-} from '@/types/stellaramp';
+} from '@shared/types/stellaramp';
 
 export const RECENT_OFFRAMPS: ReadonlyArray<RecentOfframpRow> = [
   { txHash: '5f90...a1c4', usdc: '500.00', fiat: '₦799,000', currency: 'NGN', status: 'SETTLING' },

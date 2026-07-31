@@ -18,7 +18,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ShareableTransaction } from '@/types/sharing';
+import type { ShareableTransaction } from '@shared/types/sharing';
 import { SharingService } from '@/lib/services';
 
 // ── helpers ───────────────────────────────────────────────────────────────────

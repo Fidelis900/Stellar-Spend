@@ -1,4 +1,4 @@
-import { ShareableTransaction, ShareSettings } from '@/types/sharing';
+import { ShareableTransaction, ShareSettings } from '@shared/types/sharing';
 
 export class SharingService {
   async createShareLink(

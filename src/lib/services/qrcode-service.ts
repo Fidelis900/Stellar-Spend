@@ -1,4 +1,4 @@
-import { QRCodeData, QRCodeOptions, GeneratedQRCode } from '@/types/qrcode';
+import { QRCodeData, QRCodeOptions, GeneratedQRCode } from '@shared/types/qrcode';
 
 export class QRCodeService {
   /**

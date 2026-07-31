@@ -2,7 +2,7 @@ import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { globalContainer } from '@/lib/di';
 import { SERVICE_KEYS } from '@/lib/di';
-import { ShareSettings } from '@/types/sharing';
+import { ShareSettings } from '@shared/types/sharing';
 import { ErrorHandler } from '@/lib/error-handler';
 import { ApiError, ErrorType } from '@/lib/error-types';
 

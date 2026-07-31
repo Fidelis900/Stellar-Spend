@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { AnalyticsPeriod } from '@/types/analytics';
+import { AnalyticsPeriod } from '@shared/types/analytics';
 import { FunnelChart } from '@/components/FunnelChart';
 import { AnalyticsDashboardSkeleton } from '@/components/skeletons';
 

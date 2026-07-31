@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { CreateDisputeRequest } from '@/types/disputes';
+import { CreateDisputeRequest } from '@shared/types/disputes';
 import { useI18n } from '@/lib/i18n';
 import { cn } from '@/lib/cn';
 

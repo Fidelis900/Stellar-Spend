@@ -1,6 +1,6 @@
 'use client';
 
-import { SharePreview } from '@/types/sharing';
+import { SharePreview } from '@shared/types/sharing';
 
 interface SharePreviewProps {
   preview: SharePreview;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/cn';
-import type { ProgressStep } from '@/types/stellaramp';
+import type { ProgressStep } from '@shared/types/stellaramp';
 
 type ProgressStepsProps = {
   isConnected: boolean;

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { disputeRepository } from '@/lib/repositories';
-import { DisputeEscalation } from '@/types/disputes';
+import { DisputeEscalation } from '@shared/types/disputes';
 import { withIdempotency } from '@/lib/idempotency';
 import { ErrorHandler } from '@/lib/error-handler';
 
