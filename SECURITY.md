@@ -96,7 +96,31 @@ export function middleware(req: NextRequest) {
 
 ---
 
-## 5. Security Audit Checklist
+## 5. Secret Scanning
+
+Gitleaks is used to detect secrets before they are committed or pushed.
+
+**Run gitleaks locally before pushing:**
+
+```bash
+# Install gitleaks (macOS)
+brew install gitleaks
+
+# Scan the current directory for secrets
+gitleaks detect --source .
+
+# Scan a specific file or directory
+gitleaks detect --source src/test/fixtures/secret-scan/ --no-git
+
+# Run the secret scanning verification test
+npm test -- --testPathPattern="gitleaks"
+```
+
+The fixture-based verification test in `src/test/gitleaks-verification.test.ts` confirms that gitleaks detects Stellar secret keys (`S` + 55 base58 chars). The `.gitleaks.toml` config contains the `stellar-secret-key` rule and allowlists known false positives and test fixtures.
+
+---
+
+## 6. Security Audit Checklist
 
 Use this checklist before every production deployment.
 
@@ -132,7 +156,7 @@ Use this checklist before every production deployment.
 
 ---
 
-## 6. Threat Model & Audit
+## 7. Threat Model & Audit
 
 A comprehensive threat model (assets, actors, attack surfaces, STRIDE analysis) lives in [`docs/threat-model.md`](./docs/threat-model.md).
 

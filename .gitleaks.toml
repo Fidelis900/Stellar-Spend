@@ -17,108 +17,38 @@ paths = [
   '''CONTRIBUTING\.md$''',
   '''SECURITY\.md$''',
   '''package-lock\.json$''',
+  '''src/test/fixtures/secret-scan/.*''',
+]
+regexes = [
+  '''(your_|YOUR_|REPLACE_|replace_|CHANGE_|change_|INSERT_|insert_|ENTER_|enter_)[a-zA-Z0-9_]*''',
+  '''(test_|TEST_|example_|EXAMPLE_|sample_|SAMPLE_|dummy_|DUMMY_|fake_|FAKE_|mock_|MOCK_)[a-zA-Z0-9_]*(key|token|secret|password|api_key)''',
+  '''G[A-Z0-9]{55}''',
+  '''(CA|CD|C)[A-Z0-9]{55}''',
+  '''0x[a-fA-F0-9]{40}''',
+  '''https://[a-f0-9]{32}@[a-z0-9]+\.ingest\.sentry\.io/\d+''',
+  '''https?://(rpc|soroban|horizon|api)\.[a-zA-Z0-9-]+\.(stellar|gateway|fm|org|com)''',
+  '''https?://(cdn|d\d+)\.(jsdelivr|cloudfront|unpkg)\.(net|com)''',
+  '''(password|passwd|pwd)["\s:=]+["\s]*(test|password|secret|changeme|example)["\s]*$''',
+  '''\/\/.*(test|example|sample|dummy|fake|mock).*(key|token|secret|password|credential)''',
+  '''https?://(etherscan|basescan|stellar\.org|stellarchain)\.(io|org)/.*''',
+  '''https?://(friendbot|laboratory)\.stellar\.org.*''',
+  '''https?://(docs|developers)\.base\.org.*''',
+  '''(your_|YOUR_|REPLACE_|replace_|CHANGE_|change_|INSERT_|insert_|ENTER_|enter_|FILL_|fill_)[a-zA-Z0-9_]*''',
+  '''^[A-Z_]+=(your_|YOUR_|REPLACE_|replace_|CHANGE_|change_|INSERT_|insert_|ENTER_|enter_|FILL_|fill_|test_|TEST_|testing_|TESTING_)''',
+  '''https?://(lobstr|keybase|stellarport|stomt|stellarexpert)\..*''',
+  '''https?://(base\.org|base\.com|coinbase\.com|warpcast\.com|onchain\.base\.org)''',
+  '''^(TEST_|TESTING_|TEST)[A-Z0-9_]+=''',
+  '''https?://(alchemy|infura|quicknode)\.(com|in|io)/.*''',
+  '''\b(USDC|XLM|AQUA|yUSDC|USDT)\b''',
+  '''^0x[a-fA-F0-9]{0,8}$''',
+  '''[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}''',
+  '''https?://github\.com/[A-Za-z0-9_-]+/[A-Za-z0-9_.-]+''',
+  '''"(?:@[a-z0-9-]+\/)?[a-z0-9-]+"''',
+  '''\b\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?\b''',
+  '''(Test SDF Network ; September 2015|Public Global Stellar Network ; September 2015)''',
 ]
 
-[[allowlist.regexes]]
-description = "Placeholder values in env files"
-regex = '''(your_|YOUR_|REPLACE_|replace_|CHANGE_|change_|INSERT_|insert_|ENTER_|enter_)[a-zA-Z0-9_]*'''
-
-[[allowlist.regexes]]
-description = "Test/example API keys"
-regex = '''(test_|TEST_|example_|EXAMPLE_|sample_|SAMPLE_|dummy_|DUMMY_|fake_|FAKE_|mock_|MOCK_)[a-zA-Z0-9_]*(key|token|secret|password|api_key)'''
-
-[[allowlist.regexes]]
-description = "Public Stellar account IDs (G...)"
-regex = '''G[A-Z0-9]{55}'''
-
-[[allowlist.regexes]]
-description = "Public Stellar contract IDs (C...)"
-regex = '''(CA|CD|C)[A-Z0-9]{55}'''
-
-[[allowlist.regexes]]
-description = "Public Base addresses (0x...)"
-regex = '''0x[a-fA-F0-9]{40}'''
-
-[[allowlist.regexes]]
-description = "Sentry public DSN"
-regex = '''https://[a-f0-9]{32}@[a-z0-9]+\.ingest\.sentry\.io/\d+'''
-
-[[allowlist.regexes]]
-description = "Public RPC endpoints"
-regex = '''https?://(rpc|soroban|horizon|api)\.[a-zA-Z0-9-]+\.(stellar|gateway|fm|org|com)'''
-
-[[allowlist.regexes]]
-description = "Public CDN URLs"
-regex = '''https?://(cdn|d\d+)\.(jsdelivr|cloudfront|unpkg)\.(net|com)'''
-
-[[allowlist.regexes]]
-description = "Example/test passwords"
-regex = '''(password|passwd|pwd)["\s:=]+["\s]*(test|password|secret|changeme|example)["\s]*$'''
-
-[[allowlist.regexes]]
-description = "Generic test credentials in comments"
-regex = '''\/\/.*(test|example|sample|dummy|fake|mock).*(key|token|secret|password|credential)'''
-
-[[allowlist.regexes]]
-description = "Public blockchain explorers"
-regex = '''https?://(etherscan|basescan|stellar\.org|stellarchain)\.(io|org)/.*'''
-
-[[allowlist.regexes]]
-description = "Public Stellar testnet URLs"
-regex = '''https?://(friendbot|laboratory)\.stellar\.org.*'''
-
-[[allowlist.regexes]]
-description = "Public Base documentation"
-regex = '''https?://(docs|developers)\.base\.org.*'''
-
-[[allowlist.regexes]]
-description = "Generic placeholder patterns"
-regex = '''(your_|YOUR_|REPLACE_|replace_|CHANGE_|change_|INSERT_|insert_|ENTER_|enter_|FILL_|fill_)[a-zA-Z0-9_]*'''
-
-[[allowlist.regexes]]
-description = "Environment variable examples"
-regex = '''^[A-Z_]+=(your_|YOUR_|REPLACE_|replace_|CHANGE_|change_|INSERT_|insert_|ENTER_|enter_|FILL_|fill_|test_|TEST_|testing_|TESTING_)'''
-
-[[allowlist.regexes]]
-description = "Public Stellar ecosystem URLs"
-regex = '''https?://(lobstr|keybase|stellarport|stomt|stellarexpert)\..*'''
-
-[[allowlist.regexes]]
-description = "Public Base ecosystem URLs"
-regex = '''https?://(base\.org|base\.com|coinbase\.com|warpcast\.com|onchain\.base\.org)'''
-
-[[allowlist.regexes]]
-description = "Generic test environment variables"
-regex = '''^(TEST_|TESTING_|TEST)[A-Z0-9_]+='''
-
-[[allowlist.regexes]]
-description = "Public Alchemy/Infura/QuickNode URLs"
-regex = '''https?://(alchemy|infura|quicknode)\.(com|in|io)/.*'''
-
-[[allowlist.regexes]]
-description = "Public Stellar asset codes"
-regex = '''\b(USDC|XLM|AQUA|yUSDC|USDT)\b'''
-
-[[allowlist.regexes]]
-description = "Generic short hex strings"
-regex = '''^0x[a-fA-F0-9]{0,8}$'''
-
-[[allowlist.regexes]]
-description = "Generic UUIDs"
-regex = '''[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'''
-
-[[allowlist.regexes]]
-description = "Public GitHub URLs"
-regex = '''https?://github\.com/[A-Za-z0-9_-]+/[A-Za-z0-9_.-]+'''
-
-[[allowlist.regexes]]
-description = "Public npm packages"
-regex = '''"(?:@[a-z0-9-]+\/)?[a-z0-9-]+"'''
-
-[[allowlist.regexes]]
-description = "Generic version numbers"
-regex = '''\b\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?\b'''
-
-[[allowlist.regexes]]
-description = "Public Stellar network passphrases"
-regex = '''(Test SDF Network ; September 2015|Public Global Stellar Network ; September 2015)'''
+[[rules]]
+id = "stellar-secret-key"
+description = "Stellar Secret Key (S + 55 base58 chars)"
+regex = '''(?i)S[a-zA-Z0-9]{55}'''
