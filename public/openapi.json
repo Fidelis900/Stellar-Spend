@@ -1,0 +1,6435 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Stellar-Spend API",
+    "description": "Stellar-Spend converts Stellar USDC to fiat currency (off-ramp) using the\nAllbridge cross-chain bridge and Paycrest fiat settlement layer.\n\n## Authentication\n\n| Route group | Auth method |\n|---|---|\n| `/api/offramp/*` (legacy) | None — server-side secrets only |\n| `/api/v1/*` | API key via `X-API-Key` or `Authorization: Bearer` |\n| `/api/api-keys/*` | Admin bearer token via `Authorization: Bearer <API_KEY_ADMIN_TOKEN>` |\n| `/api/auth/2fa/*` | Public — user-supplied credentials in body |\n| `/api/webhooks/paycrest` | HMAC-SHA256 via `X-Paycrest-Signature` |\n\n## API Key Scopes\n\n| Scope | Endpoints |\n|---|---|\n| `offramp:read` | GET currencies, institutions, rate, bridge status |\n| `offramp:write` | POST quote, build-tx, submit-soroban, paycrest order |\n| `webhook:read` | Receive webhook events |\n\n## Rate Limits\n\n`/api/v1/*` endpoints are rate-limited per API key.\n\nDefault: **120 requests / 60 seconds**. The following headers are returned on\nevery response:\n\n| Header | Description |\n|---|---|\n| `X-RateLimit-Limit` | Maximum requests in the current window |\n| `X-RateLimit-Remaining` | Requests remaining in the current window |\n| `X-RateLimit-Reset` | Unix timestamp when the window resets |\n| `Retry-After` | Seconds to wait (only on `429` responses) |\n\nWhen the limit is exceeded the server returns `429 Too Many Requests`.\n\n## Versioning\n\nAll routes are available under `/api/v1/`. Legacy `/api/` routes are deprecated\n(sunset `2026-01-01`) and return `Deprecation`, `Sunset`, and `Link` headers.\n\nVersion can also be negotiated with:\n- `X-API-Version: 1`\n- `Accept: application/vnd.stellarspend.v1+json`\n\nThe full lifecycle policy — what forces a new major version, when v2 is cut,\nhow long a deprecated version keeps working, and the deprecation header\ncontract — is documented in\n[`docs/api-versioning.md`](https://github.com/Lex-Studios/Stellar-Spend/blob/main/docs/api-versioning.md).\nSupported versions can be discovered at runtime via `GET /api/versions`.\n\nThis document remains the source of truth for the API contract itself; the\npolicy document is authoritative only for version lifecycle decisions.\n\n## Idempotency\n\nMutating endpoints support the `Idempotency-Key` header. Replay responses\ninclude `Idempotency-Status: replayed`; conflicts return `409`.\n\nKey lifetime: 24 hours (configurable via `IDEMPOTENCY_TTL_MS`).\n\n## API Changelog\n\n### v1.1.0 — 2026-06-29\n- Added `X-RateLimit-*` headers to all `/api/v1/*` responses\n- Added `Idempotency-Status` response header documentation\n- Added API key scope documentation\n- Added interactive Swagger UI at `/api/docs`\n- Added `docs/integrator-guide.md` for third-party SDK integrators\n\n### v1.0.0 — 2026-01-01\n- Initial public API release\n- Versioned routes under `/api/v1/` with API key authentication\n- Legacy `/api/offramp/*` routes deprecated (sunset 2026-01-01)\n- Idempotency support on all mutating endpoints\n- Webhook HMAC-SHA256 signature verification\n",
+    "version": "1.1.0",
+    "contact": {
+      "name": "Stellar-Spend",
+      "url": "https://github.com/Lex-Studios/Stellar-Spend"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3001",
+      "description": "Local development"
+    },
+    {
+      "url": "https://your-domain.com",
+      "description": "Production"
+    }
+  ],
+  "tags": [
+    {
+      "name": "health",
+      "description": "Service health and version"
+    },
+    {
+      "name": "offramp",
+      "description": "Off-ramp flow — currencies, quotes, bridge, payout"
+    },
+    {
+      "name": "bridge",
+      "description": "Allbridge Stellar→Base USDC bridge"
+    },
+    {
+      "name": "paycrest",
+      "description": "Paycrest fiat payout orders"
+    },
+    {
+      "name": "webhooks",
+      "description": "Inbound event webhooks"
+    },
+    {
+      "name": "api-keys",
+      "description": "Programmatic API key management (admin)"
+    },
+    {
+      "name": "auth",
+      "description": "Two-factor authentication"
+    },
+    {
+      "name": "transactions",
+      "description": "Transaction history and management"
+    },
+    {
+      "name": "notifications",
+      "description": "User notification preferences"
+    },
+    {
+      "name": "fx-rates",
+      "description": "Foreign-exchange rates"
+    },
+    {
+      "name": "versions",
+      "description": "API version discovery"
+    },
+    {
+      "name": "onramp",
+      "description": "On-ramp operations: fiat to crypto conversion and provider orders"
+    },
+    {
+      "name": "merchant",
+      "description": "Merchant accounts, statistics, and payout management"
+    },
+    {
+      "name": "security",
+      "description": "Security audit logs, signatures, IP whitelist, and session controls"
+    },
+    {
+      "name": "admin",
+      "description": "Admin operations, dispute resolution, database, and vulnerabilities"
+    },
+    {
+      "name": "sync",
+      "description": "Client transaction history and settings cloud synchronization"
+    },
+    {
+      "name": "monitoring",
+      "description": "System telemetry, cache metrics, and web vitals"
+    },
+    {
+      "name": "cron",
+      "description": "Scheduled jobs, stall scanning, and recurring execution"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "Programmatic API key for `/api/v1/*` endpoints"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "For `/api/v1/*` endpoints use a programmatic API key. For `/api/api-keys/*` admin endpoints use `API_KEY_ADMIN_TOKEN`.\n"
+      },
+      "PaycrestSignature": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Paycrest-Signature",
+        "description": "HMAC-SHA256 hex digest of the raw request body (webhook only)"
+      }
+    },
+    "headers": {
+      "X-RateLimit-Limit": {
+        "description": "Maximum number of requests allowed in the current window",
+        "schema": {
+          "type": "integer",
+          "example": 120
+        }
+      },
+      "X-RateLimit-Remaining": {
+        "description": "Number of requests remaining in the current window",
+        "schema": {
+          "type": "integer",
+          "example": 115
+        }
+      },
+      "X-RateLimit-Reset": {
+        "description": "Unix timestamp (seconds) when the current rate-limit window resets",
+        "schema": {
+          "type": "integer",
+          "example": 1751234567
+        }
+      },
+      "Retry-After": {
+        "description": "Seconds to wait before retrying (only present on 429 responses)",
+        "schema": {
+          "type": "integer",
+          "example": 12
+        }
+      },
+      "X-Request-Id": {
+        "description": "Unique identifier for this request, useful for correlating logs",
+        "schema": {
+          "type": "string",
+          "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        }
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Machine-readable error code, stable across releases. Safe to branch client logic on.",
+            "enum": [
+              "validation_error",
+              "not_found",
+              "unauthorized",
+              "forbidden",
+              "conflict",
+              "rate_limit_exceeded",
+              "server_error",
+              "external_service_error"
+            ],
+            "example": "validation_error"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable description of the error, safe to display to end users.",
+            "example": "Invalid request parameters"
+          },
+          "details": {
+            "type": "object",
+            "description": "Additional machine-readable context (e.g. per-field validation failures). Only populated outside production; omitted entirely when production hides internals.\n",
+            "additionalProperties": true
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Error response for validation_error, with per-field detail messages.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Error"
+          },
+          {
+            "type": "object",
+            "required": [
+              "error",
+              "details"
+            ],
+            "properties": {
+              "error": {
+                "type": "string",
+                "enum": [
+                  "validation_error"
+                ]
+              },
+              "details": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "example": {
+                  "amount": "amount must be a positive number",
+                  "recipient.institution": "recipient.institution is required"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ok"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-04-22T22:30:11.068Z"
+          },
+          "version": {
+            "type": "string",
+            "example": "1.0.0"
+          }
+        }
+      },
+      "Currency": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "NGN"
+          },
+          "name": {
+            "type": "string",
+            "example": "Nigerian Naira"
+          },
+          "symbol": {
+            "type": "string",
+            "example": "₦"
+          }
+        }
+      },
+      "Institution": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "ACCESS"
+          },
+          "name": {
+            "type": "string",
+            "example": "Access Bank"
+          }
+        }
+      },
+      "QuoteRequest": {
+        "type": "object",
+        "required": [
+          "amount",
+          "currency",
+          "feeMethod"
+        ],
+        "properties": {
+          "amount": {
+            "type": "string",
+            "example": "100"
+          },
+          "currency": {
+            "type": "string",
+            "example": "NGN"
+          },
+          "feeMethod": {
+            "type": "string",
+            "enum": [
+              "USDC",
+              "XLM",
+              "stablecoin",
+              "native"
+            ],
+            "example": "USDC"
+          }
+        }
+      },
+      "QuoteResponse": {
+        "type": "object",
+        "properties": {
+          "destinationAmount": {
+            "type": "string",
+            "example": "155000.00"
+          },
+          "rate": {
+            "type": "number",
+            "example": 1550
+          },
+          "currency": {
+            "type": "string",
+            "example": "NGN"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "example": 300
+          }
+        }
+      },
+      "VerifyAccountRequest": {
+        "type": "object",
+        "required": [
+          "institution",
+          "accountIdentifier"
+        ],
+        "properties": {
+          "institution": {
+            "type": "string",
+            "example": "ACCESS"
+          },
+          "accountIdentifier": {
+            "type": "string",
+            "example": "0123456789"
+          }
+        }
+      },
+      "VerifyAccountResponse": {
+        "type": "object",
+        "properties": {
+          "accountName": {
+            "type": "string",
+            "example": "John Doe"
+          }
+        }
+      },
+      "GasFeeOptions": {
+        "type": "object",
+        "properties": {
+          "feeOptions": {
+            "type": "object",
+            "properties": {
+              "native": {
+                "type": "object",
+                "properties": {
+                  "int": {
+                    "type": "string",
+                    "example": "1000000"
+                  },
+                  "float": {
+                    "type": "string",
+                    "example": "1.0"
+                  }
+                }
+              },
+              "stablecoin": {
+                "type": "object",
+                "properties": {
+                  "int": {
+                    "type": "string",
+                    "example": "500000"
+                  },
+                  "float": {
+                    "type": "string",
+                    "example": "0.5"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "BuildTxRequest": {
+        "type": "object",
+        "required": [
+          "amount",
+          "fromAddress",
+          "toAddress"
+        ],
+        "properties": {
+          "amount": {
+            "type": "string",
+            "example": "99.5"
+          },
+          "fromAddress": {
+            "type": "string",
+            "description": "Stellar G... sender address",
+            "example": "GABC123XYZ"
+          },
+          "toAddress": {
+            "type": "string",
+            "description": "Base 0x... recipient address",
+            "example": "0xabc123def456"
+          },
+          "feePaymentMethod": {
+            "type": "string",
+            "enum": [
+              "stablecoin",
+              "native"
+            ],
+            "default": "stablecoin"
+          }
+        }
+      },
+      "BuildTxResponse": {
+        "type": "object",
+        "properties": {
+          "xdr": {
+            "type": "string",
+            "example": "AAAAAgAAAA..."
+          },
+          "sourceToken": {
+            "$ref": "#/components/schemas/TokenInfo"
+          },
+          "destinationToken": {
+            "$ref": "#/components/schemas/TokenInfo"
+          }
+        }
+      },
+      "TokenInfo": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "example": "USDC"
+          },
+          "decimals": {
+            "type": "integer",
+            "example": 7
+          },
+          "contract": {
+            "type": "string",
+            "example": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75"
+          },
+          "chain": {
+            "type": "string",
+            "example": "SRB"
+          }
+        }
+      },
+      "SubmitSorobanRequest": {
+        "type": "object",
+        "required": [
+          "signedXdr"
+        ],
+        "properties": {
+          "signedXdr": {
+            "type": "string",
+            "example": "AAAAAgAAAA..."
+          }
+        }
+      },
+      "TxStatusResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "SUCCESS",
+              "FAILED",
+              "NOT_FOUND"
+            ],
+            "example": "PENDING"
+          },
+          "hash": {
+            "type": "string",
+            "example": "abc123def456"
+          }
+        }
+      },
+      "BridgeStatusResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "pending",
+                  "processing",
+                  "completed",
+                  "failed",
+                  "expired"
+                ],
+                "example": "completed"
+              },
+              "txHash": {
+                "type": "string",
+                "example": "abc123def456"
+              },
+              "receiveAmount": {
+                "type": "string",
+                "example": "99.0"
+              }
+            }
+          }
+        }
+      },
+      "Recipient": {
+        "type": "object",
+        "required": [
+          "institution",
+          "accountIdentifier",
+          "accountName",
+          "currency"
+        ],
+        "properties": {
+          "institution": {
+            "type": "string",
+            "example": "ACCESS"
+          },
+          "accountIdentifier": {
+            "type": "string",
+            "example": "0123456789"
+          },
+          "accountName": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "currency": {
+            "type": "string",
+            "example": "NGN"
+          }
+        }
+      },
+      "CreateOrderRequest": {
+        "type": "object",
+        "required": [
+          "amount",
+          "rate",
+          "token",
+          "network",
+          "reference",
+          "returnAddress",
+          "recipient"
+        ],
+        "properties": {
+          "amount": {
+            "type": "number",
+            "example": 99
+          },
+          "rate": {
+            "type": "number",
+            "example": 1550
+          },
+          "token": {
+            "type": "string",
+            "example": "USDC"
+          },
+          "network": {
+            "type": "string",
+            "example": "base"
+          },
+          "reference": {
+            "type": "string",
+            "example": "ref-unique-123"
+          },
+          "returnAddress": {
+            "type": "string",
+            "example": "0xabc123def456"
+          },
+          "recipient": {
+            "$ref": "#/components/schemas/Recipient"
+          }
+        }
+      },
+      "CreateOrderResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "order-uuid"
+              },
+              "receiveAddress": {
+                "type": "string",
+                "example": "0xpaycrest-deposit-address"
+              }
+            }
+          }
+        }
+      },
+      "OrderStatusResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "order-uuid"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "pending",
+                  "validated",
+                  "settled",
+                  "refunded",
+                  "expired"
+                ],
+                "example": "settled"
+              }
+            }
+          }
+        }
+      },
+      "ApiKey": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Production Partner"
+          },
+          "keyPrefix": {
+            "type": "string",
+            "example": "abc123def456"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "revoked",
+              "rotated"
+            ],
+            "example": "active"
+          },
+          "rateLimitMaxRequests": {
+            "type": "integer",
+            "example": 120
+          },
+          "rateLimitWindowMs": {
+            "type": "integer",
+            "example": 60000
+          }
+        }
+      },
+      "CreateApiKeyRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Production Partner"
+          },
+          "rateLimitMaxRequests": {
+            "type": "integer",
+            "example": 120
+          },
+          "rateLimitWindowMs": {
+            "type": "integer",
+            "example": 60000
+          }
+        }
+      },
+      "CreateApiKeyResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApiKey"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "plaintextKey": {
+                    "type": "string",
+                    "example": "ssp_live_abc123def456.very-secret-value"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "NotificationPreferences": {
+        "type": "object",
+        "properties": {
+          "userAddress": {
+            "type": "string",
+            "example": "GABC..."
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "user@example.com"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+2348000000000"
+          },
+          "emailEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "smsEnabled": {
+            "type": "boolean",
+            "example": false
+          },
+          "notifyOnPending": {
+            "type": "boolean",
+            "example": true
+          },
+          "notifyOnCompleted": {
+            "type": "boolean",
+            "example": true
+          },
+          "notifyOnFailed": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "TwoFASetupRequest": {
+        "type": "object",
+        "required": [
+          "userId",
+          "method"
+        ],
+        "properties": {
+          "userId": {
+            "type": "string",
+            "example": "user-wallet-address"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "totp",
+              "sms"
+            ],
+            "example": "totp"
+          }
+        }
+      },
+      "TwoFASetupResponse": {
+        "type": "object",
+        "properties": {
+          "method": {
+            "type": "string",
+            "example": "totp"
+          },
+          "secret": {
+            "type": "string",
+            "example": "JBSWY3DPEHPK3PXP"
+          },
+          "uri": {
+            "type": "string",
+            "example": "otpauth://totp/StellarSpend:user?secret=JBSWY3DPEHPK3PXP&issuer=StellarSpend"
+          },
+          "backupCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "abc123",
+              "def456"
+            ]
+          }
+        }
+      },
+      "TwoFAVerifyRequest": {
+        "type": "object",
+        "required": [
+          "userId",
+          "code",
+          "method"
+        ],
+        "properties": {
+          "userId": {
+            "type": "string",
+            "example": "user-wallet-address"
+          },
+          "code": {
+            "type": "string",
+            "example": "123456"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "totp",
+              "backup"
+            ],
+            "example": "totp"
+          },
+          "secret": {
+            "type": "string",
+            "description": "Required when method is totp",
+            "example": "JBSWY3DPEHPK3PXP"
+          },
+          "backupCodes": {
+            "type": "array",
+            "description": "Required when method is backup",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Transaction": {
+        "type": "object",
+        "required": [
+          "id",
+          "amount",
+          "currency",
+          "status",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "tx_1234567890"
+          },
+          "userAddress": {
+            "type": "string",
+            "example": "GCFX...ABCD"
+          },
+          "amount": {
+            "type": "string",
+            "example": "100.00"
+          },
+          "currency": {
+            "type": "string",
+            "example": "NGN"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "building",
+              "signed",
+              "submitted",
+              "bridging",
+              "payout_pending",
+              "completed",
+              "failed",
+              "refunded"
+            ],
+            "example": "completed"
+          },
+          "stellarTxHash": {
+            "type": "string",
+            "example": "5d1e..."
+          },
+          "baseTxHash": {
+            "type": "string",
+            "example": "0x12..."
+          },
+          "recipient": {
+            "$ref": "#/components/schemas/Recipient"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Dispute": {
+        "type": "object",
+        "required": [
+          "id",
+          "transactionId",
+          "status",
+          "reason",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "disp_12345"
+          },
+          "transactionId": {
+            "type": "string",
+            "example": "tx_1234567890"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "under_review",
+              "resolved",
+              "rejected"
+            ],
+            "example": "open"
+          },
+          "reason": {
+            "type": "string",
+            "example": "Bank account not credited after 24h"
+          },
+          "evidenceUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resolvedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "WebhookSubscription": {
+        "type": "object",
+        "required": [
+          "id",
+          "targetUrl",
+          "events",
+          "active",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "sub_12345"
+          },
+          "targetUrl": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://example.com/webhooks"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "order.completed",
+              "order.failed"
+            ]
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "WebhookDelivery": {
+        "type": "object",
+        "required": [
+          "id",
+          "subscriptionId",
+          "event",
+          "statusCode",
+          "success",
+          "timestamp"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "deliv_123"
+          },
+          "subscriptionId": {
+            "type": "string",
+            "example": "sub_12345"
+          },
+          "event": {
+            "type": "string",
+            "example": "order.completed"
+          },
+          "statusCode": {
+            "type": "integer",
+            "example": 200
+          },
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "attemptCount": {
+            "type": "integer",
+            "example": 1
+          },
+          "durationMs": {
+            "type": "integer",
+            "example": 145
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MerchantProfile": {
+        "type": "object",
+        "required": [
+          "id",
+          "businessName",
+          "email",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "merch_123"
+          },
+          "businessName": {
+            "type": "string",
+            "example": "Acme Corp"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "finance@acme.com"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "suspended",
+              "pending_kyc"
+            ],
+            "example": "active"
+          },
+          "webhookUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SloMetrics": {
+        "type": "object",
+        "required": [
+          "uptime",
+          "p99LatencyMs",
+          "errorRate"
+        ],
+        "properties": {
+          "uptime": {
+            "type": "number",
+            "example": 99.98
+          },
+          "p99LatencyMs": {
+            "type": "number",
+            "example": 120
+          },
+          "errorRate": {
+            "type": "number",
+            "example": 0.001
+          }
+        }
+      },
+      "OfframpStatusResponse": {
+        "type": "object",
+        "required": [
+          "orderId",
+          "status"
+        ],
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "example": "ord_1234567890"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processing",
+              "completed",
+              "failed",
+              "refunded"
+            ],
+            "example": "completed"
+          },
+          "amount": {
+            "type": "string",
+            "example": "100.00"
+          },
+          "currency": {
+            "type": "string",
+            "example": "NGN"
+          },
+          "stellarTxHash": {
+            "type": "string",
+            "example": "5d1e..."
+          },
+          "payoutTxHash": {
+            "type": "string",
+            "example": "0x12..."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Service health check",
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Service health check (v1)",
+        "operationId": "getHealthV1",
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/versions": {
+      "get": {
+        "tags": [
+          "versions"
+        ],
+        "summary": "List supported API versions",
+        "operationId": "getVersions",
+        "responses": {
+          "200": {
+            "description": "Supported versions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "versions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "version": {
+                            "type": "string",
+                            "example": "v1"
+                          },
+                          "status": {
+                            "type": "string",
+                            "example": "supported"
+                          },
+                          "prefix": {
+                            "type": "string",
+                            "example": "/api/v1"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/fx-rates": {
+      "get": {
+        "tags": [
+          "fx-rates"
+        ],
+        "summary": "Get current FX rates",
+        "operationId": "getFxRates",
+        "responses": {
+          "200": {
+            "description": "FX rate data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fx-rates": {
+      "get": {
+        "tags": [
+          "fx-rates"
+        ],
+        "summary": "Get current FX rates (v1)",
+        "operationId": "getFxRatesV1",
+        "security": [
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "FX rate data"
+          },
+          "401": {
+            "description": "Invalid or missing API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/offramp/currencies": {
+      "get": {
+        "tags": [
+          "offramp"
+        ],
+        "summary": "List supported fiat currencies",
+        "operationId": "getCurrencies",
+        "description": "Returns supported currencies. Response is cached for 5 minutes.",
+        "responses": {
+          "200": {
+            "description": "List of currencies",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Currency"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "data": [
+                    {
+                      "code": "NGN",
+                      "name": "Nigerian Naira",
+                      "symbol": "₦"
+                    },
+                    {
+                      "code": "KES",
+                      "name": "Kenyan Shilling",
+                      "symbol": "KSh"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Paycrest API unreachable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/offramp/currencies": {
+      "get": {
+        "tags": [
+          "offramp"
+        ],
+        "summary": "List supported fiat currencies (v1)",
+        "operationId": "getCurrenciesV1",
+        "security": [
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of currencies",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Currency"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Paycrest API unreachable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/offramp/institutions/{currency}": {
+      "get": {
+        "tags": [
+          "offramp"
+        ],
+        "summary": "List banks/institutions for a fiat currency",
+        "operationId": "getInstitutions",
+        "parameters": [
+          {
+            "name": "currency",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "NGN"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of institutions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Institution"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unsupported or unknown currency",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/offramp/institutions/{currency}": {
+      "get": {
+        "tags": [
+          "offramp"
+        ],
+        "summary": "List banks/institutions for a fiat currency (v1)",
+        "operationId": "getInstitutionsV1",
+        "security": [
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "currency",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "NGN"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of institutions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Institution"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unsupported or unknown currency",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/offramp/quote": {
+      "post": {
+        "tags": [
+          "offramp"
+        ],
+        "summary": "Get a USDC → fiat conversion quote",
+        "operationId": "getQuote",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuoteRequest"
+              },
+              "example": {
+                "amount": "100",
+                "currency": "NGN",
+                "feeMethod": "USDC"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Quote result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Allbridge or Paycrest quote unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/offramp/quote": {
+      "post": {
+        "tags": [
+          "offramp"
+        ],
+        "summary": "Get a USDC → fiat conversion quote (v1)",
+        "operationId": "getQuoteV1",
+        "security": [
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Quote result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/offramp/rate": {
+      "get": {
+        "tags": [
+          "offramp"
+        ],
+        "summary": "Get current fiat rate for a token",
+        "operationId": "getRate",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "USDC"
+          },
+          {
+            "name": "amount",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "100"
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "NGN"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current rate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/offramp/verify-account": {
+      "post": {
+        "tags": [
+          "offramp"
+        ],
+        "summary": "Verify a beneficiary bank account",
+        "operationId": "verifyAccount",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyAccountRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verified account name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyAccountResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing fields or account not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Paycrest upstream error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/offramp/verify-account": {
+      "post": {
+        "tags": [
+          "offramp"
+        ],
+        "summary": "Verify a beneficiary bank account (v1)",
+        "operationId": "verifyAccountV1",
+        "security": [
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyAccountRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verified account name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyAccountResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing fields or account not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/offramp/bridge/gas-fee-options": {
+      "get": {
+        "tags": [
+          "bridge"
+        ],
+        "summary": "Get Allbridge gas fee options",
+        "operationId": "getGasFeeOptions",
+        "description": "Returns available fee options. Cached for 60 seconds.",
+        "responses": {
+          "200": {
+            "description": "Available fee options",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GasFeeOptions"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Chain details or token not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Allbridge SDK timeout or unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/offramp/bridge/gas-fee-options": {
+      "get": {
+        "tags": [
+          "bridge"
+        ],
+        "summary": "Get Allbridge gas fee options (v1)",
+        "operationId": "getGasFeeOptionsV1",
+        "security": [
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Available fee options",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GasFeeOptions"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/offramp/bridge/build-tx": {
+      "post": {
+        "tags": [
+          "bridge"
+        ],
+        "summary": "Build unsigned Soroban XDR for bridge transfer",
+        "operationId": "buildBridgeTx",
+        "description": "Rate-limited per IP. Returns an unsigned XDR for the wallet to sign.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuildTxRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Unsigned XDR transaction",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuildTxResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid amount, address, or feePaymentMethod",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/Retry-After"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Simulation failed or chain unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/offramp/bridge/build-tx": {
+      "post": {
+        "tags": [
+          "bridge"
+        ],
+        "summary": "Build unsigned Soroban XDR for bridge transfer (v1)",
+        "operationId": "buildBridgeTxV1",
+        "security": [
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuildTxRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Unsigned XDR transaction",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuildTxResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/offramp/bridge/submit-soroban": {
+      "post": {
+        "tags": [
+          "bridge"
+        ],
+        "summary": "Submit a signed Soroban XDR transaction",
+        "operationId": "submitSoroban",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitSorobanRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transaction accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxStatusResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing XDR, RPC error, or transaction rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Soroban RPC not configured or unreachable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/offramp/bridge/submit-soroban": {
+      "post": {
+        "tags": [
+          "bridge"
+        ],
+        "summary": "Submit a signed Soroban XDR transaction (v1)",
+        "operationId": "submitSorobanV1",
+        "security": [
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitSorobanRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transaction accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxStatusResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "RPC error or transaction rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/offramp/bridge/tx-status/{hash}": {
+      "get": {
+        "tags": [
+          "bridge"
+        ],
+        "summary": "Poll Soroban RPC for transaction confirmation",
+        "operationId": "getSorobanTxStatus",
+        "parameters": [
+          {
+            "name": "hash",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "abc123def456"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxStatusResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "RPC returned an error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Soroban RPC not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/offramp/bridge/status/{txHash}": {
+      "get": {
+        "tags": [
+          "bridge"
+        ],
+        "summary": "Poll Allbridge for cross-chain transfer status",
+        "operationId": "getBridgeStatus",
+        "parameters": [
+          {
+            "name": "txHash",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "abc123def456"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bridge transfer status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BridgeStatusResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Allbridge SDK error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/offramp/paycrest/order": {
+      "post": {
+        "tags": [
+          "paycrest"
+        ],
+        "summary": "Create a Paycrest fiat payout order",
+        "operationId": "createPaycrestOrder",
+        "description": "Rate-limited per IP. Supports `Idempotency-Key` header for safe retries.\n\nOn the first call with a given key, `Idempotency-Status: created` is returned.\nSubsequent calls with the same key replay the saved response (`replayed`).\nA key conflict (same key, different body) returns `409`.\n",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "order-create-9d9f2b9d-1"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Order created successfully",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotency-Key": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Echo of the request Idempotency-Key"
+              },
+              "Idempotency-Status": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "created",
+                    "replayed",
+                    "conflict"
+                  ]
+                },
+                "description": "Whether this is a new response or a replay"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency key conflict — same key used with a different request body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/Retry-After"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/offramp/paycrest/order/{orderId}": {
+      "get": {
+        "tags": [
+          "paycrest"
+        ],
+        "summary": "Get Paycrest order status",
+        "operationId": "getPaycrestOrderStatus",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "order-uuid"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderStatusResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing orderId",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/offramp/status/{orderId}": {
+      "get": {
+        "tags": [
+          "paycrest"
+        ],
+        "summary": "Poll payout order status (alternative route)",
+        "operationId": "getOfframpStatus",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "order-uuid"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/webhooks/paycrest": {
+      "post": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "Receive Paycrest payment event webhook",
+        "operationId": "receivePaycrestWebhook",
+        "security": [
+          {
+            "PaycrestSignature": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "event": {
+                    "type": "string",
+                    "example": "payment_order.settled"
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "example": "order-uuid"
+                      }
+                    }
+                  }
+                }
+              },
+              "example": {
+                "event": "payment_order.settled",
+                "data": {
+                  "id": "order-uuid"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook received",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "received": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing signature",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/webhooks/paycrest": {
+      "post": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "Receive Paycrest payment event webhook (v1)",
+        "operationId": "receivePaycrestWebhookV1",
+        "security": [
+          {
+            "PaycrestSignature": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook received"
+          },
+          "401": {
+            "description": "Invalid signature"
+          }
+        }
+      }
+    },
+    "/api/api-keys": {
+      "get": {
+        "tags": [
+          "api-keys"
+        ],
+        "summary": "List all API keys",
+        "operationId": "listApiKeys",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Requires `API_KEY_ADMIN_TOKEN` as bearer token.",
+        "responses": {
+          "200": {
+            "description": "List of API keys (no plaintext secrets)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ApiKey"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing admin token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "api-keys"
+        ],
+        "summary": "Create a new API key",
+        "operationId": "createApiKey",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Requires `API_KEY_ADMIN_TOKEN` as bearer token.\nThe plaintext key is returned **once** and cannot be retrieved again.\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateApiKeyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "API key created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateApiKeyResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/api-keys/{id}/rotate": {
+      "post": {
+        "tags": [
+          "api-keys"
+        ],
+        "summary": "Rotate an API key",
+        "operationId": "rotateApiKey",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "uuid"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "New key created, old key marked as rotated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateApiKeyResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Key not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/api-keys/{id}/revoke": {
+      "post": {
+        "tags": [
+          "api-keys"
+        ],
+        "summary": "Revoke an API key immediately",
+        "operationId": "revokeApiKey",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "uuid"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "example": "Key leaked during credential rotation"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Key revoked"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Key not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/api-keys/{id}/usage": {
+      "get": {
+        "tags": [
+          "api-keys"
+        ],
+        "summary": "Get recent usage events for an API key",
+        "operationId": "getApiKeyUsage",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "uuid"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usage events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/2fa/setup": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Initiate 2FA setup",
+        "operationId": "setup2FA",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TwoFASetupRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "2FA setup initiated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwoFASetupResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid userId or method",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/2fa/verify": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Verify a 2FA code",
+        "operationId": "verify2FA",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TwoFAVerifyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verification result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "2FA verified successfully"
+                    },
+                    "verified": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/2fa/manage": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Get 2FA status for a user",
+        "operationId": "get2FAStatus",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current 2FA configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "method": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "totp",
+                        "sms",
+                        null
+                      ]
+                    },
+                    "isEnforced": {
+                      "type": "boolean"
+                    },
+                    "backupCodesRemaining": {
+                      "type": "integer"
+                    },
+                    "lastVerifiedAt": {
+                      "type": "integer",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing x-user-id header",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Enable or disable 2FA for a user",
+        "operationId": "update2FAStatus",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "action"
+                ],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "enable",
+                      "disable"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "2FA status updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "enabled": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid action, or 2FA not configured (call /setup first)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing x-user-id header",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/2fa/backup-codes": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Regenerate backup codes for a user",
+        "operationId": "regenerateBackupCodes",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "New backup codes generated (previous codes invalidated)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "backupCodes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "2FA not configured for this user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing x-user-id header",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/2fa/recovery": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Recover access after losing a 2FA device (two-step token flow)",
+        "description": "Call with `userId` only to initiate — issues a short-lived recovery token sent to the user's verified contact. Call again with `recoveryToken` + `newMethod` to complete the reset and re-enroll with a new method.\n",
+        "operationId": "recover2FA",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "userId"
+                    ],
+                    "properties": {
+                      "userId": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "recoveryToken",
+                      "newMethod"
+                    ],
+                    "properties": {
+                      "recoveryToken": {
+                        "type": "string"
+                      },
+                      "newMethod": {
+                        "type": "string",
+                        "enum": [
+                          "totp",
+                          "sms"
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recovery initiated, or completed with new 2FA method details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "expiresAt": {
+                      "type": "integer",
+                      "description": "Present when recovery was just initiated"
+                    },
+                    "method": {
+                      "type": "string",
+                      "description": "Present when recovery was completed"
+                    },
+                    "secret": {
+                      "type": "string",
+                      "description": "TOTP secret, present only when newMethod is totp"
+                    },
+                    "backupCodes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or expired recovery token, or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/2fa/enforcement": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Get the org-wide 2FA enforcement policy (admin)",
+        "operationId": "getEnforcementPolicy",
+        "parameters": [
+          {
+            "name": "x-admin-id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current enforcement policy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing x-admin-id header",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Update the org-wide 2FA enforcement policy (admin)",
+        "operationId": "updateEnforcementPolicy",
+        "parameters": [
+          {
+            "name": "x-admin-id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated enforcement policy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing x-admin-id header",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Enforce or unenforce 2FA for a specific user (admin)",
+        "operationId": "setUserEnforcement",
+        "parameters": [
+          {
+            "name": "x-admin-id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "userId",
+                  "enforce"
+                ],
+                "properties": {
+                  "userId": {
+                    "type": "string"
+                  },
+                  "enforce": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Per-user enforcement updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "type": "string"
+                    },
+                    "isEnforced": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing userId or enforce",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing x-admin-id header",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "2FA not configured for this user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/preferences": {
+      "get": {
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Get notification preferences for a wallet",
+        "operationId": "getNotificationPreferences",
+        "parameters": [
+          {
+            "name": "userAddress",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "GABC..."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notification preferences (or null if none set)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "oneOf": [
+                        {
+                          "$ref": "#/components/schemas/NotificationPreferences"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Create or update notification preferences",
+        "operationId": "upsertNotificationPreferences",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationPreferences"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated preferences",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/NotificationPreferences"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/transactions": {
+      "get": {
+        "tags": [
+          "transactions"
+        ],
+        "summary": "List transactions",
+        "operationId": "listTransactions",
+        "responses": {
+          "200": {
+            "description": "Transaction list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "transactions"
+        ],
+        "summary": "Create a transaction record",
+        "operationId": "createTransaction",
+        "description": "Supports `Idempotency-Key` header.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Transaction created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency key conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/transactions/{id}": {
+      "get": {
+        "tags": [
+          "transactions"
+        ],
+        "summary": "Get a single transaction",
+        "operationId": "getTransaction",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "transactions"
+        ],
+        "summary": "Update a transaction",
+        "operationId": "updateTransaction",
+        "description": "Supports `Idempotency-Key` header.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated transaction",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/transactions/{id}/notifications": {
+      "get": {
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Get notification delivery records for a transaction",
+        "operationId": "getTransactionNotifications",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Delivery tracking records",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "transactionId": {
+                            "type": "string"
+                          },
+                          "channel": {
+                            "type": "string",
+                            "enum": [
+                              "email",
+                              "sms"
+                            ]
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "templateId": {
+                            "type": "string"
+                          },
+                          "destination": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health/liveness": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Liveness probe",
+        "description": "Kubernetes/load-balancer liveness check. Returns 200 if the process is alive.",
+        "operationId": "getLiveness",
+        "responses": {
+          "200": {
+            "description": "Service is alive",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health/readiness": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Readiness probe",
+        "description": "Checks database and upstream RPC connectivity before accepting traffic.",
+        "operationId": "getReadiness",
+        "responses": {
+          "200": {
+            "description": "Service is ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "database": {
+                      "type": "string",
+                      "example": "connected"
+                    },
+                    "stellarRpc": {
+                      "type": "string",
+                      "example": "reachable"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service unavailable / dependencies failing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/slo/status": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "SLO and availability status",
+        "description": "Reports current uptime, latency percentiles, and error budget consumption.",
+        "operationId": "getSloStatus",
+        "responses": {
+          "200": {
+            "description": "SLO metrics report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SloMetrics"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/offramp/quote-aggregate": {
+      "post": {
+        "tags": [
+          "offramp"
+        ],
+        "summary": "Aggregate conversion quote",
+        "description": "Returns quotes across multiple bridge and payment providers for rate comparison.",
+        "operationId": "getAggregateQuote",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Aggregate quotes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "quotes"
+                  ],
+                  "properties": {
+                    "quotes": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/QuoteResponse"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/offramp/fees": {
+      "post": {
+        "tags": [
+          "offramp"
+        ],
+        "summary": "Calculate off-ramp fees",
+        "description": "Calculates breakdown of network gas, bridge fee, and fiat payout fee.",
+        "operationId": "calculateOfframpFees",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "amount",
+                  "currency"
+                ],
+                "properties": {
+                  "amount": {
+                    "type": "string",
+                    "example": "100"
+                  },
+                  "currency": {
+                    "type": "string",
+                    "example": "NGN"
+                  },
+                  "feeMethod": {
+                    "type": "string",
+                    "enum": [
+                      "USDC",
+                      "XLM",
+                      "stablecoin",
+                      "native"
+                    ],
+                    "example": "USDC"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Fee breakdown",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "bridgeFee",
+                    "payoutFee",
+                    "totalFee"
+                  ],
+                  "properties": {
+                    "bridgeFee": {
+                      "type": "string",
+                      "example": "0.50"
+                    },
+                    "payoutFee": {
+                      "type": "string",
+                      "example": "0.00"
+                    },
+                    "totalFee": {
+                      "type": "string",
+                      "example": "0.50"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/offramp/execute-payout": {
+      "post": {
+        "tags": [
+          "offramp"
+        ],
+        "summary": "Trigger payout execution",
+        "description": "Executes the Base USDC transfer to Paycrest settlement address for an active order.",
+        "operationId": "executePayout",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "orderId"
+                ],
+                "properties": {
+                  "orderId": {
+                    "type": "string",
+                    "example": "ord_1234567890"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payout execution result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "txHash"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "submitted"
+                    },
+                    "txHash": {
+                      "type": "string",
+                      "example": "0x1234567890abcdef"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/offramp/tokens": {
+      "get": {
+        "tags": [
+          "offramp"
+        ],
+        "summary": "Supported tokens",
+        "description": "Lists all supported tokens and assets on Stellar and destination chains.",
+        "operationId": "getSupportedTokens",
+        "responses": {
+          "200": {
+            "description": "List of supported tokens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "tokens"
+                  ],
+                  "properties": {
+                    "tokens": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "symbol",
+                          "name",
+                          "decimals",
+                          "chain"
+                        ],
+                        "properties": {
+                          "symbol": {
+                            "type": "string",
+                            "example": "USDC"
+                          },
+                          "name": {
+                            "type": "string",
+                            "example": "USD Coin"
+                          },
+                          "decimals": {
+                            "type": "integer",
+                            "example": 7
+                          },
+                          "chain": {
+                            "type": "string",
+                            "example": "STELLAR"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/onramp/quote": {
+      "post": {
+        "tags": [
+          "onramp"
+        ],
+        "summary": "Get on-ramp quote",
+        "description": "Calculates the estimated crypto to receive for a fiat deposit.",
+        "operationId": "getOnrampQuote",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "fiatAmount",
+                  "fiatCurrency"
+                ],
+                "properties": {
+                  "fiatAmount": {
+                    "type": "string",
+                    "example": "50000"
+                  },
+                  "fiatCurrency": {
+                    "type": "string",
+                    "example": "NGN"
+                  },
+                  "cryptoAsset": {
+                    "type": "string",
+                    "example": "USDC"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Onramp quote",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "cryptoAmount",
+                    "rate",
+                    "fiatAmount",
+                    "fiatCurrency"
+                  ],
+                  "properties": {
+                    "cryptoAmount": {
+                      "type": "string",
+                      "example": "31.25"
+                    },
+                    "rate": {
+                      "type": "number",
+                      "example": 1600
+                    },
+                    "fiatAmount": {
+                      "type": "string",
+                      "example": "50000"
+                    },
+                    "fiatCurrency": {
+                      "type": "string",
+                      "example": "NGN"
+                    },
+                    "fee": {
+                      "type": "string",
+                      "example": "200"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/onramp/order": {
+      "post": {
+        "tags": [
+          "onramp"
+        ],
+        "summary": "Create on-ramp order",
+        "description": "Creates a new fiat on-ramp order with bank account deposit instructions.",
+        "operationId": "createOnrampOrder",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "fiatAmount",
+                  "fiatCurrency",
+                  "destinationAddress"
+                ],
+                "properties": {
+                  "fiatAmount": {
+                    "type": "string",
+                    "example": "50000"
+                  },
+                  "fiatCurrency": {
+                    "type": "string",
+                    "example": "NGN"
+                  },
+                  "destinationAddress": {
+                    "type": "string",
+                    "example": "GCFX...ABCD"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Onramp order created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "orderId",
+                    "depositInstructions",
+                    "status"
+                  ],
+                  "properties": {
+                    "orderId": {
+                      "type": "string",
+                      "example": "onramp_12345"
+                    },
+                    "status": {
+                      "type": "string",
+                      "example": "pending_payment"
+                    },
+                    "depositInstructions": {
+                      "type": "object",
+                      "properties": {
+                        "bankName": {
+                          "type": "string",
+                          "example": "Wema Bank"
+                        },
+                        "accountNumber": {
+                          "type": "string",
+                          "example": "9988776655"
+                        },
+                        "accountName": {
+                          "type": "string",
+                          "example": "Paycrest Settlement"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/onramp/order/{orderId}": {
+      "get": {
+        "tags": [
+          "onramp"
+        ],
+        "summary": "Get on-ramp order status",
+        "description": "Polls the status of an ongoing on-ramp order.",
+        "operationId": "getOnrampOrderStatus",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Onramp order status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "orderId",
+                    "status"
+                  ],
+                  "properties": {
+                    "orderId": {
+                      "type": "string",
+                      "example": "onramp_12345"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending_payment",
+                        "processing",
+                        "completed",
+                        "failed"
+                      ]
+                    },
+                    "txHash": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/merchant": {
+      "get": {
+        "tags": [
+          "merchant"
+        ],
+        "summary": "Get merchant profile",
+        "description": "Fetches merchant profile and business details.",
+        "operationId": "getMerchantProfile",
+        "responses": {
+          "200": {
+            "description": "Merchant profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MerchantProfile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "merchant"
+        ],
+        "summary": "Create/update merchant profile",
+        "description": "Registers or updates a merchant profile.",
+        "operationId": "createMerchantProfile",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "businessName",
+                  "email"
+                ],
+                "properties": {
+                  "businessName": {
+                    "type": "string",
+                    "example": "Acme Corp"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "finance@acme.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Merchant saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "status"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "example": "merch_123"
+                    },
+                    "status": {
+                      "type": "string",
+                      "example": "active"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/merchant/payouts": {
+      "get": {
+        "tags": [
+          "merchant"
+        ],
+        "summary": "List merchant payouts",
+        "description": "Returns historical merchant payouts and bulk settlement batches.",
+        "operationId": "listMerchantPayouts",
+        "responses": {
+          "200": {
+            "description": "Payouts list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "payouts"
+                  ],
+                  "properties": {
+                    "payouts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "amount": {
+                            "type": "string"
+                          },
+                          "currency": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "merchant"
+        ],
+        "summary": "Initiate bulk merchant payout",
+        "description": "Triggers a batch payout to multiple recipient bank accounts.",
+        "operationId": "createMerchantPayout",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "recipients"
+                ],
+                "properties": {
+                  "recipients": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Recipient"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Batch created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "batchId",
+                    "totalAmount",
+                    "count"
+                  ],
+                  "properties": {
+                    "batchId": {
+                      "type": "string"
+                    },
+                    "totalAmount": {
+                      "type": "string"
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/merchant/stats": {
+      "get": {
+        "tags": [
+          "merchant"
+        ],
+        "summary": "Merchant volume statistics",
+        "description": "Returns aggregated volume, completed orders, and fee metrics.",
+        "operationId": "getMerchantStats",
+        "responses": {
+          "200": {
+            "description": "Merchant statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "totalVolumeUsd",
+                    "totalOrders",
+                    "settledCount"
+                  ],
+                  "properties": {
+                    "totalVolumeUsd": {
+                      "type": "number",
+                      "example": 125000
+                    },
+                    "totalOrders": {
+                      "type": "integer",
+                      "example": 450
+                    },
+                    "settledCount": {
+                      "type": "integer",
+                      "example": 448
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/api-keys/{id}/scopes": {
+      "get": {
+        "tags": [
+          "api-keys"
+        ],
+        "summary": "Get API key scopes",
+        "description": "Returns the permission scopes attached to a specific API key.",
+        "operationId": "getApiKeyScopes",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "API key scopes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "keyId",
+                    "scopes"
+                  ],
+                  "properties": {
+                    "keyId": {
+                      "type": "string"
+                    },
+                    "scopes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "api-keys"
+        ],
+        "summary": "Update API key scopes",
+        "description": "Updates allowed permission scopes for the specified API key.",
+        "operationId": "updateApiKeyScopes",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "scopes"
+                ],
+                "properties": {
+                  "scopes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Scopes updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "keyId",
+                    "scopes"
+                  ],
+                  "properties": {
+                    "keyId": {
+                      "type": "string"
+                    },
+                    "scopes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/transactions/analytics": {
+      "get": {
+        "tags": [
+          "transactions"
+        ],
+        "summary": "Transaction analytics",
+        "description": "Returns historical transaction velocity, currency distribution, and success rates.",
+        "operationId": "getTransactionAnalytics",
+        "responses": {
+          "200": {
+            "description": "Analytics data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "totalVolume",
+                    "successRate",
+                    "averageSettlementSeconds"
+                  ],
+                  "properties": {
+                    "totalVolume": {
+                      "type": "number"
+                    },
+                    "successRate": {
+                      "type": "number"
+                    },
+                    "averageSettlementSeconds": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/transactions/search": {
+      "get": {
+        "tags": [
+          "transactions"
+        ],
+        "summary": "Search transactions",
+        "description": "Performs multi-field search across transactions by hash, recipient, or date.",
+        "operationId": "searchTransactions",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "results",
+                    "count"
+                  ],
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Transaction"
+                      }
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/transactions/disputes": {
+      "get": {
+        "tags": [
+          "transactions"
+        ],
+        "summary": "List transaction disputes",
+        "description": "Returns all open and resolved transaction disputes.",
+        "operationId": "listDisputes",
+        "responses": {
+          "200": {
+            "description": "Dispute list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "disputes"
+                  ],
+                  "properties": {
+                    "disputes": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Dispute"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "transactions"
+        ],
+        "summary": "Create dispute",
+        "description": "Opens a dispute on an unfulfilled or delayed transaction.",
+        "operationId": "createDispute",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "transactionId",
+                  "reason"
+                ],
+                "properties": {
+                  "transactionId": {
+                    "type": "string"
+                  },
+                  "reason": {
+                    "type": "string"
+                  },
+                  "evidenceUrl": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Dispute opened",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "disputeId",
+                    "status"
+                  ],
+                  "properties": {
+                    "disputeId": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "example": "open"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/webhooks/subscriptions": {
+      "get": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "List webhook subscriptions",
+        "description": "Returns active webhook event listener endpoints registered for the account.",
+        "operationId": "listWebhookSubscriptions",
+        "responses": {
+          "200": {
+            "description": "Subscription list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "subscriptions"
+                  ],
+                  "properties": {
+                    "subscriptions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WebhookSubscription"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "Create webhook subscription",
+        "description": "Registers a new HTTPS endpoint to receive asynchronous transaction events.",
+        "operationId": "createWebhookSubscription",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "targetUrl",
+                  "events"
+                ],
+                "properties": {
+                  "targetUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "events": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Subscription registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "secret"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "secret": {
+                      "type": "string",
+                      "description": "HMAC secret used to verify webhook signatures"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/webhooks/delivery-log": {
+      "get": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "Webhook delivery logs",
+        "description": "Returns recent webhook delivery attempts, HTTP status codes, and latencies.",
+        "operationId": "getWebhookDeliveryLogs",
+        "responses": {
+          "200": {
+            "description": "Delivery log entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "deliveries"
+                  ],
+                  "properties": {
+                    "deliveries": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WebhookDelivery"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sync/history": {
+      "get": {
+        "tags": [
+          "sync"
+        ],
+        "summary": "Retrieve synced history",
+        "description": "Fetches encrypted client transaction records for backup/recovery.",
+        "operationId": "getSyncHistory",
+        "responses": {
+          "200": {
+            "description": "Synced transaction history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "transactions"
+                  ],
+                  "properties": {
+                    "transactions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Transaction"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "sync"
+        ],
+        "summary": "Push sync history",
+        "description": "Syncs locally recorded client transactions to cloud storage.",
+        "operationId": "pushSyncHistory",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "transactions"
+                ],
+                "properties": {
+                  "transactions": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Transaction"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sync confirmed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "syncedCount"
+                  ],
+                  "properties": {
+                    "syncedCount": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sync/settings": {
+      "get": {
+        "tags": [
+          "sync"
+        ],
+        "summary": "Get user preferences",
+        "description": "Fetches cloud-synced user configuration, default currencies, and theme.",
+        "operationId": "getSyncSettings",
+        "responses": {
+          "200": {
+            "description": "Settings configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "settings"
+                  ],
+                  "properties": {
+                    "settings": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "sync"
+        ],
+        "summary": "Save user preferences",
+        "description": "Saves user preferences to cloud storage.",
+        "operationId": "saveSyncSettings",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "settings"
+                ],
+                "properties": {
+                  "settings": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Settings saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "saved"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/offramp/quote-aggregate": {
+      "post": {
+        "tags": [
+          "offramp"
+        ],
+        "summary": "Aggregate conversion quote (v1)",
+        "description": "Returns quotes across multiple providers under versioned /v1/ route.",
+        "operationId": "getAggregateQuoteV1",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Aggregate quotes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "quotes"
+                  ],
+                  "properties": {
+                    "quotes": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/QuoteResponse"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/offramp/fees": {
+      "post": {
+        "tags": [
+          "offramp"
+        ],
+        "summary": "Calculate off-ramp fees (v1)",
+        "description": "Calculates offramp fee breakdown under /v1/ route.",
+        "operationId": "calculateOfframpFeesV1",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "amount",
+                  "currency"
+                ],
+                "properties": {
+                  "amount": {
+                    "type": "string",
+                    "example": "100"
+                  },
+                  "currency": {
+                    "type": "string",
+                    "example": "NGN"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Fee breakdown",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "bridgeFee",
+                    "payoutFee",
+                    "totalFee"
+                  ],
+                  "properties": {
+                    "bridgeFee": {
+                      "type": "string"
+                    },
+                    "payoutFee": {
+                      "type": "string"
+                    },
+                    "totalFee": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/offramp/rate": {
+      "get": {
+        "tags": [
+          "offramp"
+        ],
+        "summary": "Get live spot rate (v1)",
+        "description": "Returns spot FX conversion rate under /v1/ route.",
+        "operationId": "getSpotRateV1",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Spot rate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "rate",
+                    "pair"
+                  ],
+                  "properties": {
+                    "rate": {
+                      "type": "number",
+                      "example": 1598
+                    },
+                    "pair": {
+                      "type": "string",
+                      "example": "USDC/NGN"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/offramp/paycrest/order": {
+      "post": {
+        "tags": [
+          "paycrest"
+        ],
+        "summary": "Create Paycrest payout order (v1)",
+        "description": "Creates payout order under /v1/ route.",
+        "operationId": "createPaycrestOrderV1",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Order created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/offramp/paycrest/order/{orderId}": {
+      "get": {
+        "tags": [
+          "paycrest"
+        ],
+        "summary": "Get Paycrest order status (v1)",
+        "description": "Polls status of payout order under /v1/ route.",
+        "operationId": "getPaycrestOrderStatusV1",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderStatusResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/offramp/status/{orderId}": {
+      "get": {
+        "tags": [
+          "offramp"
+        ],
+        "summary": "Get off-ramp order status (v1)",
+        "description": "Polls complete status under /v1/ route.",
+        "operationId": "getOfframpOrderStatusV1",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Off-ramp status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfframpStatusResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/offramp/bridge/status/{txHash}": {
+      "get": {
+        "tags": [
+          "bridge"
+        ],
+        "summary": "Poll Allbridge bridge status (v1)",
+        "description": "Polls cross-chain bridge transfer status under /v1/ route.",
+        "operationId": "getBridgeStatusV1",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "txHash",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bridge status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BridgeStatusResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/offramp/bridge/tx-status/{hash}": {
+      "get": {
+        "tags": [
+          "bridge"
+        ],
+        "summary": "Poll Stellar on-chain status (v1)",
+        "description": "Polls on-chain Soroban submission status under /v1/ route.",
+        "operationId": "getStellarTxStatusV1",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "hash",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stellar tx status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxStatusResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — validation failed or missing parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -3,7 +3,10 @@
 Base URL: `http://localhost:3001` (development)
 
 > **Interactive API explorer:** Visit **[/api/docs](/api/docs)** for the Swagger UI — try any endpoint directly from the browser.
-> The underlying OpenAPI 3.0 spec is in [`openapi.yaml`](../openapi.yaml) at the repo root.
+> The complete OpenAPI 3.0 specification is available for external consumers in both formats:
+> - Raw YAML: **[`/openapi.yaml`](/openapi.yaml)**
+> - Raw JSON: **[`/openapi.json`](/openapi.json)**
+> - Root Spec File: [`openapi.yaml`](../openapi.yaml)
 
 ---
 
