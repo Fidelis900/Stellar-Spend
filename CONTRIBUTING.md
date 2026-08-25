@@ -26,6 +26,8 @@
 
 ## Development Environment Setup
 
+> 📘 **Comprehensive Local Setup Guide**: For a consolidated guide covering Rust, Soroban CLI, database setup, and troubleshooting RPC errors, see **[`docs/local-dev-setup.md`](./docs/local-dev-setup.md)**.
+
 ### Prerequisites
 
 - Node.js ≥ 20 and npm

@@ -145,6 +145,8 @@ sequenceDiagram
 
 ## Setup Guide
 
+> 📖 **Full Setup Guide**: For complete end-to-end instructions covering Rust toolchains, Soroban smart contracts, PostgreSQL, and troubleshooting common RPC errors, see **[`docs/local-dev-setup.md`](./docs/local-dev-setup.md)**.
+
 ### Prerequisites
 
 - Node.js ≥ 20
